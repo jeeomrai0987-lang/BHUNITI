@@ -1,30 +1,26 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { MAIN_ROUTES } from "../routes";
+import logoImg from "../assets/logo.jpeg";
 
 const navLinkClass = ({ isActive }) =>
   isActive
-    ? "transition-colors text-primary font-semibold"
-    : "font-body-md text-on-surface-variant hover:text-primary transition-colors";
+    ? "text-primary border-b-2 border-primary pb-1 font-body-md text-body-md flex items-center h-16"
+    : "text-body-md font-body-md text-on-surface-variant hover:text-primary transition-colors flex items-center h-16";
 
 export default function MainNavbar() {
   return (
-    <header className="fixed top-0 w-full z-50 bg-surface-white/90 backdrop-blur-md border-b border-border-subtle">
-      <div className="h-20 max-w-[1440px] mx-auto px-margin-desktop flex items-center justify-between">
-        <div className="flex items-center gap-4">
+    <header className="fixed top-0 w-full z-50 bg-white border-b border-border-subtle shadow-sm">
+      <div className="h-16 max-w-7xl mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
+        <Link to={MAIN_ROUTES.home} className="flex items-center gap-3">
           <img
-            alt="BHUNITI logo"
-            className="h-10 w-auto object-contain"
-            src="https://lh3.googleusercontent.com/aida/AEtjO1XSnvCAUNfbYhxXOfX_HEbcR5MI9eHRI79zFrcVZmV2MbcDPygj29eJK0Pg7ivJO_HaX1FnAl4hO_JwgPAYDRkQyA8plpJOLsV9ytivNKhdNl8btOvSBPP5dJjgO0b7KnE8wBLrrOP7Med-IdiuZt5-uBy72pcUNjifKhesqPjRS7QFSfmYJFltgTeGywZsRsLRaYHveY5S63LZM4a6pLzt6b38f0jujjV08bEBQefbqXlUvAM6zvyxag"
+            alt="BHUNITI"
+            className="h-9 w-auto object-contain rounded-lg shadow-sm"
+            src={logoImg}
           />
-          <div className="flex flex-col">
-            <span className="font-headline-md text-headline-md text-primary tracking-tight">
-              BHUNITI
-            </span>
-            <span className="font-label-caps text-[10px] uppercase text-on-surface-variant leading-none">
-              Connecting Land, Data &amp; Governance
-            </span>
-          </div>
-        </div>
+          <span className="font-headline-md text-headline-md text-primary tracking-tight">
+            BHUNITI
+          </span>
+        </Link>
 
         <nav className="hidden xl:flex items-center gap-8">
           <NavLink to={MAIN_ROUTES.home} end className={navLinkClass}>

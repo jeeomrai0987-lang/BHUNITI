@@ -193,7 +193,7 @@ export default function ReportsAnalytics() {
     </div>
 
     <div className="col-span-12 xl:col-span-7 bg-surface-container-lowest shadow-sm rounded-2xl overflow-hidden relative h-[500px]">
-    <div className="absolute inset-0 w-full h-full bg-cover bg-center" data-alt="High-contrast, minimalist satellite map view of a district in India, showing parcel boundaries and topographic features. The map uses a muted slate and indigo color palette for enterprise GIS aesthetics, with subtle glow effects on specific regions indicating data density." data-location="Bhopal District, Madhya Pradesh, India" style={{backgroundImage: 'url(\'https://lh3.googleusercontent.com/aida-public/AB6AXuDd7ECT5C7iPGx_hbW4Kr9YLUDiImdP-QbkrE4twW-tC0_kGjhQn2y3Tx_2oXbi4tfKHOWc3d27ohSPY0p3UBGtx4tYO5cC6XJTT0BjTbziX3fLZ7vv9JLg-x7xxkWLr8PFiyWI_911P1Qw0DxYGLjm4lDYvr2v5Ts-uLrPO5qkQlwB20-QtW-6mx3PhRu-CtOLgWEjyT-tIiz1Mbs_c8wmHO13_ANMIi_GwsMbqNynJxnzGgrIQnQ\')'}}></div>
+    <div className="absolute inset-0 w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1600')" }}></div>
 
     <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/20 to-surface-container-lowest/10"></div>
 

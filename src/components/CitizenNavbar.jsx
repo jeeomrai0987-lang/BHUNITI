@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { CITIZEN_ROUTES } from "../routes";
+import logoImg from "../assets/logo.jpeg";
 
 const navLinkClass = ({ isActive }) =>
   isActive
@@ -10,14 +11,14 @@ export default function CitizenNavbar() {
   return (
     <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
       <div className="h-16 max-w-7xl mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <img
-            alt="BHUNEXIS - minimalist logo"
-            className="h-8 w-auto object-contain"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_KfiqkQN4LB4a_Ey73C_HLSkkLLt6nj5i0__eqvDjlAUqCh3F3Ef1WLm_PU0arJ-8AhHYPRg40o6s8W-DlAKH786mQRT1bbJcWK0Y0tXVOihv6O1QWbVtl-XP1MMouogAlkKHmVt7N53yDgoxya4GznBVlHP3B3SQmb48q4WUEg99NpjG_FXQfpJDaJyVKEOYp28k5vE2tRpa3mjddM5q2EklVCPa-bl1wK-wU4JhM-3qQjwgIrk"
+            alt="BHUNITI"
+            className="h-9 w-auto object-contain rounded-lg shadow-sm"
+            src={logoImg}
           />
           <span className="font-headline-md text-headline-md text-primary tracking-tight hidden sm:block">
-            BHUNEXIS
+            BHUNITI
           </span>
         </div>
 

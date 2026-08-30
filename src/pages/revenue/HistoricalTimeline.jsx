@@ -108,7 +108,7 @@ export default function HistoricalTimeline() {
 
     <article className="bg-surface-container rounded-2xl shadow-sm overflow-hidden flex flex-col lg:flex-row transition-all duration-500 hover:shadow-md group" id="card-2021">
     <div className="lg:w-1/3 min-h-[200px] relative">
-    <div className="w-full h-full bg-cover bg-center absolute inset-0" data-location="Cadastral Map, Initial Survey 2021, P-1024" style={{backgroundImage: 'url(\'https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg\')'}}></div>
+    <div className="w-full h-full bg-cover bg-center absolute inset-0" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1600')" }}></div>
     <div className="absolute inset-0 bg-surface-container/20 group-hover:bg-transparent transition-colors duration-500 backdrop-blur-[2px] group-hover:backdrop-blur-none"></div>
     <div className="absolute top-4 left-4 bg-surface/90 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm">
     <span className="font-label-md text-label-md text-on-surface">Base Survey</span>
@@ -139,7 +139,7 @@ export default function HistoricalTimeline() {
 
     <article className="bg-surface-container rounded-2xl shadow-sm overflow-hidden flex flex-col lg:flex-row transition-all duration-500 hover:shadow-md group" id="card-2023">
     <div className="lg:w-1/3 min-h-[200px] relative order-first lg:order-last">
-    <div className="w-full h-full bg-cover bg-center absolute inset-0 mix-blend-luminosity opacity-80 group-hover:opacity-100 group-hover:mix-blend-normal transition-all duration-500" data-alt="Close up of an official government property registration document with stamps and signatures, dramatic lighting, high contrast, archival feel." style={{backgroundImage: 'url(\'https://lh3.googleusercontent.com/aida-public/AB6AXuAFrjq0XpoWkBywIhWrNRf8AQAEiPx_RM4bh0G2AEoLai_uSgRQSwK7KIX7lv6vlxKQ29eoXBbm8xTipLsLdLVO0zEXGYE1BMU1GqNnY6K-LGbFD1jtst7IxQM0wsYgN2dgknl2-ymWdjopMdHUn1C1K_GSO5D98x9nhGBnyiMeFkyZ5eYErYyZECQxu33XNl5Zy9DjtMeliArfMysv8tJdWnomV_fqhAYPheoPotvw-g5IhKK8Tg4\')'}}></div>
+    <div className="w-full h-full bg-cover bg-center absolute inset-0 opacity-90 transition-all duration-500 rounded-xl" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&q=80&w=1600')" }}></div>
     </div>
     <div className="p-8 lg:w-2/3 flex flex-col gap-6 justify-center bg-surface-container relative">
     <div className="absolute top-0 left-0 w-32 h-32 bg-outline-variant/10 rounded-br-full pointer-events-none"></div>

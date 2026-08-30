@@ -67,7 +67,7 @@ export default function TehsilAnalytics() {
     </div>
 
     <div className="bg-surface-container p-6 rounded-2xl shadow-sm flex flex-col gap-3 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-    <div className="absolute inset-0 bg-cover bg-center opacity-10 mix-blend-overlay" data-alt="Abstract subtle geometric pattern, light grey and white, minimalist technical background, representing mapped land parcels, enterprise aesthetic" style={{backgroundImage: 'url(\'https://lh3.googleusercontent.com/aida-public/AB6AXuDQb3nnsAVLVfiKNYhYTXJgHGLsGoWk4tKDmNLtF6C1VRyHTFDvvZkXIN9BGwQpPcesR0KTzMkbaiZXNkN-yKeCzG-QLQUHrldsb05lTPzGseIQcc_AkKn8P5v812OSkMRAM99DfATBaHEF95bU_S4oLiVz0j87RjM3M9NJ48s1cZ61tvYELaL5t3bsz85Xxc7mTZFQdYcFnjheMNBOMTgOq6gUG_47YkNTaRFUeFTk4PoElKnLVx8\')'}}></div>
+    <div className="absolute inset-0 bg-cover bg-center opacity-20 mix-blend-overlay" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1600')" }}></div>
     <div className="flex items-center justify-between relative z-10">
     <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Map Sync Rate</span>
     <span className="material-symbols-outlined text-primary">sync</span>

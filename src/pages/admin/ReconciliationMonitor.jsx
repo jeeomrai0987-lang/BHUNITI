@@ -191,7 +191,7 @@ export default function ReconciliationMonitor() {
     <span className="font-label-md text-label-md text-on-surface">HOTSPOT: TEHSIL LONI</span>
     </div>
 
-    <div className="w-full h-full bg-cover bg-center transition-transform duration-1000 group-hover:scale-105" data-alt="A highly detailed satellite map view of an urban-rural fringe area in northern India, showing fragmented agricultural plots interspersed with dense urban settlement. High contrast, precise cartographic style. Overlaid with transparent red polygon outlines indicating spatial data discrepancies against a muted, slate-toned basemap. Professional GIS software aesthetic." data-location="Loni, Ghaziabad, India" style={{backgroundImage: 'url(\'https://lh3.googleusercontent.com/aida-public/AB6AXuASPfcoYxvbjDXaUGwSrjj0hyp-BQnXVmIyNDKEEtpPyReKZBD47FJEHd--yMDNbcMbdA59eYkOS5yMEoZiiFB5MflBmD7txpWffg6fa6Ng6o9SsTSjb4M5fWAiCnrW_mqqyWO6gdaoZOEn51FzO24ofwmQVbM5poCavfCI_-TwivrLPcUqQlNGsjkNNUfw5Xc6HuVyoVcipBGcpIcbmEqbHtQPbzyZO2fDI07s5s4-m6y_rCFOIRg\')'}}></div>
+    <div className="w-full h-full bg-cover bg-center transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1600')" }}></div>
     <div className="absolute bottom-4 right-4 z-20 flex flex-col gap-2">
     <button className="w-10 h-10 bg-surface text-on-surface rounded-full shadow-lg flex items-center justify-center hover:bg-surface-container transition-colors">
     <span className="material-symbols-outlined">add</span>

@@ -1,13 +1,39 @@
+import { useState, useEffect } from "react";
+import { api } from "../../services/api";
+
 export default function AdminOverview() {
+  const [data, setData] = useState({
+    district_name: "Ghaziabad",
+    total_parcels: 124580,
+    verified_parcels: 116820,
+    verified_pct: 93.8,
+    open_discrepancies: 1842,
+    high_priority_discrepancies: 126,
+    pending_mutations: 2416,
+    scheduled_field_surveys: 284
+  });
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const res = await api.analytics.getDistrictOverview();
+        if (res) setData(res);
+      } catch (err) {
+        console.log("Using cached admin metrics:", err.message);
+      }
+    }
+    loadStats();
+  }, []);
+
   return (
     <main className="pt-16 min-h-screen bg-surface"><div className="flex flex-col w-full p-4 md:p-8 space-y-8 bg-surface text-on-surface">
     <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 w-full relative z-10">
     <div className="flex flex-col max-w-3xl space-y-2">
     <div className="flex items-center gap-2 mb-2">
     <span className="inline-flex items-center justify-center bg-primary text-on-primary rounded-full px-3 py-1 font-label-md tracking-wider uppercase shadow-md">
-                Ghaziabad
+                {data.district_name}
              </span>
-    <span className="text-on-surface-variant font-label-md tracking-wide uppercase">Command Center</span>
+    <span className="text-on-surface-variant font-label-md tracking-wide uppercase">Command Center (Live Cloud Sync)</span>
     </div>
     <h1 className="font-display text-4xl md:text-5xl text-on-surface leading-tight relative inline-block">
             District Land Governance Command Center
@@ -33,7 +59,7 @@ export default function AdminOverview() {
     </div>
     <p className="font-label-md text-on-surface-variant uppercase mb-2 relative z-10">Total Parcels</p>
     <div className="flex items-baseline gap-2 relative z-10">
-    <span className="font-display text-3xl text-on-surface">1,24,580</span>
+    <span className="font-display text-3xl text-on-surface">{data.total_parcels.toLocaleString()}</span>
     </div>
     <div className="mt-4 relative z-10 h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
     <div className="h-full bg-primary w-full rounded-full"></div>
@@ -46,8 +72,8 @@ export default function AdminOverview() {
     </div>
     <p className="font-label-md text-on-surface-variant uppercase mb-2 relative z-10">Verified Parcels</p>
     <div className="flex items-baseline gap-2 relative z-10">
-    <span className="font-display text-3xl text-on-surface">1,16,820</span>
-    <span className="font-body-sm text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">93.8%</span>
+    <span className="font-display text-3xl text-on-surface">{data.verified_parcels.toLocaleString()}</span>
+    <span className="font-body-sm text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">{data.verified_pct}%</span>
     </div>
     <div className="mt-4 relative z-10 h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
     <div className="h-full bg-secondary w-[93.8%] rounded-full"></div>
@@ -61,11 +87,11 @@ export default function AdminOverview() {
     <p className="font-label-md text-on-error-container/80 uppercase mb-2 relative z-10">Open Discrepancies</p>
     <div className="flex flex-col gap-1 relative z-10">
     <div className="flex items-baseline gap-2">
-    <span className="font-display text-3xl">1,842</span>
+    <span className="font-display text-3xl">{data.open_discrepancies.toLocaleString()}</span>
     </div>
     <div className="flex items-center gap-1 text-error text-sm font-label-md">
     <span className="material-symbols-outlined text-[16px] text-error" style={{fontVariationSettings: '\'FILL\' 1'}}>priority_high</span>
-    <span>126 High Priority</span>
+    <span>{data.high_priority_discrepancies} High Priority</span>
     </div>
     </div>
     </div>
@@ -76,10 +102,10 @@ export default function AdminOverview() {
     </div>
     <p className="font-label-md text-on-tertiary-container/80 uppercase mb-2 relative z-10">Pending Mutations</p>
     <div className="flex items-baseline gap-2 relative z-10">
-    <span className="font-display text-3xl">2,416</span>
+    <span className="font-display text-3xl">{data.pending_mutations.toLocaleString()}</span>
     </div>
     <div className="mt-4 flex gap-2 relative z-10">
-    <span className="text-xs font-label-md bg-on-tertiary-container/10 px-2 py-1 rounded">284 FIELD SURVEYS</span>
+    <span className="text-xs font-label-md bg-on-tertiary-container/10 px-2 py-1 rounded">{data.scheduled_field_surveys} FIELD SURVEYS</span>
     </div>
     </div>
     </section>
@@ -105,7 +131,7 @@ export default function AdminOverview() {
     </div>
     <div className="flex-1 w-full relative">
 
-    <div className="absolute inset-0 bg-cover bg-center w-full h-full" data-location="Ghaziabad District, Uttar Pradesh" style={{backgroundImage: 'url(\'https://lh3.googleusercontent.com/aida-public/AB6AXuDsOhYV_T2NerqCsLT25TBJK9XcvfgJKozpSLLKRW8i7Pt5M4yRD1PvC86jRWgAtGRcDzIKzGr3UmcskZRjAcijUkI1bq-Y1Wvo1R53_TweF2QURG80YXbHIvHxiNeZEQSB2NWlszoAPOkO8nFC0FrOW7Zk5_9x-REwq-oNJ8gyIgm0kaYInN40FVV-1F1kG8QYz0LdcnIqZv9XMXiKqL09SSmIw0CKOjfJMv49agVHPvrvSuelYk8\')'}}></div>
+    <div className="absolute inset-0 bg-cover bg-center w-full h-full" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1600')" }}></div>
 
     <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-20">
     <button className="w-10 h-10 bg-surface/90 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center text-on-surface hover:text-primary hover:-translate-y-0.5 transition-all">

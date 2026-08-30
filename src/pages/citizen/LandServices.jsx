@@ -102,7 +102,7 @@ export default function LandServices() {
 
     <div className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-shadow">
     <div className="w-16 h-16 rounded-full overflow-hidden shadow-sm shrink-0 border-2 border-surface">
-    <img alt="User Profile" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYyDe9L7VIthGwv9aUlBOx5YtLdXhsMD-6PlT1SYuA_2eKAkmL3mSEnh9s0N7bbyTnaNQWdSCzUMGROZ-EanSeGLiskqXS9snog3P-9OHq5Q_M5krv2PTV64CQnpbMNkERXeg0XdnF9sXst3w9wMJLT3pt1X4GU5potd_zk4tQsnGMAEHxR0QEiyW7GutfA8bHvYmSlrPtvwpb60MTc6bMmqGwu_F2LSanBuFaYpAkNnPo4LWrq_4" />
+    <img alt="User Profile" className="w-full h-full object-cover" src="/src/assets/logo.jpeg" />
     </div>
     <div className="flex flex-col">
     <h3 className="font-headline-md text-body-lg font-semibold text-on-surface">Priya Sharma</h3>

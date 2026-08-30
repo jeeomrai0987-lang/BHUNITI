@@ -111,7 +111,7 @@ export default function OfficerPerformance() {
     <td className="py-4 px-6 border-b border-surface-variant">
     <div className="flex items-center gap-3">
     <div className="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden relative">
-    <img alt="Avatar" className="w-full h-full object-cover mix-blend-luminosity opacity-80" data-alt="A professional headshot of a middle-aged male Indian government revenue officer in formal attire. Corporate lighting, neutral grey background, high resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0qMIYBuoybSCe9EEG4OkwtO70uhQ33qRiSPbsMTqJwu6Kz5Hl9zeZDBEElnbHNUnoHtuz9fIkx9RVyZ7WVufbCQqrkZlrT6gzD_QBfZ9h96Lb6UqTBQmAHrXB8P1JRMBvRDSYBCqq8WVf0j4Je3KifcsJaFlp_9j1Sclb-ZhAd36-nSdCPkTwRuNp1m43Ts5xJH9WZtzxE0MD-473fBpaINAuzWvi5JezQ6smOBT7F5FpVxa8_Zs" />
+    <img alt="Avatar" className="w-full h-full object-cover mix-blend-luminosity opacity-80" data-alt="A professional headshot of a middle-aged male Indian government revenue officer in formal attire. Corporate lighting, neutral grey background, high resolution." src="/src/assets/logo.jpeg" />
     </div>
     <div>
     <p className="font-bold text-on-surface">RO-018</p>
@@ -148,7 +148,7 @@ export default function OfficerPerformance() {
     <td className="py-4 px-6 border-b border-surface-variant">
     <div className="flex items-center gap-3">
     <div className="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center font-bold text-sm shadow-sm overflow-hidden relative">
-    <img alt="Avatar" className="w-full h-full object-cover mix-blend-luminosity opacity-80" data-alt="A professional headshot of a younger female Indian government revenue officer in business casual attire. Studio lighting, warm neutral background, high resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO32FTrO9riYpEKu0tgWQJ5osEgLp4bJcZtXXYD-HTuACV1DozkPteu5ie0Y4BuvgWUNDsqkVhRfddco-d4hlb6PypTmwztZvB9vCS5AoocM6gnGkbywBOLGRHHZCUXmRyKumonmHe5qmJJCuvKWMDFtDn5OGONYswrj6WV3lpt02v1Jcsw4hSdAlm6ZvUnwzB1SQRlw69mLvbhs90HoyPcTK80-d-47kh8bxBiB1DGtXjWGrpN2w" />
+    <img alt="Avatar" className="w-full h-full object-cover mix-blend-luminosity opacity-80" data-alt="A professional headshot of a younger female Indian government revenue officer in business casual attire. Studio lighting, warm neutral background, high resolution." src="/src/assets/logo.jpeg" />
     </div>
     <div>
     <p className="font-bold text-error">RO-024</p>

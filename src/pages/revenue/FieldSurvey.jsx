@@ -177,7 +177,7 @@ export default function FieldSurvey() {
     <div className="flex-1 overflow-y-auto bg-surface-bright relative z-0">
 
     <div className="h-48 relative w-full mb-4">
-    <div className="w-full h-full bg-cover bg-center" data-alt="High-resolution satellite view of an agricultural land parcel showing a red highlighted boundary dispute area with adjacent plots. The interface should have a high-tech, precise GIS feel in deep navy and bright accent colors." data-location="Agricultural land plot boundary, high contrast satellite imagery" style={{backgroundImage: 'url(\'https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg\')'}}></div>
+    <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1600')" }}></div>
     <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
     <div className="absolute bottom-2 left-2 right-2 bg-surface/90 backdrop-blur-sm p-2 rounded shadow-sm border border-outline-variant flex justify-between text-[11px] font-tabular-nums text-on-surface">
     <span>Lat: 28.6139° N</span>

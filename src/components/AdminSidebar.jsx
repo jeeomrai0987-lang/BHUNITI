@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { ADMIN_ROUTES } from "../routes";
+import logoImg from "../assets/logo.jpeg";
 
 const activeClasses =
   "flex items-center px-6 py-3 transition-colors bg-surface-container-highest/10 text-on-primary border-l-4 border-inverse-primary";
@@ -17,9 +18,9 @@ export default function AdminSidebar() {
     <aside className="fixed left-0 top-0 h-full w-[280px] bg-primary-container text-on-primary-container z-50 flex flex-col shadow-xl">
       <div className="p-6 flex items-center gap-3 border-b border-on-primary-fixed-variant/20">
         <img
-          alt="BHUNEXIS"
-          className="h-8 w-auto object-contain"
-          src="https://lh3.googleusercontent.com/aida/AEtjO1XSnvCAUNfbYhxXOfX_HEbcR5MI9eHRI79zFrcVZmV2MbcDPygj29eJK0Pg7ivJO_HaX1FnAl4hO_JwgPAYDRkQyA8plpJOLsV9ytivNKhdNl8btOvSBPP5dJjgO0b7KnE8wBLrrOP7Med-IdiuZt5-uBy72pcUNjifKhesqPjRS7QFSfmYJFltgTeGywZsRsLRaYHveY5S63LZM4a6pLzt6b38f0jujjV08bEBQefbqXlUvAM6zvyxag"
+          alt="BHUNITI"
+          className="h-8 w-auto object-contain rounded-lg"
+          src={logoImg}
         />
         <div className="flex flex-col">
           <span className="text-label-md uppercase tracking-widest text-on-primary-container/60">

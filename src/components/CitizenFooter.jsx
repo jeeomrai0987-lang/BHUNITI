@@ -1,3 +1,5 @@
+import logoImg from "../assets/logo.jpeg";
+
 export default function CitizenFooter() {
   return (
     <footer className="w-full bg-surface-container-low border-t border-outline-variant py-12">
@@ -6,10 +8,11 @@ export default function CitizenFooter() {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <img
-                className="h-6 w-auto"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRAMpV8JrL6BS9PJyR6Wk4hs-pK5uA_64T-Jkif1QSgoRwZhngmpjGloiVwCqfhWspxB11eNm-7EXB25lgicOE6pTSp-ULtfyaxTuaQ8k4sjrwhhY3rZqu0TKZq8hVzeR2M-gGaFdZd4GDPfq9XR0My3QR7t0GyVS5lnJ9-SwB2Tx6JrA1eNFqAix0HhC6ss4XW7x_9Jv-cQZhmFAkPEOJvXzEXqJWqZmndVWc-eWSBQ8UQ7Cf3P4"
+                className="h-8 w-auto rounded-lg object-contain shadow-sm"
+                src={logoImg}
+                alt="BHUNITI"
               />
-              <span className="font-headline-md text-primary">BHUNEXIS</span>
+              <span className="font-headline-md text-primary font-bold">BHUNITI</span>
             </div>
             <p className="text-body-sm text-on-surface-variant max-w-sm">
               A secure, digital gateway for land governance and property

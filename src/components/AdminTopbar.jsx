@@ -39,7 +39,7 @@ export default function AdminTopbar() {
           <img
             alt="Profile"
             className="w-9 h-9 rounded-full object-cover border-2 border-surface-container-highest"
-            src="https://lh3.googleusercontent.com/aida/AEtjO1U6o5SJhtUFoWr8mBSiJBZYY5leWMCGrZrwT62qXe5N3Y0lfh8UB0EIzmWZs1C8PUElDoqRNhERxjGGRhmksVn_bK9K4_f4-JQ21z1-FDIoR6jj6mihto4O6_cQIQo0QLJQNaKVimW10mFwZ_qUmU-XLWGcINPJ-7xvNSP48QMM35F3GyyzJF4hjPmxZnDqqWB4mAIhSIWQXUuHVRosdXnn-EeIE4CI499W7wwm-u8167g92sBlY7EwsQ"
+            src="/src/assets/logo.jpeg"
           />
         </div>
       </div>

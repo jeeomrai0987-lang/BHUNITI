@@ -257,7 +257,7 @@ export default function DiscrepancyCases() {
     <div className="p-6 border-b border-surface-container-high bg-surface-bright relative">
     <h4 className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4">Spatial Context</h4>
     <div className="w-full h-48 rounded-xl overflow-hidden relative shadow-inner group">
-    <div className="absolute inset-0 bg-cover bg-center" data-location="Agricultural plots, rural India, high contrast satellite view with glowing parcel boundary overlay in red" style={{backgroundImage: 'url(\'https://lh3.googleusercontent.com/aida-public/AB6AXuCUj8StR57KkGAr10iWLPQZbKBPzHBem9ldT8Tu48gyCq17Fr8krZx6N8aN5iGrKzfr_VzrMCBVxW551Q0dN_H47WdSjVNckzUoYNali-JR3v5QNFpvVTkn8gofBiKtqjsEF0HoUTl0ay3jev9NQi5ulTnPRoJjoVV3rABw52GFaxYe-AU6-BwnAUaA7vn4l7tgNAbvYeyYIpc6JS9GOlsvQIaUuc5QnKZrtJhQ588AGUeHhnkFWnM\')'}}></div>
+    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1600')" }}></div>
 
     <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
     <div className="absolute top-2 right-2 flex flex-col gap-1">
@@ -290,7 +290,7 @@ export default function DiscrepancyCases() {
     </div>
     <div className="flex items-center gap-4 p-3 bg-surface hover:bg-surface-container-low rounded-lg transition-colors cursor-pointer group">
     <div className="w-10 h-10 rounded overflow-hidden shadow-sm relative">
-    <div className="absolute inset-0 bg-cover bg-center" data-alt="Scanned historical map showing property lines with faded ink and grid lines" style={{backgroundImage: 'url(\'https://lh3.googleusercontent.com/aida-public/AB6AXuDQNSbheWT1frQGRTVfdRXozZPqKFV2XE5pjCPIVuYTXdz0ExkE18jKQazvOdiv4BeOBXQG6kpqIobZuKdkINM2wdBpgDW-7XdyWayKoScEnV36g1Gyi51y0nrG7ZlBmIl1QR7RQbxrL9RTEBOo7J0RjLN0rVj6K2_tyi-YV8NvJBYonmCBrKvv8ADr0ZXKKKViIrl6mdYOr6Xp4RRjg1URlqNPohZRdhn9SV7hnNyUDaSqBiss4hM\')'}}></div>
+    <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&q=80&w=1600')" }}></div>
     <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
     <span className="material-symbols-outlined text-white text-[16px]">image</span>
     </div>

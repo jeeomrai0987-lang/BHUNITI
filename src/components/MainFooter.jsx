@@ -1,3 +1,5 @@
+import logoImg from "../assets/logo.jpeg";
+
 export default function MainFooter() {
   return (
     <footer className="w-full bg-surface-white border-t border-border-subtle py-16">
@@ -7,10 +9,10 @@ export default function MainFooter() {
             <div className="flex items-center gap-3 mb-4">
               <img
                 alt="BHUNITI logo"
-                className="h-8 w-auto"
-                src="https://lh3.googleusercontent.com/aida/AEtjO1XSnvCAUNfbYhxXOfX_HEbcR5MI9eHRI79zFrcVZmV2MbcDPygj29eJK0Pg7ivJO_HaX1FnAl4hO_JwgPAYDRkQyA8plpJOLsV9ytivNKhdNl8btOvSBPP5dJjgO0b7KnE8wBLrrOP7Med-IdiuZt5-uBy72pcUNjifKhesqPjRS7QFSfmYJFltgTeGywZsRsLRaYHveY5S63LZM4a6pLzt6b38f0jujjV08bEBQefbqXlUvAM6zvyxag"
+                className="h-9 w-auto rounded-lg object-contain shadow-sm"
+                src={logoImg}
               />
-              <span className="font-headline-md text-headline-md text-primary">
+              <span className="font-headline-md text-headline-md text-primary font-bold">
                 BHUNITI
               </span>
             </div>
@@ -20,7 +22,7 @@ export default function MainFooter() {
             </p>
             <div className="px-3 py-1 bg-surface-container-highest inline-block rounded-full">
               <span className="font-label-caps text-[10px] text-on-surface">
-                Prototype for Smart India Hackathon 2026
+                Platform for Land, Data &amp; Governance 2026
               </span>
             </div>
           </div>

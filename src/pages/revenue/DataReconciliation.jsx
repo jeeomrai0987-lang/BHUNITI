@@ -126,7 +126,7 @@ export default function DataReconciliation() {
     </div>
 
     <div className="h-64 rounded-xl shadow-md overflow-hidden relative group">
-    <div className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="Overhead aerial satellite view of agricultural land parcels with clear boundary lines drawn in neon cyan and magenta, representing a GIS interface. High contrast, technical aesthetic, conveying precision mapping." data-location="Agricultural Fields, Gujarat, India" style={{backgroundImage: 'url(\'https://lh3.googleusercontent.com/aida-public/AB6AXuAtDAxCMgJ_2YrQqhDcf-eFmJ-dWEZZr0NelhHmjpiJC2kNE5Wu9gJbbOZEuz3UC9ie1C3TKsLfeS1Ee0n1JaBSRpj2ArNWs4T8yZAK3GQeZIljfGf82bbrgM1x9UUsP_Nj5v7sBspA8vuScL1V_bVuu1sGqkzKY0RMrYnbq_UqbhA9EBwJjNn93fwVyoLdeDL4V0QjsK5-GMa5209d6BQhN_k8qYwFP_801SJ06Sz0nxQxuKwdN3k\')'}}></div>
+    <div className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=1600')" }}></div>
 
     <div className="absolute top-4 right-4 bg-surface/90 backdrop-blur-md rounded-lg shadow-lg p-1.5 flex flex-col gap-1 border border-outline-variant/30">
     <button className="w-8 h-8 flex items-center justify-center rounded bg-surface text-on-surface hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm"><span className="material-symbols-outlined text-[18px]">add</span></button>

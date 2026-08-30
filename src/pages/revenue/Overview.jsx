@@ -83,7 +83,7 @@ export default function RevenueOverview() {
     </div>
     <div className="flex-1 relative w-full h-full bg-surface-container-highest">
 
-    <div className="absolute inset-0 w-full h-full object-cover grayscale opacity-80" data-location="New Delhi, India" style={{backgroundImage: 'url(\'https://lh3.googleusercontent.com/aida-public/AB6AXuD2J9bMrDgjAnbsSVtwbRPmDt-WzulDwIAoQDlSi4XaapJFlYWv6hR6K8MmyVAGeoyzLP1fzpArIBHHn4tgczCfYPEe03rW4ilD-51OX2To0oTg2erK5t9tDWCevS2Jeeh8BWMN7PU9xFp0YsvAAEGa0X9wTgVdaz3owzupQJv7zC7XkAwJc56rvveufllKhdcUwphGHGqXM5vwU2aaM3E6L2q2KPXKI0bnIuUpxwKHr3l5J5oowRc\')'}}></div>
+    <div className="absolute inset-0 w-full h-full bg-cover bg-center opacity-80" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1600')" }}></div>
 
     <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1000 600">
     <defs>

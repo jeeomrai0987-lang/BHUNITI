@@ -73,7 +73,7 @@ export default function CitizenPortal() {
     </div>
     <div className="flex flex-col md:flex-row gap-6 bg-surface-container p-4 rounded-xl relative z-10">
     <div className="w-full md:w-[240px] h-[160px] rounded-lg overflow-hidden shadow-inner flex-shrink-0 relative group">
-    <div className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-location="New Delhi, India" style={{backgroundImage: 'url(\'https://lh3.googleusercontent.com/aida-public/AB6AXuAOLp7W7Sx1eVW8pMRZKsHdS3jRvxt4SSyF7c0ToDmjhLyjUliuBZMiLNPJhySJVTw_975t647859ta-tdYd1ncmpzXOImU9V_16Ns10LsipQiyTBNrVoHjODGobYAzIpkm4U_fKlPcyHq0LifzgV4WCCONCSiBY-TXWOZIxa-PRpesmhUAsolsFHWtd3Q4wj2vcirVK1I3aE5MnNKImafyX8HcDO49rW3LBjHL4uXbd9ulMuLrRGs\')'}}></div>
+    <div className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1600')" }}></div>
     <div className="absolute inset-0 bg-surface/20 group-hover:bg-surface/0 transition-colors"></div>
     <div className="absolute bottom-2 right-2 bg-surface/90 backdrop-blur text-on-surface font-tabular-nums text-[10px] px-2 py-1 rounded shadow">GIS LAYER: ACTIVE</div>
     </div>
@@ -88,7 +88,7 @@ export default function CitizenPortal() {
     <div>
     <p className="text-[11px] font-label-md text-on-surface-variant uppercase tracking-wider mb-1">Registered Owner</p>
     <p className="font-body-md text-on-surface flex items-center gap-2">
-    <img className="w-6 h-6 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYyDe9L7VIthGwv9aUlBOx5YtLdXhsMD-6PlT1SYuA_2eKAkmL3mSEnh9s0N7bbyTnaNQWdSCzUMGROZ-EanSeGLiskqXS9snog3P-9OHq5Q_M5krv2PTV64CQnpbMNkERXeg0XdnF9sXst3w9wMJLT3pt1X4GU5potd_zk4tQsnGMAEHxR0QEiyW7GutfA8bHvYmSlrPtvwpb60MTc6bMmqGwu_F2LSanBuFaYpAkNnPo4LWrq_4" />
+    <img className="w-6 h-6 rounded-full object-cover" src="/src/assets/logo.jpeg" />
                                             Rahul Sharma
                                         </p>
     </div>

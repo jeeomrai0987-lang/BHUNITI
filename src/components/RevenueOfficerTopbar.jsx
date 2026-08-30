@@ -33,7 +33,7 @@ export default function RevenueOfficerTopbar() {
           <img
             alt="Profile"
             className="w-9 h-9 rounded-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCd1s1Wu1tRFYDpD5AgM14jvOS6poBI6ti3L7SVZwOKrydYFChC--WxZKgkpMF6am3jPtdABaNZmkaJVMuY5ul-FEzN5Qw9rg_uhrfI3I0IUpuFd1ALoj4XnmwAoAAnJJ_VPIT2VxfwJzyV0qtuV8V2I1YXAb3hsL-_XhpnPIlKdII-KsfwGDODs7G5b50Y-O5o2uwlDQC7NrZPwanNKSmyODaGcyYjJkbWbS7vBDjByVkRoAHlS9I"
+            src="/src/assets/logo.jpeg"
           />
         </div>
       </div>
