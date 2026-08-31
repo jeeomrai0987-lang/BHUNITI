@@ -1,0 +1,93 @@
+import { NavLink } from "react-router-dom";
+import { ADMIN_ROUTES } from "../routes";
+import logoImg from "../assets/logo.jpeg";
+import PortalSwitcherDropdown from "./PortalSwitcherDropdown";
+
+const activeClasses =
+  "flex items-center px-6 py-3 transition-colors bg-surface-container-highest/10 text-on-primary border-l-4 border-inverse-primary";
+const inactiveClasses =
+  "flex items-center px-6 py-3 text-body-md hover:bg-on-primary-fixed-variant/10 transition-colors";
+const linkClass = ({ isActive }) => (isActive ? activeClasses : inactiveClasses);
+
+// The original Stitch sidebar also included Discrepancy Cases, Field Surveys,
+// Reports and Alerts entries that only ever linked to "#" (no page was ever
+// built for them). They're kept here as plain, non-navigating items so the
+// sidebar still looks/feels identical - only the six items that have a real
+// page (per the brief) are wired up as routes.
+export default function AdminSidebar() {
+  return (
+    <aside className="fixed left-0 top-0 h-full w-[280px] bg-primary-container text-on-primary-container z-50 flex flex-col shadow-xl">
+      <div className="p-6 border-b border-on-primary-fixed-variant/20">
+        <PortalSwitcherDropdown align="left">
+          <div className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <img
+              alt="BHUNITI"
+              className="h-8 w-auto object-contain rounded-lg"
+              src={logoImg}
+            />
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-widest text-on-primary-container/60">
+                Government of India
+              </span>
+              <span className="text-headline-md font-bold text-on-primary flex items-center gap-1">
+                BHUNEXIS
+                <span className="material-symbols-outlined text-white/60 text-sm">
+                  arrow_drop_down
+                </span>
+              </span>
+            </div>
+          </div>
+        </PortalSwitcherDropdown>
+      </div>
+
+      <nav className="flex-1 py-4 overflow-y-auto">
+        <NavLink to={ADMIN_ROUTES.overview} end className={linkClass}>
+          <span className="material-symbols-outlined mr-4">dashboard</span>
+          Overview
+        </NavLink>
+        <NavLink to={ADMIN_ROUTES.districtGis} className={linkClass}>
+          <span className="material-symbols-outlined mr-4">map</span>
+          District GIS
+        </NavLink>
+        <NavLink to={ADMIN_ROUTES.tehsilAnalytics} className={linkClass}>
+          <span className="material-symbols-outlined mr-4">analytics</span>
+          Tehsil Analytics
+        </NavLink>
+        <NavLink to={ADMIN_ROUTES.reconciliationMonitor} className={linkClass}>
+          <span className="material-symbols-outlined mr-4">sync_alt</span>
+          Reconciliation Monitor
+        </NavLink>
+        <NavLink to={ADMIN_ROUTES.mutationMonitor} className={linkClass}>
+          <span className="material-symbols-outlined mr-4">history_edu</span>
+          Mutation Monitor
+        </NavLink>
+        <a className={inactiveClasses} href="#">
+          <span className="material-symbols-outlined mr-4">warning</span>
+          Discrepancy Cases
+        </a>
+        <a className={inactiveClasses} href="#">
+          <span className="material-symbols-outlined mr-4">explore</span>
+          Field Surveys
+        </a>
+        <NavLink to={ADMIN_ROUTES.officerPerformance} className={linkClass}>
+          <span className="material-symbols-outlined mr-4">trending_up</span>
+          Officer Performance
+        </NavLink>
+        <a className={inactiveClasses} href="#">
+          <span className="material-symbols-outlined mr-4">description</span>
+          Reports
+        </a>
+        <a className={inactiveClasses} href="#">
+          <span className="material-symbols-outlined mr-4">
+            notifications_active
+          </span>
+          Alerts
+        </a>
+        <a className={inactiveClasses} href="#">
+          <span className="material-symbols-outlined mr-4">receipt_long</span>
+          Audit Trail
+        </a>
+      </nav>
+    </aside>
+  );
+}

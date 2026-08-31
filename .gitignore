@@ -1,4 +1,23 @@
-node_modules/
-dist/
+# React
+bhuniti-react/node_modules/
+bhuniti-react/dist/
+
+# Python
+bhuniti-backend/__pycache__/
+bhuniti-backend/.venv/
+bhuniti-backend/venv/
+bhuniti-backend/env/
+
+# Environment variables
 .env
-.env.local
+.env.*
+!.env.example
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# IDE
+.vscode/
+.idea/
+bhuniti-backend/*.db
