@@ -1,3 +1,6 @@
+import PortalSwitcherDropdown from "./PortalSwitcherDropdown";
+import logoImg from "../assets/logo.jpeg";
+
 export default function AdminTopbar() {
   return (
     <header className="fixed top-0 left-[280px] right-0 h-16 bg-surface/90 backdrop-blur-md border-b border-outline-variant z-40 flex items-center justify-between px-8">
@@ -27,22 +30,25 @@ export default function AdminTopbar() {
           <span className="material-symbols-outlined">notifications</span>
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
         </button>
-        <div className="flex items-center gap-3 pl-2">
-          <div className="text-right hidden lg:block">
-            <p className="text-label-md text-on-surface font-bold">
-              Admin Officer
-            </p>
-            <p className="text-[10px] text-on-surface-variant uppercase">
-              District Administration
-            </p>
+        <PortalSwitcherDropdown align="right">
+          <div className="flex items-center gap-3 pl-2 hover:opacity-90 transition-opacity">
+            <div className="text-right hidden lg:block">
+              <p className="text-label-md text-on-surface font-bold">
+                Admin Officer
+              </p>
+              <p className="text-[10px] text-on-surface-variant uppercase">
+                District Administration • Switch
+              </p>
+            </div>
+            <img
+              alt="Profile"
+              className="w-9 h-9 rounded-full object-cover border-2 border-primary/20 shadow-sm"
+              src={logoImg}
+            />
           </div>
-          <img
-            alt="Profile"
-            className="w-9 h-9 rounded-full object-cover border-2 border-surface-container-highest"
-            src="/src/assets/logo.jpeg"
-          />
-        </div>
+        </PortalSwitcherDropdown>
       </div>
     </header>
   );
 }
+

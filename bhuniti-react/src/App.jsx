@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 // ── Layouts ──────────────────────────────────────────────────────────────────
 import MainLayout            from "./layouts/MainLayout";
@@ -59,6 +59,7 @@ export default function App() {
       {/* ── Citizen portal (top-nav + footer, dashboard color theme) ───── */}
       <Route path="citizen" element={<CitizenLayout />}>
         <Route index                    element={<CitizenPortal />} />
+        <Route path="portal"            element={<CitizenPortal />} />
         <Route path="search-records"    element={<SearchRecords />} />
         <Route path="applications"      element={<MyApplications />} />
         <Route path="land-services"     element={<LandServices />} />
@@ -67,6 +68,7 @@ export default function App() {
       {/* ── Revenue Officer portal (sidebar + topbar) ───────────────────── */}
       <Route path="revenue-officer" element={<RevenueOfficerLayout />}>
         <Route index                      element={<RevenueOverview />} />
+        <Route path="overview"            element={<RevenueOverview />} />
         <Route path="gis-explorer"        element={<GisExplorer />} />
         <Route path="data-reconciliation" element={<DataReconciliation />} />
         <Route path="mutation-management" element={<MutationManagement />} />
@@ -81,12 +83,16 @@ export default function App() {
       {/* ── District Officer / Admin portal (sidebar + topbar) ──────────── */}
       <Route path="administration" element={<AdminLayout />}>
         <Route index                         element={<AdminOverview />} />
+        <Route path="overview"               element={<AdminOverview />} />
         <Route path="district-gis"           element={<DistrictGis />} />
         <Route path="tehsil-analytics"       element={<TehsilAnalytics />} />
         <Route path="reconciliation-monitor" element={<ReconciliationMonitor />} />
         <Route path="mutation-monitor"       element={<MutationMonitor />} />
         <Route path="officer-performance"    element={<OfficerPerformance />} />
       </Route>
+
+      {/* ── Wildcard Fallback ───────────────────────────────────────────── */}
+      <Route path="*" element={<Navigate to="/" replace />} />
 
     </Routes>
   );

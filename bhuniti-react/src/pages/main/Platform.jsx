@@ -1,7 +1,36 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CITIZEN_ROUTES, REVENUE_ROUTES, ADMIN_ROUTES, MAIN_ROUTES } from "../../routes";
+import {
+  CITIZEN_ROUTES,
+  REVENUE_ROUTES,
+  ADMIN_ROUTES,
+  MAIN_ROUTES,
+} from "../../routes";
 import { api } from "../../services/api";
+
+const CREDENTIALS = [
+  {
+    username: "citizen",
+    email: "citizen@bhuniti.gov.in",
+    mobile: "9876543210",
+    otp: "123456",
+    role: "Citizen",
+  },
+  {
+    username: "revenue_officer",
+    email: "revenue@bhuniti.gov.in",
+    mobile: "9876543211",
+    otp: "234567",
+    role: "Revenue Officer",
+  },
+  {
+    username: "district_officer",
+    email: "district@bhuniti.gov.in",
+    mobile: "9876543212",
+    otp: "345678",
+    role: "District Officer",
+  },
+];
 
 const MODULE_ROLE_ROUTES = {
   "High-Precision GIS": {
@@ -30,54 +59,138 @@ export default function Platform() {
   const navigate = useNavigate();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [activeModuleName, setActiveModuleName] = useState("");
+
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [otp, setOtp] = useState("");
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1);
+  const [verifiedUser, setVerifiedUser] = useState(null);
 
   function handleViewModule(moduleName) {
     setActiveModuleName(moduleName);
     setError("");
+    setStep(1);
+    setOtp("");
+    setVerifiedUser(null);
     setAuthModalOpen(true);
   }
 
-  async function handleRoleLogin(roleKey, defaultPassword = "1234") {
+  function quickFill(user) {
+    setUsername(user.username);
+    setEmail(user.email);
+    setMobile(user.mobile);
+    setOtp("");
+    setError("");
+    setStep(1);
+    setVerifiedUser(null);
+  }
+
+  function handleIdentityVerification(e) {
+    e.preventDefault();
+    setError("");
+
+    const cleanUsername = username.trim().toLowerCase();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanMobile = mobile.trim();
+
+    if (!cleanUsername || !cleanEmail || !cleanMobile) {
+      setError("Please enter username, email ID and mobile number.");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(cleanMobile)) {
+      setError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    const match = CREDENTIALS.find(
+      (c) =>
+        c.username === cleanUsername &&
+        c.email === cleanEmail &&
+        c.mobile === cleanMobile
+    );
+
+    if (!match) {
+      setError(
+        "The username, email ID and mobile number do not match our records."
+      );
+      return;
+    }
+
+    setVerifiedUser(match);
+    setOtp("");
+    setStep(2);
+    console.log(`Demo OTP for ${match.role}: ${match.otp}`);
+  }
+
+  async function handleOtpVerification(e) {
+    e.preventDefault();
     setError("");
     setLoading(true);
+
     try {
-      const res = await api.auth.login(roleKey, defaultPassword);
-      if (res && res.token) {
-        setAuthModalOpen(false);
-        const target = MODULE_ROLE_ROUTES[activeModuleName]?.[roleKey] || res.redirect_url || CITIZEN_ROUTES.portal;
-        navigate(target);
+      try {
+        const res = await api.auth.login(verifiedUser.username, verifiedUser.otp);
+        if (res && res.redirect_url) {
+          localStorage.setItem(
+            "bhuniti_user",
+            JSON.stringify({
+              role: verifiedUser.role,
+              username: verifiedUser.username,
+              email: verifiedUser.email,
+              mobile: verifiedUser.mobile,
+            })
+          );
+          if (res.token) {
+            localStorage.setItem("bhuniti_token", res.token);
+          }
+          setAuthModalOpen(false);
+          const target = MODULE_ROLE_ROUTES[activeModuleName]?.[verifiedUser.username] || res.redirect_url;
+          navigate(target);
+          return;
+        }
+      } catch (backendError) {
+        console.log("Backend OTP authentication unavailable:", backendError.message);
+      }
+
+      if (otp.trim() !== verifiedUser.otp) {
+        setError("Invalid OTP. Please enter the correct 6-digit OTP.");
         return;
       }
-    } catch (err) {
-      console.log("Live login attempt:", err.message);
+
+      localStorage.setItem("bhuniti_token", "secure-demo-token-" + verifiedUser.username);
+      localStorage.setItem(
+        "bhuniti_user",
+        JSON.stringify({
+          role: verifiedUser.role,
+          username: verifiedUser.username,
+          email: verifiedUser.email,
+          mobile: verifiedUser.mobile,
+          authenticated: true,
+        })
+      );
+
+      setAuthModalOpen(false);
+      const target = MODULE_ROLE_ROUTES[activeModuleName]?.[verifiedUser.username] || CITIZEN_ROUTES.portal;
+      navigate(target);
     } finally {
       setLoading(false);
     }
-
-    // Client fallback demo auth
-    localStorage.setItem("bhuniti_token", "demo-token-" + roleKey);
-    localStorage.setItem(
-      "bhuniti_user",
-      JSON.stringify({ role: roleKey, username: roleKey, full_name: roleKey.replace("_", " ").toUpperCase() })
-    );
-    setAuthModalOpen(false);
-    const target = MODULE_ROLE_ROUTES[activeModuleName]?.[roleKey] || CITIZEN_ROUTES.portal;
-    navigate(target);
   }
 
-  async function handleCustomFormLogin(e) {
-    e.preventDefault();
-    if (!username) {
-      setError("Please enter a username or select a role above.");
-      return;
-    }
-    const u = username.trim().toLowerCase();
-    const roleKey = u.includes("revenue") ? "revenue_officer" : u.includes("district") || u.includes("admin") ? "district_officer" : "citizen";
-    await handleRoleLogin(roleKey, password || "1234");
+  function goBackToIdentity() {
+    setStep(1);
+    setOtp("");
+    setError("");
   }
 
   return (
@@ -191,7 +304,7 @@ export default function Platform() {
           </div>
         </section>
 
-        {/* Section 2: Integrated Modules Grid (Photo 2 & Photo 3 Requirements) */}
+        {/* Section 2: Integrated Modules Grid */}
         <section className="relative z-10 w-full bg-surface-container-low border-y border-border-subtle py-24">
           <div className="max-w-[1440px] mx-auto px-margin-desktop">
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
@@ -209,9 +322,8 @@ export default function Platform() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-              {/* Module 1: High-Precision GIS (Photo 2 Fix: Clean side-by-side box with clearly visible photo & no overlapping text) */}
+              {/* Module 1: High-Precision GIS */}
               <div className="md:col-span-8 bg-surface-white border border-border-subtle rounded-2xl p-6 md:p-8 flex flex-col md:flex-row gap-8 items-stretch justify-between shadow-sm hover:shadow-md transition-all group min-h-[300px]">
-                {/* Left Text Container (Inside its own box) */}
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
                     <div className="w-12 h-12 bg-secondary-fixed text-on-secondary-fixed rounded-lg flex items-center justify-center mb-6">
@@ -234,7 +346,6 @@ export default function Platform() {
                   </button>
                 </div>
 
-                {/* Right Photo: Clearly Visible, Full Definition (Not Faded) */}
                 <div className="w-full md:w-[46%] h-48 md:h-auto rounded-xl overflow-hidden border border-border-subtle bg-surface-container shrink-0 shadow-sm">
                   <img
                     src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1000"
@@ -340,11 +451,11 @@ export default function Platform() {
           </div>
         </section>
 
-        {/* Section 3: Technical Interoperability & Scalability (Photo 1 Fix: Placed into container boxes with shadow) */}
+        {/* Section 3: Technical Interoperability & Scalability */}
         <section id="interoperability-specs" className="relative z-10 w-full py-24 bg-surface-white overflow-hidden">
           <div className="max-w-[1440px] mx-auto px-margin-desktop relative">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
-              {/* Detail 01 Container Box with Shadow */}
+              {/* Detail 01 Container Box */}
               <div className="bg-surface-white border border-border-subtle rounded-3xl p-8 md:p-10 shadow-md hover:shadow-xl transition-all flex flex-col justify-between">
                 <div>
                   <span className="font-tabular-nums text-tabular-nums text-on-surface-variant tracking-widest border-b border-border-subtle pb-2 w-12 font-bold block mb-4">
@@ -382,7 +493,7 @@ export default function Platform() {
                 </div>
               </div>
 
-              {/* Detail 02 Container Box with Shadow */}
+              {/* Detail 02 Container Box */}
               <div className="bg-surface-white border border-border-subtle rounded-3xl p-8 md:p-10 shadow-md hover:shadow-xl transition-all flex flex-col justify-between">
                 <div>
                   <span className="font-tabular-nums text-tabular-nums text-on-surface-variant tracking-widest border-b border-border-subtle pb-2 w-12 font-bold block mb-4">
@@ -435,129 +546,276 @@ export default function Platform() {
         </section>
       </div>
 
-      {/* Role-Based Authentication Prompt Modal (Photo 3 Feature) */}
+      {/* 2-Step OTP Authentication Modal (Matched with Login.jsx) */}
       {authModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm cursor-pointer"
+            className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm cursor-pointer"
             onClick={() => setAuthModalOpen(false)}
           />
-          <div className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-border-subtle overflow-hidden text-on-surface animate-scaleUp">
-            {/* Header */}
+          <div className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-border-subtle overflow-hidden animate-scaleUp text-on-surface">
+            {/* Modal Header */}
             <div className="p-6 border-b border-border-subtle flex justify-between items-center bg-surface-container-lowest">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-secondary/10 text-secondary rounded-xl flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[24px]">lock</span>
+                  <span className="material-symbols-outlined text-[24px]">
+                    {step === 1 ? "verified_user" : "sms"}
+                  </span>
                 </div>
                 <div>
-                  <h3 className="font-display text-lg font-bold text-on-surface">Authentication Required</h3>
-                  <p className="text-xs text-on-surface-variant">Choose your role to access {activeModuleName}</p>
+                  <h2 className="font-display text-xl font-bold text-on-surface">
+                    {step === 1 ? `Access ${activeModuleName}` : "Verify One-Time Password"}
+                  </h2>
+                  <p className="text-xs text-on-surface-variant">
+                    {step === 1 ? "Identity Verification & RBAC Access" : "Multi-Factor Authentication"}
+                  </p>
                 </div>
               </div>
               <button
                 type="button"
-                className="w-8 h-8 rounded-full bg-surface-container hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+                className="w-9 h-9 rounded-full bg-surface-container hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer"
                 onClick={() => setAuthModalOpen(false)}
               >
-                <span className="material-symbols-outlined text-[18px]">close</span>
+                <span className="material-symbols-outlined text-on-surface-variant text-[20px]">close</span>
               </button>
             </div>
 
-            {/* Role Options */}
-            <div className="p-6 space-y-5">
-              <div>
-                <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-3">
-                  Select Authorized Role to Launch:
+            {/* Security Progress */}
+            <div className="px-6 pt-5">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                <span className={step >= 1 ? "text-secondary" : "text-on-surface-variant"}>
+                  1. Identity
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Revenue Officer Role Card */}
-                  <button
-                    type="button"
-                    onClick={() => handleRoleLogin("revenue_officer")}
-                    className="p-3.5 bg-sky-50 hover:bg-sky-100 text-sky-900 rounded-2xl border border-sky-200 flex flex-col items-center justify-center text-center gap-1.5 transition-all shadow-sm hover:scale-[1.02] cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[24px] text-sky-700">shield_person</span>
-                    <span className="font-bold text-xs">Revenue Officer</span>
-                    <span className="text-[9px] text-sky-600 font-mono">RO / Kanungo</span>
-                  </button>
-
-                  {/* District Admin Role Card */}
-                  <button
-                    type="button"
-                    onClick={() => handleRoleLogin("district_officer")}
-                    className="p-3.5 bg-purple-50 hover:bg-purple-100 text-purple-900 rounded-2xl border border-purple-200 flex flex-col items-center justify-center text-center gap-1.5 transition-all shadow-sm hover:scale-[1.02] cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[24px] text-purple-700">admin_panel_settings</span>
-                    <span className="font-bold text-xs">District Admin</span>
-                    <span className="text-[9px] text-purple-600 font-mono">DM / ADM</span>
-                  </button>
-
-                  {/* Citizen Role Card */}
-                  <button
-                    type="button"
-                    onClick={() => handleRoleLogin("citizen")}
-                    className="p-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 rounded-2xl border border-emerald-200 flex flex-col items-center justify-center text-center gap-1.5 transition-all shadow-sm hover:scale-[1.02] cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[24px] text-emerald-700">person</span>
-                    <span className="font-bold text-xs">Citizen</span>
-                    <span className="text-[9px] text-emerald-600 font-mono">Landowner</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className="h-px flex-1 bg-border-subtle" />
-                <span className="text-[10px] text-on-surface-variant font-bold uppercase">Or Sign In With Gov-ID</span>
-                <span className="h-px flex-1 bg-border-subtle" />
-              </div>
-
-              {/* Login Form */}
-              <form onSubmit={handleCustomFormLogin} className="space-y-3">
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Enter Username (e.g. revenue_officer)"
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setError("");
-                    }}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-container-lowest text-xs text-on-surface focus:outline-none focus:border-secondary"
+                <div className="flex-1 h-1 mx-3 bg-surface-container rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-secondary transition-all duration-500"
+                    style={{ width: step === 1 ? "50%" : "100%" }}
                   />
                 </div>
-                <div>
-                  <input
-                    type="password"
-                    placeholder="Password (default: 1234)"
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setError("");
-                    }}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-border-subtle bg-surface-container-lowest text-xs text-on-surface focus:outline-none focus:border-secondary"
-                  />
+                <span className={step >= 2 ? "text-secondary" : "text-on-surface-variant"}>
+                  2. OTP
+                </span>
+              </div>
+            </div>
+
+            {/* STEP 1 - Identity */}
+            {step === 1 && (
+              <>
+                {/* Quick Role Fill */}
+                <div className="px-6 pt-5 flex items-center gap-2 overflow-x-auto">
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
+                    Demo:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => quickFill(CREDENTIALS[0])}
+                    className="px-2.5 py-1 text-xs bg-emerald-50 text-emerald-700 font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                  >
+                    Citizen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => quickFill(CREDENTIALS[1])}
+                    className="px-2.5 py-1 text-xs bg-sky-50 text-sky-700 font-bold rounded-lg border border-sky-200 hover:bg-sky-100 transition-colors"
+                  >
+                    Revenue Officer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => quickFill(CREDENTIALS[2])}
+                    className="px-2.5 py-1 text-xs bg-purple-50 text-purple-700 font-bold rounded-lg border border-purple-200 hover:bg-purple-100 transition-colors"
+                  >
+                    District Officer
+                  </button>
                 </div>
 
-                {error && (
-                  <p className="text-status-error text-xs font-bold bg-status-error/10 p-2 rounded-lg flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[14px]">error</span>
-                    {error}
-                  </p>
-                )}
+                {/* Identity Form */}
+                <div className="p-6">
+                  <form className="flex flex-col gap-4" onSubmit={handleIdentityVerification}>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider" htmlFor="plat-username">
+                        Official Username
+                      </label>
+                      <input
+                        id="plat-username"
+                        type="text"
+                        autoComplete="username"
+                        placeholder="e.g. citizen or revenue_officer"
+                        value={username}
+                        onChange={(e) => {
+                          setUsername(e.target.value);
+                          setError("");
+                        }}
+                        className="w-full px-4 py-3 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
+                      />
+                    </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 bg-secondary hover:bg-secondary-container text-on-primary font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                  ) : (
-                    <span className="material-symbols-outlined text-[16px]">login</span>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider" htmlFor="plat-email">
+                        Registered Email ID
+                      </label>
+                      <input
+                        id="plat-email"
+                        type="email"
+                        autoComplete="email"
+                        placeholder="e.g. revenue@bhuniti.gov.in"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          setError("");
+                        }}
+                        className="w-full px-4 py-3 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider" htmlFor="plat-mobile">
+                        Registered Mobile Number
+                      </label>
+                      <div className="flex">
+                        <span className="flex items-center px-3 bg-surface-container-lowest border border-r-0 border-border-subtle rounded-l-xl text-sm font-semibold">
+                          +91
+                        </span>
+                        <input
+                          id="plat-mobile"
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={10}
+                          autoComplete="tel"
+                          placeholder="10-digit mobile number"
+                          value={mobile}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            setMobile(value);
+                            setError("");
+                          }}
+                          className="w-full px-4 py-3 rounded-r-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
+                        />
+                      </div>
+                    </div>
+
+                    {error && (
+                      <p className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[16px]">error</span>
+                        {error}
+                      </p>
+                    )}
+
+                    <button
+                      type="submit"
+                      className="w-full py-3.5 bg-secondary hover:bg-secondary-container text-on-primary font-bold text-sm rounded-xl transition-all shadow-md mt-2 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">send</span>
+                      Send Verification OTP
+                    </button>
+                  </form>
+                </div>
+              </>
+            )}
+
+            {/* STEP 2 - OTP */}
+            {step === 2 && verifiedUser && (
+              <div className="p-6">
+                <div className="bg-secondary/5 border border-secondary/10 rounded-xl p-4 mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-secondary">verified</span>
+                    </div>
+                    <div>
+                      <p className="text-xs text-on-surface-variant">Identity verified for</p>
+                      <p className="font-bold text-sm">{verifiedUser.role}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <form className="flex flex-col gap-4" onSubmit={handleOtpVerification}>
+                  <div className="text-center">
+                    <p className="text-sm text-on-surface-variant">
+                      A 6-digit verification code has been sent to
+                    </p>
+                    <p className="font-bold text-sm mt-1">
+                      +91 ******{verifiedUser.mobile.slice(-4)}
+                    </p>
+                    <p className="text-xs text-on-surface-variant mt-1">
+                      {verifiedUser.email}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider text-center" htmlFor="plat-otp">
+                      Enter 6-Digit OTP
+                    </label>
+                    <input
+                      id="plat-otp"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      placeholder="••••••"
+                      value={otp}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        setOtp(value);
+                        setError("");
+                      }}
+                      className="w-full px-4 py-4 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors text-center text-2xl tracking-[0.6em] font-bold text-on-surface"
+                    />
+                  </div>
+
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                    <div className="flex items-start gap-2">
+                      <span className="material-symbols-outlined text-amber-600 text-[18px]">info</span>
+                      <div className="text-xs text-amber-800">
+                        <p className="font-bold">Demo Mode</p>
+                        <p className="mt-0.5">
+                          Use OTP: <span className="font-bold tracking-wider">{verifiedUser.otp}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {error && (
+                    <p className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[16px]">error</span>
+                      {error}
+                    </p>
                   )}
-                  Sign In &amp; Launch {activeModuleName}
-                </button>
-              </form>
+
+                  <button
+                    type="submit"
+                    disabled={loading || otp.length !== 6}
+                    className="w-full py-3.5 bg-secondary hover:bg-secondary-container disabled:opacity-50 disabled:cursor-not-allowed text-on-primary font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-[18px]">lock_open</span>
+                        Verify OTP &amp; Launch {activeModuleName}
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={goBackToIdentity}
+                    className="w-full py-2.5 text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+                  >
+                    ← Change identity details
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-surface-container-lowest border-t border-border-subtle text-center text-xs text-on-surface-variant">
+              <div className="flex items-center justify-center gap-2">
+                <span className="material-symbols-outlined text-[15px]">shield</span>
+                <span>Secure Gov-ID Access • 256-Bit TLS Encrypted</span>
+              </div>
             </div>
           </div>
         </div>

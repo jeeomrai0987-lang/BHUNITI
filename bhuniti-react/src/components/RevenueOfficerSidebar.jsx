@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { REVENUE_ROUTES } from "../routes";
 import logo from "../assets/logo.jpeg";
+import PortalSwitcherDropdown from "./PortalSwitcherDropdown";
 
 const activeClasses =
   "flex items-center px-6 py-3 transition-all gap-3 bg-surface-container/10 text-white border-l-4 border-inverse-primary";
@@ -24,9 +25,16 @@ const NAV_ITEMS = [
 export default function RevenueOfficerSidebar() {
   return (
     <aside className="fixed left-0 top-0 h-full w-sidebar-width bg-primary-container text-on-primary-fixed z-50 flex flex-col">
-      <div className="p-6 flex items-center gap-3 border-b border-on-primary-fixed-variant/20">
-        <img alt="BhuNiti Logo" className="h-8 w-auto object-contain" src={logo} />
-        <span className="font-headline-md text-white tracking-tight">BhuNiti</span>
+      <div className="p-6 border-b border-on-primary-fixed-variant/20">
+        <PortalSwitcherDropdown align="left">
+          <div className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <img alt="BhuNiti Logo" className="h-8 w-auto object-contain rounded" src={logo} />
+            <span className="font-headline-md text-white tracking-tight">BhuNiti</span>
+            <span className="material-symbols-outlined text-white/60 text-sm">
+              arrow_drop_down
+            </span>
+          </div>
+        </PortalSwitcherDropdown>
       </div>
 
       <nav className="flex-1 py-4 overflow-y-auto">

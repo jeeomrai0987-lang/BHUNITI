@@ -1,16 +1,27 @@
 import { useState, useEffect } from "react";
 import ParcelMapViewer from "../../components/ParcelMapViewer";
 import { api } from "../../services/api";
+import { GHAZIABAD_ADMINISTRATIVE_DATA } from "../../data/administrativeDivisions";
 
 export default function DistrictGis() {
   const [selectedTehsil, setSelectedTehsil] = useState("Modinagar");
+  const [selectedVillage, setSelectedVillage] = useState("Sikandrabad");
   const [parcels, setParcels] = useState([]);
-  const [selectedParcelId, setSelectedParcelId] = useState(null);
+  const [selectedParcelId, setSelectedParcelId] = useState("09-0824-0014-1024");
+
+  const tehsils = Object.keys(GHAZIABAD_ADMINISTRATIVE_DATA);
+  const villages = GHAZIABAD_ADMINISTRATIVE_DATA[selectedTehsil]?.villages || [];
+
+  function handleTehsilChange(tehsilName) {
+    setSelectedTehsil(tehsilName);
+    const firstVillage = GHAZIABAD_ADMINISTRATIVE_DATA[tehsilName]?.villages[0]?.name || "";
+    setSelectedVillage(firstVillage);
+  }
 
   useEffect(() => {
     async function loadGis() {
       try {
-        const data = await api.parcels.getAllGis(null, selectedTehsil === "All Tehsils" ? null : selectedTehsil);
+        const data = await api.parcels.getGisAll("Ghaziabad", selectedTehsil === "All Tehsils" ? null : selectedTehsil);
         if (data && data.length > 0) {
           const formatted = data.map((p) => ({
             ...p,
@@ -43,20 +54,35 @@ export default function DistrictGis() {
               </span>
               <span className="text-xs text-on-surface-variant font-medium">Ghaziabad GIS Spatial Division</span>
             </div>
-            <h1 className="font-display text-2xl font-bold text-on-surface">Cadastral & Parcel Intelligence Center</h1>
+            <h1 className="font-display text-2xl font-bold text-on-surface">Cadastral &amp; Parcel Intelligence Center</h1>
           </div>
 
           <div className="flex items-center gap-3">
-            <select
-              value={selectedTehsil}
-              onChange={(e) => setSelectedTehsil(e.target.value)}
-              className="bg-surface text-xs font-semibold text-on-surface px-4 py-2.5 rounded-xl border border-outline-variant/40 shadow-sm outline-none"
-            >
-              <option value="All Tehsils">All Tehsils (District-Wide)</option>
-              <option value="Modinagar">Modinagar Tehsil</option>
-              <option value="Loni">Loni Tehsil</option>
-              <option value="Ghaziabad Sadar">Ghaziabad Sadar Tehsil</option>
-            </select>
+            <div className="flex items-center gap-1.5 bg-surface px-3 py-2 rounded-xl border border-outline-variant/40 shadow-sm">
+              <span className="text-[10px] font-bold text-on-surface-variant uppercase">Tehsil:</span>
+              <select
+                value={selectedTehsil}
+                onChange={(e) => handleTehsilChange(e.target.value)}
+                className="bg-transparent text-xs font-bold text-on-surface outline-none cursor-pointer"
+              >
+                {tehsils.map((t) => (
+                  <option key={t} value={t}>{t} ({GHAZIABAD_ADMINISTRATIVE_DATA[t].nameHindi})</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-surface px-3 py-2 rounded-xl border border-outline-variant/40 shadow-sm">
+              <span className="text-[10px] font-bold text-on-surface-variant uppercase">Village:</span>
+              <select
+                value={selectedVillage}
+                onChange={(e) => setSelectedVillage(e.target.value)}
+                className="bg-transparent text-xs font-bold text-on-surface outline-none cursor-pointer max-w-[130px] truncate"
+              >
+                {villages.map((v) => (
+                  <option key={v.name} value={v.name}>{v.name} ({v.nameHindi})</option>
+                ))}
+              </select>
+            </div>
           </div>
         </header>
 
@@ -64,7 +90,7 @@ export default function DistrictGis() {
           <ParcelMapViewer
             parcels={parcels}
             selectedParcelId={selectedParcelId}
-            onSelectParcel={(p) => setSelectedParcelId(p ? (p.id || p.ulpin) : null)}
+            onSelectParcel={(p) => setSelectedParcelId(p ? (p.ulpin || p.id) : null)}
           />
         </div>
       </div>

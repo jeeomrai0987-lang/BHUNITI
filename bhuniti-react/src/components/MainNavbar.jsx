@@ -1,6 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { MAIN_ROUTES } from "../routes";
 import logoImg from "../assets/logo.jpeg";
+import PortalSwitcherDropdown from "./PortalSwitcherDropdown";
 
 const navLinkClass = ({ isActive }) =>
   isActive
@@ -11,16 +12,21 @@ export default function MainNavbar() {
   return (
     <header className="fixed top-0 w-full z-50 bg-white border-b border-border-subtle shadow-sm">
       <div className="h-16 max-w-7xl mx-auto px-margin-mobile lg:px-margin-desktop flex items-center justify-between">
-        <Link to={MAIN_ROUTES.home} className="flex items-center gap-3">
-          <img
-            alt="BHUNITI"
-            className="h-9 w-auto object-contain rounded-lg shadow-sm"
-            src={logoImg}
-          />
-          <span className="font-headline-md text-headline-md text-primary tracking-tight">
-            BHUNITI
-          </span>
-        </Link>
+        <PortalSwitcherDropdown align="left">
+          <div className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <img
+              alt="BHUNITI"
+              className="h-9 w-auto object-contain rounded-lg shadow-sm"
+              src={logoImg}
+            />
+            <span className="font-headline-md text-headline-md text-primary tracking-tight">
+              BHUNITI
+            </span>
+            <span className="material-symbols-outlined text-primary/60 text-base">
+              arrow_drop_down
+            </span>
+          </div>
+        </PortalSwitcherDropdown>
 
         <nav className="hidden xl:flex items-center gap-8">
           <NavLink to={MAIN_ROUTES.home} end className={navLinkClass}>
@@ -46,17 +52,20 @@ export default function MainNavbar() {
         <div className="flex items-center gap-4">
           <NavLink
             to={MAIN_ROUTES.login}
-            className="px-6 py-2 bg-primary text-on-primary font-label-caps rounded-lg hover:bg-on-surface-variant transition-all"
+            className="px-6 py-2 bg-primary text-on-primary font-label-caps rounded-lg hover:bg-on-surface-variant transition-all shadow-sm"
           >
             Login
           </NavLink>
-          <div className="ml-4 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-            <span className="material-symbols-outlined text-on-primary text-[18px]">
-              person
-            </span>
-          </div>
+          <PortalSwitcherDropdown align="right">
+            <div className="w-8 h-8 rounded-full bg-primary hover:bg-on-surface-variant flex items-center justify-center transition-colors shadow-sm">
+              <span className="material-symbols-outlined text-on-primary text-[18px]">
+                person
+              </span>
+            </div>
+          </PortalSwitcherDropdown>
         </div>
       </div>
     </header>
   );
 }
+

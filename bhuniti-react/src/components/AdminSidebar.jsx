@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { ADMIN_ROUTES } from "../routes";
 import logoImg from "../assets/logo.jpeg";
+import PortalSwitcherDropdown from "./PortalSwitcherDropdown";
 
 const activeClasses =
   "flex items-center px-6 py-3 transition-colors bg-surface-container-highest/10 text-on-primary border-l-4 border-inverse-primary";
@@ -16,20 +17,27 @@ const linkClass = ({ isActive }) => (isActive ? activeClasses : inactiveClasses)
 export default function AdminSidebar() {
   return (
     <aside className="fixed left-0 top-0 h-full w-[280px] bg-primary-container text-on-primary-container z-50 flex flex-col shadow-xl">
-      <div className="p-6 flex items-center gap-3 border-b border-on-primary-fixed-variant/20">
-        <img
-          alt="BHUNITI"
-          className="h-8 w-auto object-contain rounded-lg"
-          src={logoImg}
-        />
-        <div className="flex flex-col">
-          <span className="text-label-md uppercase tracking-widest text-on-primary-container/60">
-            Government of India
-          </span>
-          <span className="text-headline-md font-bold text-on-primary">
-            BHUNEXIS
-          </span>
-        </div>
+      <div className="p-6 border-b border-on-primary-fixed-variant/20">
+        <PortalSwitcherDropdown align="left">
+          <div className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <img
+              alt="BHUNITI"
+              className="h-8 w-auto object-contain rounded-lg"
+              src={logoImg}
+            />
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase tracking-widest text-on-primary-container/60">
+                Government of India
+              </span>
+              <span className="text-headline-md font-bold text-on-primary flex items-center gap-1">
+                BHUNEXIS
+                <span className="material-symbols-outlined text-white/60 text-sm">
+                  arrow_drop_down
+                </span>
+              </span>
+            </div>
+          </div>
+        </PortalSwitcherDropdown>
       </div>
 
       <nav className="flex-1 py-4 overflow-y-auto">
