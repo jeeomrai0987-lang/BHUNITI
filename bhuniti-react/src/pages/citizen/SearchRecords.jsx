@@ -428,6 +428,7 @@ export default function SearchRecords() {
             <ParcelMapViewer
               selectedParcelId={parcel.ulpin}
               onSelectParcel={(p) => {
+                if (!p) return;
                 setParcel({
                   ...p,
                   parcel_number: p.parcel_number || `P-${p.ulpin?.slice(-4) || "1024"}`,

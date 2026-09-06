@@ -92,8 +92,8 @@ export default function ParcelMapViewer({
   const [isDrawerExpanded, setIsDrawerExpanded] = useState(true);
   const hasInitialized = useRef(false);
 
-  // 10 Full Contiguous Ghaziabad (Sikandrabad / Modinagar) Cadastral Parcels
-  const GHAZIABAD_10_MOCK_PARCELS = [
+  // 27 Contiguous Ghaziabad (Sikandrabad / Modinagar) Cadastral Parcels with Realistic Variable Multi-Vertex Geometries
+  const GHAZIABAD_MOCK_PARCELS = [
     {
       id: "p-412-1",
       ulpin: "09-0824-0014-1024",
@@ -118,7 +118,8 @@ export default function ParcelMapViewer({
       polygon_coords: [
         [28.8340, 77.5810],
         [28.8340, 77.5840],
-        [28.8360, 77.5840],
+        [28.8352, 77.5842],
+        [28.8360, 77.5838],
         [28.8360, 77.5810]
       ],
       image_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
@@ -142,13 +143,13 @@ export default function ParcelMapViewer({
       verification_status: "Verified",
       is_disputed: false,
       encumbrance_status: "Clean (Nishkank)",
-      centroid_lat: 28.8350,
-      centroid_lng: 77.5852,
+      centroid_lat: 28.8348,
+      centroid_lng: 77.5854,
       polygon_coords: [
         [28.8340, 77.5840],
-        [28.8340, 77.5865],
-        [28.8360, 77.5865],
-        [28.8360, 77.5840]
+        [28.8338, 77.5865],
+        [28.8360, 77.5868],
+        [28.8352, 77.5842]
       ],
       image_url: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
     },
@@ -172,12 +173,14 @@ export default function ParcelMapViewer({
       is_disputed: true,
       dispute_reason: "Claimed 12.50 ha vs Registered RoR 14.68 ha (-2.18 ha mismatch under Case M-2026-018)",
       encumbrance_status: "Under Mutation Review",
-      centroid_lat: 28.8327,
+      centroid_lat: 28.8328,
       centroid_lng: 77.5837,
       polygon_coords: [
         [28.8315, 77.5810],
+        [28.8312, 77.5835],
         [28.8315, 77.5865],
-        [28.8340, 77.5865],
+        [28.8338, 77.5865],
+        [28.8340, 77.5840],
         [28.8340, 77.5810]
       ],
       image_url: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
@@ -203,11 +206,12 @@ export default function ParcelMapViewer({
       dispute_reason: "Northern boundary overlap of 1.2m with public road reservation buffer",
       encumbrance_status: "Boundary Notice Issued",
       centroid_lat: 28.8372,
-      centroid_lng: 77.5825,
+      centroid_lng: 77.5824,
       polygon_coords: [
         [28.8360, 77.5810],
-        [28.8360, 77.5840],
-        [28.8385, 77.5840],
+        [28.8360, 77.5838],
+        [28.8375, 77.5842],
+        [28.8385, 77.5835],
         [28.8385, 77.5810]
       ],
       image_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
@@ -231,13 +235,15 @@ export default function ParcelMapViewer({
       verification_status: "Verified (Govt)",
       is_disputed: false,
       encumbrance_status: "Protected State Land",
-      centroid_lat: 28.8375,
-      centroid_lng: 77.5860,
+      centroid_lat: 28.8371,
+      centroid_lng: 77.5862,
       polygon_coords: [
-        [28.8360, 77.5840],
-        [28.8360, 77.5880],
+        [28.8352, 77.5842],
+        [28.8360, 77.5868],
+        [28.8365, 77.5885],
         [28.8390, 77.5880],
-        [28.8390, 77.5840]
+        [28.8385, 77.5855],
+        [28.8375, 77.5842]
       ],
       image_url: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
     },
@@ -261,11 +267,12 @@ export default function ParcelMapViewer({
       is_disputed: false,
       encumbrance_status: "Clean (Nishkank)",
       centroid_lat: 28.8395,
-      centroid_lng: 77.5825,
+      centroid_lng: 77.5826,
       polygon_coords: [
         [28.8385, 77.5810],
-        [28.8385, 77.5840],
-        [28.8405, 77.5840],
+        [28.8385, 77.5835],
+        [28.8398, 77.5842],
+        [28.8405, 77.5836],
         [28.8405, 77.5810]
       ],
       image_url: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
@@ -289,13 +296,15 @@ export default function ParcelMapViewer({
       verification_status: "Verified (Govt)",
       is_disputed: false,
       encumbrance_status: "Protected Water Reserve",
-      centroid_lat: 28.8337,
-      centroid_lng: 77.5872,
+      centroid_lat: 28.8340,
+      centroid_lng: 77.5876,
       polygon_coords: [
         [28.8315, 77.5865],
-        [28.8315, 77.5880],
-        [28.8360, 77.5880],
-        [28.8360, 77.5865]
+        [28.8312, 77.5885],
+        [28.8345, 77.5890],
+        [28.8365, 77.5885],
+        [28.8360, 77.5868],
+        [28.8338, 77.5865]
       ],
       image_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
     },
@@ -319,12 +328,13 @@ export default function ParcelMapViewer({
       is_disputed: false,
       encumbrance_status: "Clean (Nishkank)",
       centroid_lat: 28.8402,
-      centroid_lng: 77.5860,
+      centroid_lng: 77.5863,
       polygon_coords: [
-        [28.8390, 77.5840],
+        [28.8385, 77.5855],
         [28.8390, 77.5880],
-        [28.8415, 77.5880],
-        [28.8415, 77.5840]
+        [28.8415, 77.5885],
+        [28.8420, 77.5850],
+        [28.8400, 77.5845]
       ],
       image_url: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
     },
@@ -347,12 +357,12 @@ export default function ParcelMapViewer({
       verification_status: "Verified",
       is_disputed: false,
       encumbrance_status: "Clean (Nishkank)",
-      centroid_lat: 28.8415,
-      centroid_lng: 77.5825,
+      centroid_lat: 28.8416,
+      centroid_lng: 77.5824,
       polygon_coords: [
         [28.8405, 77.5810],
-        [28.8405, 77.5840],
-        [28.8425, 77.5840],
+        [28.8405, 77.5836],
+        [28.8428, 77.5840],
         [28.8425, 77.5810]
       ],
       image_url: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
@@ -376,19 +386,533 @@ export default function ParcelMapViewer({
       verification_status: "Action Required (Mutation)",
       is_disputed: false,
       encumbrance_status: "Title Transfer Pending (MUT-2023-8941)",
-      centroid_lat: 28.8425,
+      centroid_lat: 28.8422,
       centroid_lng: 77.5860,
       polygon_coords: [
-        [28.8415, 77.5840],
-        [28.8415, 77.5880],
-        [28.8435, 77.5880],
-        [28.8435, 77.5840]
+        [28.8400, 77.5845],
+        [28.8420, 77.5850],
+        [28.8415, 77.5885],
+        [28.8438, 77.5880],
+        [28.8435, 77.5838]
+      ],
+      image_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-420",
+      ulpin: "09-0824-0014-1034",
+      survey_number: "151/A",
+      khasra_number: "420",
+      khata_number: "140",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Harish Chand Tyagi",
+      co_owners: ["Santosh Tyagi (Co-owner)"],
+      land_type: "Agricultural (Fasli)",
+      area_ha: 2.30,
+      area_sqm: 23000.0,
+      valuation_inr: 5520000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8441,
+      centroid_lng: 77.5827,
+      polygon_coords: [
+        [28.8425, 77.5810],
+        [28.8428, 77.5840],
+        [28.8445, 77.5845],
+        [28.8455, 77.5832],
+        [28.8450, 77.5810]
+      ],
+      image_url: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-421-1",
+      ulpin: "09-0824-0014-1035",
+      survey_number: "152/1",
+      khasra_number: "421/1",
+      khata_number: "148",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Geeta Rani & Suresh Pal",
+      co_owners: ["Suresh Pal (Spouse)"],
+      land_type: "Agricultural (Zamin)",
+      area_ha: 3.15,
+      area_sqm: 31500.0,
+      valuation_inr: 7560000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8447,
+      centroid_lng: 77.5858,
+      polygon_coords: [
+        [28.8435, 77.5838],
+        [28.8438, 77.5880],
+        [28.8460, 77.5875],
+        [28.8458, 77.5850],
+        [28.8445, 77.5845]
+      ],
+      image_url: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-421-2",
+      ulpin: "09-0824-0014-1036",
+      survey_number: "152/2",
+      khasra_number: "421/2",
+      khata_number: "149",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Kavita Singhal",
+      co_owners: ["Ashok Singhal (Husband)"],
+      land_type: "Residential / Abadi",
+      area_ha: 1.10,
+      area_sqm: 11000.0,
+      valuation_inr: 16500000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8462,
+      centroid_lng: 77.5820,
+      polygon_coords: [
+        [28.8450, 77.5810],
+        [28.8455, 77.5832],
+        [28.8475, 77.5828],
+        [28.8470, 77.5810]
+      ],
+      image_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-422",
+      ulpin: "09-0824-0014-1037",
+      survey_number: "153/B",
+      khasra_number: "422",
+      khata_number: "155",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Dharamvir Singh Yadav",
+      co_owners: ["Pradeep Yadav (Son)"],
+      land_type: "Agricultural (Fasli)",
+      area_ha: 2.85,
+      area_sqm: 28500.0,
+      valuation_inr: 6840000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8469,
+      centroid_lng: 77.5850,
+      polygon_coords: [
+        [28.8458, 77.5850],
+        [28.8460, 77.5875],
+        [28.8480, 77.5870],
+        [28.8485, 77.5842],
+        [28.8475, 77.5828],
+        [28.8455, 77.5832]
+      ],
+      image_url: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-423",
+      ulpin: "09-0824-0014-1038",
+      survey_number: "154/T",
+      khasra_number: "423",
+      khata_number: "3",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Gram Panchayat Talab / Pokhar",
+      co_owners: ["Panchayati Raj Dept, UP"],
+      land_type: "Water Body / Canal Nala",
+      area_ha: 1.75,
+      area_sqm: 17500.0,
+      valuation_inr: 8750000.0,
+      verification_status: "Verified (Govt)",
+      is_disputed: false,
+      encumbrance_status: "Protected Water Reserve",
+      centroid_lat: 28.8366,
+      centroid_lng: 77.5896,
+      polygon_coords: [
+        [28.8365, 77.5885],
+        [28.8345, 77.5890],
+        [28.8350, 77.5915],
+        [28.8380, 77.5910],
+        [28.8390, 77.5880]
+      ],
+      image_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-424",
+      ulpin: "09-0824-0014-1039",
+      survey_number: "155/M",
+      khasra_number: "424",
+      khata_number: "160",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Krishi Utpadan Mandi Samiti",
+      co_owners: ["UP Mandi Board"],
+      land_type: "Commercial / Warehouse",
+      area_ha: 4.50,
+      area_sqm: 45000.0,
+      valuation_inr: 24500000.0,
+      verification_status: "Verified (Govt)",
+      is_disputed: false,
+      encumbrance_status: "State Commercial Property",
+      centroid_lat: 28.8399,
+      centroid_lng: 77.5898,
+      polygon_coords: [
+        [28.8390, 77.5880],
+        [28.8380, 77.5910],
+        [28.8410, 77.5915],
+        [28.8415, 77.5885]
+      ],
+      image_url: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-425",
+      ulpin: "09-0824-0014-1040",
+      survey_number: "156/BG",
+      khasra_number: "425",
+      khata_number: "167",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Anil Kumar & Brothers",
+      co_owners: ["Sunil Kumar (50%)"],
+      land_type: "Horticulture / Bagh (Mango Orchard)",
+      area_ha: 3.20,
+      area_sqm: 32000.0,
+      valuation_inr: 8640000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8429,
+      centroid_lng: 77.5896,
+      polygon_coords: [
+        [28.8415, 77.5885],
+        [28.8410, 77.5915],
+        [28.8440, 77.5910],
+        [28.8445, 77.5890],
+        [28.8438, 77.5880]
+      ],
+      image_url: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-426-1",
+      ulpin: "09-0824-0014-1041",
+      survey_number: "157/1",
+      khasra_number: "426/1",
+      khata_number: "172",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Sanjay Rathi",
+      co_owners: [],
+      land_type: "Agricultural (Zamin)",
+      area_ha: 2.10,
+      area_sqm: 21000.0,
+      valuation_inr: 5040000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8453,
+      centroid_lng: 77.5891,
+      polygon_coords: [
+        [28.8438, 77.5880],
+        [28.8445, 77.5890],
+        [28.8440, 77.5910],
+        [28.8468, 77.5905],
+        [28.8465, 77.5885],
+        [28.8460, 77.5875]
+      ],
+      image_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-426-2",
+      ulpin: "09-0824-0014-1042",
+      survey_number: "157/2",
+      khasra_number: "426/2",
+      khata_number: "173",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Om Prakash Gupta",
+      co_owners: ["Renu Gupta (Spouse)"],
+      land_type: "Agricultural (Fasli)",
+      area_ha: 1.80,
+      area_sqm: 18000.0,
+      valuation_inr: 4320000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8472,
+      centroid_lng: 77.5887,
+      polygon_coords: [
+        [28.8460, 77.5875],
+        [28.8465, 77.5885],
+        [28.8468, 77.5905],
+        [28.8488, 77.5900],
+        [28.8480, 77.5870]
+      ],
+      image_url: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-427",
+      ulpin: "09-0824-0014-1043",
+      survey_number: "158/W",
+      khasra_number: "427",
+      khata_number: "180",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Sunil Kumar Verma",
+      co_owners: ["Anita Verma (Co-owner)"],
+      land_type: "Agricultural (Zamin)",
+      area_ha: 3.60,
+      area_sqm: 36000.0,
+      valuation_inr: 8640000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8351,
+      centroid_lng: 77.5794,
+      polygon_coords: [
+        [28.8340, 77.5780],
+        [28.8340, 77.5810],
+        [28.8360, 77.5810],
+        [28.8365, 77.5790],
+        [28.8350, 77.5780]
+      ],
+      image_url: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-428",
+      ulpin: "09-0824-0014-1044",
+      survey_number: "159/S",
+      khasra_number: "428",
+      khata_number: "188",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Vandana Sharma",
+      co_owners: [],
+      land_type: "Agricultural (Fasli)",
+      area_ha: 4.25,
+      area_sqm: 42500.0,
+      valuation_inr: 10200000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8327,
+      centroid_lng: 77.5791,
+      polygon_coords: [
+        [28.8315, 77.5780],
+        [28.8315, 77.5810],
+        [28.8340, 77.5810],
+        [28.8350, 77.5780],
+        [28.8330, 77.5775]
+      ],
+      image_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-429",
+      ulpin: "09-0824-0014-1045",
+      survey_number: "160/C",
+      khasra_number: "429",
+      khata_number: "195",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Vijay Pal Singh",
+      co_owners: ["Yogesh Pal (Brother)"],
+      land_type: "Commercial / Warehouse",
+      area_ha: 2.90,
+      area_sqm: 29000.0,
+      valuation_inr: 15950000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8376,
+      centroid_lng: 77.5798,
+      polygon_coords: [
+        [28.8365, 77.5790],
+        [28.8360, 77.5810],
+        [28.8385, 77.5810],
+        [28.8390, 77.5795],
+        [28.8378, 77.5785]
+      ],
+      image_url: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-430",
+      ulpin: "09-0824-0014-1046",
+      survey_number: "161/R",
+      khasra_number: "430",
+      khata_number: "201",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Mukesh Kumar & Rajendra",
+      co_owners: ["Rajendra Prasad (Brother)"],
+      land_type: "Residential / Abadi",
+      area_ha: 1.65,
+      area_sqm: 16500.0,
+      valuation_inr: 24750000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8398,
+      centroid_lng: 77.5798,
+      polygon_coords: [
+        [28.8390, 77.5795],
+        [28.8385, 77.5810],
+        [28.8405, 77.5810],
+        [28.8410, 77.5790],
+        [28.8400, 77.5785]
+      ],
+      image_url: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-431",
+      ulpin: "09-0824-0014-1047",
+      survey_number: "162/B",
+      khasra_number: "431",
+      khata_number: "208",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Babu Ram & Sons",
+      co_owners: ["Devendra Kumar (50%)"],
+      land_type: "Horticulture / Bagh (Mango Orchard)",
+      area_ha: 3.40,
+      area_sqm: 34000.0,
+      valuation_inr: 9180000.0,
+      verification_status: "Verified",
+      is_disputed: false,
+      encumbrance_status: "Clean (Nishkank)",
+      centroid_lat: 28.8418,
+      centroid_lng: 77.5795,
+      polygon_coords: [
+        [28.8410, 77.5790],
+        [28.8405, 77.5810],
+        [28.8425, 77.5810],
+        [28.8430, 77.5795],
+        [28.8425, 77.5780],
+        [28.8415, 77.5782]
+      ],
+      image_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-432",
+      ulpin: "09-0824-0014-1048",
+      survey_number: "163/GS",
+      khasra_number: "432",
+      khata_number: "4",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Gram Sabha (Pashuchar Land)",
+      co_owners: ["Animal Husbandry Dept, UP"],
+      land_type: "Pasture / Charnot (Public)",
+      area_ha: 4.80,
+      area_sqm: 48000.0,
+      valuation_inr: 25600000.0,
+      verification_status: "Verified (Govt)",
+      is_disputed: false,
+      encumbrance_status: "Protected State Land",
+      centroid_lat: 28.8440,
+      centroid_lng: 77.5798,
+      polygon_coords: [
+        [28.8430, 77.5795],
+        [28.8425, 77.5810],
+        [28.8450, 77.5810],
+        [28.8455, 77.5790],
+        [28.8440, 77.5785]
+      ],
+      image_url: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-433",
+      ulpin: "09-0824-0014-1049",
+      survey_number: "164/1",
+      khasra_number: "433",
+      khata_number: "215",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Satyapal Singh Tomar",
+      co_owners: ["Kiran Tomar (Spouse)"],
+      land_type: "Agricultural (Zamin)",
+      area_ha: 3.75,
+      area_sqm: 37500.0,
+      valuation_inr: 9000000.0,
+      verification_status: "Action Required (Mutation)",
+      is_disputed: false,
+      encumbrance_status: "Title Partition Pending (MUT-2026-1120)",
+      centroid_lat: 28.8468,
+      centroid_lng: 77.5806,
+      polygon_coords: [
+        [28.8455, 77.5790],
+        [28.8450, 77.5810],
+        [28.8470, 77.5810],
+        [28.8475, 77.5828],
+        [28.8485, 77.5820],
+        [28.8480, 77.5790]
+      ],
+      image_url: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+      id: "p-434",
+      ulpin: "09-0824-0014-1050",
+      survey_number: "165/D",
+      khasra_number: "434",
+      khata_number: "220",
+      state: "Uttar Pradesh",
+      district: "Ghaziabad",
+      tehsil: "Modinagar",
+      village: "Sikandrabad",
+      owner_name: "Rakesh Sharma & Meena Sharma",
+      co_owners: ["Meena Sharma (Spouse - 50%)"],
+      land_type: "Agricultural (Fasli)",
+      area_ha: 2.60,
+      area_sqm: 26000.0,
+      valuation_inr: 6240000.0,
+      verification_status: "Disputed",
+      is_disputed: true,
+      dispute_reason: "Boundary hedge overlap of 0.8m with Northern Sikandrabad village boundary line",
+      encumbrance_status: "Boundary Notice Issued",
+      centroid_lat: 28.8495,
+      centroid_lng: 77.5848,
+      polygon_coords: [
+        [28.8485, 77.5842],
+        [28.8480, 77.5870],
+        [28.8505, 77.5865],
+        [28.8508, 77.5835],
+        [28.8495, 77.5830]
       ],
       image_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
     }
   ];
 
-  const activeParcels = parcels.length >= 10 ? parcels : GHAZIABAD_10_MOCK_PARCELS;
+  const activeParcels = parcels && parcels.length >= 10 ? parcels : GHAZIABAD_MOCK_PARCELS;
 
   // Handle selectedParcelId from parent prop cleanly
   useEffect(() => {
@@ -400,6 +924,8 @@ export default function ParcelMapViewer({
         setSelectedParcel(found);
         setIsDrawerExpanded(true);
       }
+    } else if (selectedParcelId === null && hasInitialized.current) {
+      setSelectedParcel(null);
     } else if (!hasInitialized.current && activeParcels.length > 0) {
       // Open initial parcel on first mount only
       hasInitialized.current = true;
@@ -410,14 +936,21 @@ export default function ParcelMapViewer({
   const handleParcelClick = (p) => {
     setSelectedParcel(p);
     setIsDrawerExpanded(true);
-    onSelectParcel(p);
+    if (onSelectParcel) {
+      onSelectParcel(p);
+    }
   };
 
-  // Close drawer handler: Clears both internal state and parent selection
+  // Close drawer handler: Clears both internal state and notifies parent selection
   const handleCloseDrawer = (e) => {
-    if (e) e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setSelectedParcel(null);
-    onSelectParcel(null);
+    if (onSelectParcel) {
+      onSelectParcel(null);
+    }
   };
 
   // Base Map Layer URLs
@@ -451,7 +984,7 @@ export default function ParcelMapViewer({
                 </span>
               </div>
               <p className="hidden sm:block text-[11px] text-slate-400 truncate">
-                Showing 10 Active Contiguous Khasra Plots • Tap any plot to view Khatauni details
+                Showing 27 Active Contiguous Khasra Plots • Tap any plot to view Khatauni details
               </p>
             </div>
           </div>
@@ -595,7 +1128,7 @@ export default function ParcelMapViewer({
           <aside
             aria-label="Land record details"
             className={`
-              z-[400] bg-slate-900/95 backdrop-blur-2xl border border-slate-700/80 shadow-2xl text-slate-200 transition-all duration-300 flex flex-col justify-between
+              z-[400] bg-slate-900/95 backdrop-blur-2xl border border-slate-700/80 shadow-2xl text-slate-200 transition-all duration-300 flex flex-col justify-between pointer-events-auto
               md:absolute md:top-20 md:right-4 md:bottom-4 md:w-96 md:rounded-3xl md:p-5 md:overflow-y-auto
               absolute inset-x-2 bottom-2 rounded-2xl p-4 max-h-[80vh] overflow-y-auto
             `}
@@ -620,19 +1153,20 @@ export default function ParcelMapViewer({
                   <button
                     type="button"
                     onClick={() => setIsDrawerExpanded(!isDrawerExpanded)}
-                    className="md:hidden w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 transition-colors"
+                    className="md:hidden w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 transition-colors cursor-pointer"
                     title={isDrawerExpanded ? "Collapse" : "Expand"}
                   >
-                    <span className="material-symbols-outlined text-[18px]">{isDrawerExpanded ? "expand_more" : "expand_less"}</span>
+                    <span className="material-symbols-outlined text-[18px] pointer-events-none">{isDrawerExpanded ? "expand_more" : "expand_less"}</span>
                   </button>
                   {/* Close / Cut (X) Button */}
                   <button
                     type="button"
                     onClick={handleCloseDrawer}
-                    className="w-8 h-8 rounded-full bg-slate-800 hover:bg-rose-600 hover:text-white flex items-center justify-center text-slate-300 transition-colors cursor-pointer shadow-sm"
+                    className="w-8 h-8 rounded-full bg-slate-800 hover:bg-rose-600 hover:text-white flex items-center justify-center text-slate-300 transition-colors cursor-pointer shadow-sm pointer-events-auto"
                     title="Close Details"
+                    aria-label="Close details"
                   >
-                    <span className="material-symbols-outlined text-[18px]">close</span>
+                    <span className="material-symbols-outlined text-[18px] pointer-events-none">close</span>
                   </button>
                 </div>
               </div>

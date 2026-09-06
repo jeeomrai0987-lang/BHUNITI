@@ -12,10 +12,10 @@ from app.models.parcel import Parcel
 from sqlalchemy import select
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("seed_10_parcels")
+logger = logging.getLogger("seed_27_parcels")
 
-# 10 Contiguous Ghaziabad (Modinagar / Sikandrabad) Cadastral Parcels
-GHAZIABAD_10_PARCELS = [
+# 27 Contiguous Ghaziabad (Modinagar / Sikandrabad) Cadastral Parcels with Variable Multi-Vertex Geometries
+GHAZIABAD_27_PARCELS = [
     {
         "ulpin": "09-0824-0014-1024",
         "survey_number": "142/B",
@@ -36,7 +36,7 @@ GHAZIABAD_10_PARCELS = [
         "centroid_lng": 77.5825,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8340], [77.5840, 28.8340], [77.5840, 28.8360], [77.5810, 28.8360], [77.5810, 28.8340]]]
+            "coordinates": [[[77.5810, 28.8340], [77.5840, 28.8340], [77.5842, 28.8352], [77.5838, 28.8360], [77.5810, 28.8360], [77.5810, 28.8340]]]
         }),
         "verification_status": "Verified",
         "is_disputed": False,
@@ -59,11 +59,11 @@ GHAZIABAD_10_PARCELS = [
         "area_ha": 1.45,
         "area_sqm": 14500.0,
         "valuation_inr": 3480000.0,
-        "centroid_lat": 28.8350,
-        "centroid_lng": 77.5852,
+        "centroid_lat": 28.8348,
+        "centroid_lng": 77.5854,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5840, 28.8340], [77.5865, 28.8340], [77.5865, 28.8360], [77.5840, 28.8360], [77.5840, 28.8340]]]
+            "coordinates": [[[77.5840, 28.8340], [77.5865, 28.8338], [77.5868, 28.8360], [77.5842, 28.8352], [77.5840, 28.8340]]]
         }),
         "verification_status": "Verified",
         "is_disputed": False,
@@ -86,11 +86,11 @@ GHAZIABAD_10_PARCELS = [
         "area_ha": 14.68,
         "area_sqm": 146800.0,
         "valuation_inr": 22000000.0,
-        "centroid_lat": 28.8327,
+        "centroid_lat": 28.8328,
         "centroid_lng": 77.5837,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8315], [77.5865, 28.8315], [77.5865, 28.8340], [77.5810, 28.8340], [77.5810, 28.8315]]]
+            "coordinates": [[[77.5810, 28.8315], [77.5835, 28.8312], [77.5865, 28.8315], [77.5865, 28.8338], [77.5840, 28.8340], [77.5810, 28.8340], [77.5810, 28.8315]]]
         }),
         "verification_status": "Under Verification",
         "is_disputed": True,
@@ -115,10 +115,10 @@ GHAZIABAD_10_PARCELS = [
         "area_sqm": 34000.0,
         "valuation_inr": 18500000.0,
         "centroid_lat": 28.8372,
-        "centroid_lng": 77.5825,
+        "centroid_lng": 77.5824,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8360], [77.5840, 28.8360], [77.5840, 28.8385], [77.5810, 28.8385], [77.5810, 28.8360]]]
+            "coordinates": [[[77.5810, 28.8360], [77.5838, 28.8360], [77.5842, 28.8375], [77.5835, 28.8385], [77.5810, 28.8385], [77.5810, 28.8360]]]
         }),
         "verification_status": "Disputed",
         "is_disputed": True,
@@ -142,11 +142,11 @@ GHAZIABAD_10_PARCELS = [
         "area_ha": 5.80,
         "area_sqm": 58000.0,
         "valuation_inr": 31000000.0,
-        "centroid_lat": 28.8375,
-        "centroid_lng": 77.5860,
+        "centroid_lat": 28.8371,
+        "centroid_lng": 77.5862,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5840, 28.8360], [77.5880, 28.8360], [77.5880, 28.8390], [77.5840, 28.8390], [77.5840, 28.8360]]]
+            "coordinates": [[[77.5842, 28.8352], [77.5868, 28.8360], [77.5885, 28.8365], [77.5880, 28.8390], [77.5855, 28.8385], [77.5842, 28.8375], [77.5842, 28.8352]]]
         }),
         "verification_status": "Verified (Govt)",
         "is_disputed": False,
@@ -170,10 +170,10 @@ GHAZIABAD_10_PARCELS = [
         "area_sqm": 8500.0,
         "valuation_inr": 12750000.0,
         "centroid_lat": 28.8395,
-        "centroid_lng": 77.5825,
+        "centroid_lng": 77.5826,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8385], [77.5840, 28.8385], [77.5840, 28.8405], [77.5810, 28.8405], [77.5810, 28.8385]]]
+            "coordinates": [[[77.5810, 28.8385], [77.5835, 28.8385], [77.5842, 28.8398], [77.5836, 28.8405], [77.5810, 28.8405], [77.5810, 28.8385]]]
         }),
         "verification_status": "Verified",
         "is_disputed": False,
@@ -196,11 +196,11 @@ GHAZIABAD_10_PARCELS = [
         "area_ha": 1.20,
         "area_sqm": 12000.0,
         "valuation_inr": 6000000.0,
-        "centroid_lat": 28.8337,
-        "centroid_lng": 77.5872,
+        "centroid_lat": 28.8340,
+        "centroid_lng": 77.5876,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5865, 28.8315], [77.5880, 28.8315], [77.5880, 28.8360], [77.5865, 28.8360], [77.5865, 28.8315]]]
+            "coordinates": [[[77.5865, 28.8315], [77.5885, 28.8312], [77.5890, 28.8345], [77.5885, 28.8365], [77.5868, 28.8360], [77.5865, 28.8338], [77.5865, 28.8315]]]
         }),
         "verification_status": "Verified (Govt)",
         "is_disputed": False,
@@ -224,10 +224,10 @@ GHAZIABAD_10_PARCELS = [
         "area_sqm": 41000.0,
         "valuation_inr": 9840000.0,
         "centroid_lat": 28.8402,
-        "centroid_lng": 77.5860,
+        "centroid_lng": 77.5863,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5840, 28.8390], [77.5880, 28.8390], [77.5880, 28.8415], [77.5840, 28.8415], [77.5840, 28.8390]]]
+            "coordinates": [[[77.5855, 28.8385], [77.5880, 28.8390], [77.5885, 28.8415], [77.5850, 28.8420], [77.5845, 28.8400], [77.5855, 28.8385]]]
         }),
         "verification_status": "Verified",
         "is_disputed": False,
@@ -250,11 +250,11 @@ GHAZIABAD_10_PARCELS = [
         "area_ha": 2.75,
         "area_sqm": 27500.0,
         "valuation_inr": 7425000.0,
-        "centroid_lat": 28.8415,
-        "centroid_lng": 77.5825,
+        "centroid_lat": 28.8416,
+        "centroid_lng": 77.5824,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8405], [77.5840, 28.8405], [77.5840, 28.8425], [77.5810, 28.8425], [77.5810, 28.8405]]]
+            "coordinates": [[[77.5810, 28.8405], [77.5836, 28.8405], [77.5840, 28.8428], [77.5810, 28.8425], [77.5810, 28.8405]]]
         }),
         "verification_status": "Verified",
         "is_disputed": False,
@@ -277,23 +277,483 @@ GHAZIABAD_10_PARCELS = [
         "area_ha": 1.95,
         "area_sqm": 19500.0,
         "valuation_inr": 4680000.0,
-        "centroid_lat": 28.8425,
+        "centroid_lat": 28.8422,
         "centroid_lng": 77.5860,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5840, 28.8415], [77.5880, 28.8415], [77.5880, 28.8435], [77.5840, 28.8435], [77.5840, 28.8415]]]
+            "coordinates": [[[77.5845, 28.8400], [77.5850, 28.8420], [77.5885, 28.8415], [77.5880, 28.8438], [77.5838, 28.8435], [77.5845, 28.8400]]]
         }),
         "verification_status": "Action Required (Mutation)",
         "is_disputed": False,
         "encumbrance_status": "Title Transfer Pending (MUT-2023-8941)",
         "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1034",
+        "survey_number": "151/A",
+        "khasra_number": "420",
+        "khata_number": "140",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Harish Chand Tyagi",
+        "co_owners_json": json.dumps(["Santosh Tyagi (Co-owner)"]),
+        "land_type": "Agricultural (Fasli)",
+        "area_ha": 2.30,
+        "area_sqm": 23000.0,
+        "valuation_inr": 5520000.0,
+        "centroid_lat": 28.8441,
+        "centroid_lng": 77.5827,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5810, 28.8425], [77.5840, 28.8428], [77.5845, 28.8445], [77.5832, 28.8455], [77.5810, 28.8450], [77.5810, 28.8425]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1035",
+        "survey_number": "152/1",
+        "khasra_number": "421/1",
+        "khata_number": "148",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Geeta Rani & Suresh Pal",
+        "co_owners_json": json.dumps(["Suresh Pal (Spouse)"]),
+        "land_type": "Agricultural (Zamin)",
+        "area_ha": 3.15,
+        "area_sqm": 31500.0,
+        "valuation_inr": 7560000.0,
+        "centroid_lat": 28.8447,
+        "centroid_lng": 77.5858,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5838, 28.8435], [77.5880, 28.8438], [77.5875, 28.8460], [77.5850, 28.8458], [77.5845, 28.8445], [77.5838, 28.8435]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1036",
+        "survey_number": "152/2",
+        "khasra_number": "421/2",
+        "khata_number": "149",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Kavita Singhal",
+        "co_owners_json": json.dumps(["Ashok Singhal (Husband)"]),
+        "land_type": "Residential / Abadi",
+        "area_ha": 1.10,
+        "area_sqm": 11000.0,
+        "valuation_inr": 16500000.0,
+        "centroid_lat": 28.8462,
+        "centroid_lng": 77.5820,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5810, 28.8450], [77.5832, 28.8455], [77.5828, 28.8475], [77.5810, 28.8470], [77.5810, 28.8450]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1037",
+        "survey_number": "153/B",
+        "khasra_number": "422",
+        "khata_number": "155",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Dharamvir Singh Yadav",
+        "co_owners_json": json.dumps(["Pradeep Yadav (Son)"]),
+        "land_type": "Agricultural (Fasli)",
+        "area_ha": 2.85,
+        "area_sqm": 28500.0,
+        "valuation_inr": 6840000.0,
+        "centroid_lat": 28.8469,
+        "centroid_lng": 77.5850,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5850, 28.8458], [77.5875, 28.8460], [77.5870, 28.8480], [77.5842, 28.8485], [77.5828, 28.8475], [77.5832, 28.8455], [77.5850, 28.8458]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1038",
+        "survey_number": "154/T",
+        "khasra_number": "423",
+        "khata_number": "3",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Gram Panchayat Talab / Pokhar",
+        "co_owners_json": json.dumps(["Panchayati Raj Dept, UP"]),
+        "land_type": "Water Body / Canal Nala",
+        "area_ha": 1.75,
+        "area_sqm": 17500.0,
+        "valuation_inr": 8750000.0,
+        "centroid_lat": 28.8366,
+        "centroid_lng": 77.5896,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5885, 28.8365], [77.5890, 28.8345], [77.5915, 28.8350], [77.5910, 28.8380], [77.5880, 28.8390], [77.5885, 28.8365]]]
+        }),
+        "verification_status": "Verified (Govt)",
+        "is_disputed": False,
+        "encumbrance_status": "Protected Water Reserve",
+        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1039",
+        "survey_number": "155/M",
+        "khasra_number": "424",
+        "khata_number": "160",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Krishi Utpadan Mandi Samiti",
+        "co_owners_json": json.dumps(["UP Mandi Board"]),
+        "land_type": "Commercial / Warehouse",
+        "area_ha": 4.50,
+        "area_sqm": 45000.0,
+        "valuation_inr": 24500000.0,
+        "centroid_lat": 28.8399,
+        "centroid_lng": 77.5898,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5880, 28.8390], [77.5910, 28.8380], [77.5915, 28.8410], [77.5885, 28.8415], [77.5880, 28.8390]]]
+        }),
+        "verification_status": "Verified (Govt)",
+        "is_disputed": False,
+        "encumbrance_status": "State Commercial Property",
+        "image_url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1040",
+        "survey_number": "156/BG",
+        "khasra_number": "425",
+        "khata_number": "167",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Anil Kumar & Brothers",
+        "co_owners_json": json.dumps(["Sunil Kumar (50%)"]),
+        "land_type": "Horticulture / Bagh (Mango Orchard)",
+        "area_ha": 3.20,
+        "area_sqm": 32000.0,
+        "valuation_inr": 8640000.0,
+        "centroid_lat": 28.8429,
+        "centroid_lng": 77.5896,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5885, 28.8415], [77.5915, 28.8410], [77.5910, 28.8440], [77.5890, 28.8445], [77.5880, 28.8438], [77.5885, 28.8415]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1041",
+        "survey_number": "157/1",
+        "khasra_number": "426/1",
+        "khata_number": "172",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Sanjay Rathi",
+        "co_owners_json": json.dumps([]),
+        "land_type": "Agricultural (Zamin)",
+        "area_ha": 2.10,
+        "area_sqm": 21000.0,
+        "valuation_inr": 5040000.0,
+        "centroid_lat": 28.8453,
+        "centroid_lng": 77.5891,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5880, 28.8438], [77.5890, 28.8445], [77.5910, 28.8440], [77.5905, 28.8468], [77.5885, 28.8465], [77.5875, 28.8460], [77.5880, 28.8438]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1042",
+        "survey_number": "157/2",
+        "khasra_number": "426/2",
+        "khata_number": "173",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Om Prakash Gupta",
+        "co_owners_json": json.dumps(["Renu Gupta (Spouse)"]),
+        "land_type": "Agricultural (Fasli)",
+        "area_ha": 1.80,
+        "area_sqm": 18000.0,
+        "valuation_inr": 4320000.0,
+        "centroid_lat": 28.8472,
+        "centroid_lng": 77.5887,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5875, 28.8460], [77.5885, 28.8465], [77.5905, 28.8468], [77.5900, 28.8488], [77.5870, 28.8480], [77.5875, 28.8460]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1043",
+        "survey_number": "158/W",
+        "khasra_number": "427",
+        "khata_number": "180",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Sunil Kumar Verma",
+        "co_owners_json": json.dumps(["Anita Verma (Co-owner)"]),
+        "land_type": "Agricultural (Zamin)",
+        "area_ha": 3.60,
+        "area_sqm": 36000.0,
+        "valuation_inr": 8640000.0,
+        "centroid_lat": 28.8351,
+        "centroid_lng": 77.5794,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5780, 28.8340], [77.5810, 28.8340], [77.5810, 28.8360], [77.5790, 28.8365], [77.5780, 28.8350], [77.5780, 28.8340]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1044",
+        "survey_number": "159/S",
+        "khasra_number": "428",
+        "khata_number": "188",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Vandana Sharma",
+        "co_owners_json": json.dumps([]),
+        "land_type": "Agricultural (Fasli)",
+        "area_ha": 4.25,
+        "area_sqm": 42500.0,
+        "valuation_inr": 10200000.0,
+        "centroid_lat": 28.8327,
+        "centroid_lng": 77.5791,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5780, 28.8315], [77.5810, 28.8315], [77.5810, 28.8340], [77.5780, 28.8350], [77.5775, 28.8330], [77.5780, 28.8315]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1045",
+        "survey_number": "160/C",
+        "khasra_number": "429",
+        "khata_number": "195",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Vijay Pal Singh",
+        "co_owners_json": json.dumps(["Yogesh Pal (Brother)"]),
+        "land_type": "Commercial / Warehouse",
+        "area_ha": 2.90,
+        "area_sqm": 29000.0,
+        "valuation_inr": 15950000.0,
+        "centroid_lat": 28.8376,
+        "centroid_lng": 77.5798,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5790, 28.8365], [77.5810, 28.8360], [77.5810, 28.8385], [77.5795, 28.8390], [77.5785, 28.8378], [77.5790, 28.8365]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1046",
+        "survey_number": "161/R",
+        "khasra_number": "430",
+        "khata_number": "201",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Mukesh Kumar & Rajendra",
+        "co_owners_json": json.dumps(["Rajendra Prasad (Brother)"]),
+        "land_type": "Residential / Abadi",
+        "area_ha": 1.65,
+        "area_sqm": 16500.0,
+        "valuation_inr": 24750000.0,
+        "centroid_lat": 28.8398,
+        "centroid_lng": 77.5798,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5795, 28.8390], [77.5810, 28.8385], [77.5810, 28.8405], [77.5790, 28.8410], [77.5785, 28.8400], [77.5795, 28.8390]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1047",
+        "survey_number": "162/B",
+        "khasra_number": "431",
+        "khata_number": "208",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Babu Ram & Sons",
+        "co_owners_json": json.dumps(["Devendra Kumar (50%)"]),
+        "land_type": "Horticulture / Bagh (Mango Orchard)",
+        "area_ha": 3.40,
+        "area_sqm": 34000.0,
+        "valuation_inr": 9180000.0,
+        "centroid_lat": 28.8418,
+        "centroid_lng": 77.5795,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5790, 28.8410], [77.5810, 28.8405], [77.5810, 28.8425], [77.5795, 28.8430], [77.5780, 28.8425], [77.5782, 28.8415], [77.5790, 28.8410]]]
+        }),
+        "verification_status": "Verified",
+        "is_disputed": False,
+        "encumbrance_status": "Clean (Nishkank)",
+        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1048",
+        "survey_number": "163/GS",
+        "khasra_number": "432",
+        "khata_number": "4",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Gram Sabha (Pashuchar Land)",
+        "co_owners_json": json.dumps(["Animal Husbandry Dept, UP"]),
+        "land_type": "Pasture / Charnot (Public)",
+        "area_ha": 4.80,
+        "area_sqm": 48000.0,
+        "valuation_inr": 25600000.0,
+        "centroid_lat": 28.8440,
+        "centroid_lng": 77.5798,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5795, 28.8430], [77.5810, 28.8425], [77.5810, 28.8450], [77.5790, 28.8455], [77.5785, 28.8440], [77.5795, 28.8430]]]
+        }),
+        "verification_status": "Verified (Govt)",
+        "is_disputed": False,
+        "encumbrance_status": "Protected State Land",
+        "image_url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1049",
+        "survey_number": "164/1",
+        "khasra_number": "433",
+        "khata_number": "215",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Satyapal Singh Tomar",
+        "co_owners_json": json.dumps(["Kiran Tomar (Spouse)"]),
+        "land_type": "Agricultural (Zamin)",
+        "area_ha": 3.75,
+        "area_sqm": 37500.0,
+        "valuation_inr": 9000000.0,
+        "centroid_lat": 28.8468,
+        "centroid_lng": 77.5806,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5790, 28.8455], [77.5810, 28.8450], [77.5810, 28.8470], [77.5828, 28.8475], [77.5820, 28.8485], [77.5790, 28.8480], [77.5790, 28.8455]]]
+        }),
+        "verification_status": "Action Required (Mutation)",
+        "is_disputed": False,
+        "encumbrance_status": "Title Partition Pending (MUT-2026-1120)",
+        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
+    },
+    {
+        "ulpin": "09-0824-0014-1050",
+        "survey_number": "165/D",
+        "khasra_number": "434",
+        "khata_number": "220",
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "tehsil": "Modinagar",
+        "village": "Sikandrabad",
+        "pincode": "201204",
+        "owner_name": "Rakesh Sharma & Meena Sharma",
+        "co_owners_json": json.dumps(["Meena Sharma (Spouse - 50%)"]),
+        "land_type": "Agricultural (Fasli)",
+        "area_ha": 2.60,
+        "area_sqm": 26000.0,
+        "valuation_inr": 6240000.0,
+        "centroid_lat": 28.8495,
+        "centroid_lng": 77.5848,
+        "boundary_geojson": json.dumps({
+            "type": "Polygon",
+            "coordinates": [[[77.5842, 28.8485], [77.5870, 28.8480], [77.5865, 28.8505], [77.5835, 28.8508], [77.5830, 28.8495], [77.5842, 28.8485]]]
+        }),
+        "verification_status": "Disputed",
+        "is_disputed": True,
+        "dispute_reason": "Boundary hedge overlap of 0.8m with Northern Sikandrabad village boundary line",
+        "encumbrance_status": "Boundary Notice Issued",
+        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
     }
 ]
 
-async def seed_10_parcels():
+async def seed_27_parcels():
     logger.info("Connecting to database...")
     async with AsyncSessionLocal() as session:
-        for p_data in GHAZIABAD_10_PARCELS:
+        for p_data in GHAZIABAD_27_PARCELS:
             res = await session.execute(select(Parcel).where(Parcel.ulpin == p_data["ulpin"]))
             existing = res.scalars().first()
             if existing:
@@ -306,7 +766,7 @@ async def seed_10_parcels():
                 logger.info(f"Created new parcel: {p_data['ulpin']} (Khasra {p_data['khasra_number']})")
 
         await session.commit()
-    logger.info("Successfully seeded all 10 Ghaziabad Cadastral Parcels!")
+    logger.info("Successfully seeded all 27 Ghaziabad Cadastral Parcels with variable geometries!")
 
 if __name__ == "__main__":
-    asyncio.run(seed_10_parcels())
+    asyncio.run(seed_27_parcels())

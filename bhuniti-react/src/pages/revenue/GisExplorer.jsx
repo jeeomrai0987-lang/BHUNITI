@@ -185,14 +185,23 @@ export default function GisExplorer() {
               <p className="text-[10px] font-label-md uppercase tracking-wider text-on-surface-variant mb-2 font-bold">
                 Quick Cadastral Roster ({selectedVillage})
               </p>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+              <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
                 {[
                   { ulpin: "09-0824-0014-1024", khasra: "ख. 412/1", owner: "Rahul Sharma", status: "Verified", color: "text-emerald-600 bg-emerald-50" },
                   { ulpin: "09-0824-0014-1025", khasra: "ख. 412/2", owner: "Sunita Devi", status: "Verified", color: "text-emerald-600 bg-emerald-50" },
                   { ulpin: "09-0824-0014-1026", khasra: "ख. 413", owner: "Rajesh Kumar", status: "Under Mutation", color: "text-amber-600 bg-amber-50" },
                   { ulpin: "09-0824-0014-1027", khasra: "ख. 414", owner: "Manoj Tyagi (Warehouse)", status: "Disputed Overlap", color: "text-rose-600 bg-rose-50" },
                   { ulpin: "09-0824-0014-1028", khasra: "ख. 415/1", owner: "Gram Sabha (Public)", status: "State Land", color: "text-orange-600 bg-orange-50" },
-                  { ulpin: "09-0824-0014-1030", khasra: "ख. 416", owner: "UP Irrigation Canal", status: "Water Reserve", color: "text-cyan-600 bg-cyan-50" }
+                  { ulpin: "09-0824-0014-1029", khasra: "ख. 415/2", owner: "Dr. Arvind Mishra", status: "Verified", color: "text-blue-600 bg-blue-50" },
+                  { ulpin: "09-0824-0014-1030", khasra: "ख. 416", owner: "UP Irrigation Canal", status: "Water Reserve", color: "text-cyan-600 bg-cyan-50" },
+                  { ulpin: "09-0824-0014-1031", khasra: "ख. 417", owner: "Amit Choudhary", status: "Verified", color: "text-emerald-600 bg-emerald-50" },
+                  { ulpin: "09-0824-0014-1032", khasra: "ख. 418", owner: "Balram Singh (Orchard)", status: "Verified", color: "text-lime-600 bg-lime-50" },
+                  { ulpin: "09-0824-0014-1033", khasra: "ख. 419", owner: "Priya Sharma", status: "Under Mutation", color: "text-amber-600 bg-amber-50" },
+                  { ulpin: "09-0824-0014-1034", khasra: "ख. 420", owner: "Harish Chand Tyagi", status: "Verified", color: "text-emerald-600 bg-emerald-50" },
+                  { ulpin: "09-0824-0014-1035", khasra: "ख. 421/1", owner: "Geeta Rani & Suresh", status: "Verified", color: "text-emerald-600 bg-emerald-50" },
+                  { ulpin: "09-0824-0014-1037", khasra: "ख. 422", owner: "Dharamvir Singh", status: "Verified", color: "text-emerald-600 bg-emerald-50" },
+                  { ulpin: "09-0824-0014-1039", khasra: "ख. 424", owner: "Mandi Samiti (Mkt)", status: "State Commercial", color: "text-purple-600 bg-purple-50" },
+                  { ulpin: "09-0824-0014-1050", khasra: "ख. 434", owner: "Rakesh Sharma", status: "Disputed", color: "text-rose-600 bg-rose-50" }
                 ].map((item) => (
                   <div
                     key={item.ulpin}
