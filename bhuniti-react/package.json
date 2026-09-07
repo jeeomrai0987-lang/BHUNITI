@@ -1,0 +1,33 @@
+{
+  "name": "bhuniti-react",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check:syntax": "node ../tools/check_syntax.mjs",
+    "check:i18n": "node ../tools/check_i18n.mjs",
+    "check:registry": "node ../tools/registry_check_catalogs.mjs && node ../tools/registry_check_source.mjs && node ../tools/registry_check_runtime.mjs",
+    "test:i18n": "node ../tools/test_i18n_runtime.mjs",
+    "verify": "npm run check:syntax && npm run check:i18n && npm run check:registry && npm run test:i18n"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-leaflet": "^4.2.1",
+    "react-router-dom": "^6.26.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.6",
+    "vite": "^5.3.4"
+  }
+}

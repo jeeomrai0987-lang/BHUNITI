@@ -1,0 +1,183 @@
+{
+  "messages": {
+    "error.invalid_credentials": "பயனர் பெயர் அல்லது கடவுச்சொல் தவறானது",
+    "error.not_authenticated": "அனுமதி சரிபார்க்கப்படவில்லை",
+    "error.could_not_validate": "அடையாளச் சான்றுகளைச் சரிபார்க்க முடியவில்லை",
+    "error.user_not_found": "பயனர் கணக்கு கண்டுபிடிக்கப்படவில்லை",
+    "error.auth_required": "அனுமதி சரிபார்ப்பு தேவை",
+    "error.insufficient_permissions": "இந்தப் பகுதிக்குப் போதிய அனுமதி இல்லை",
+    "error.username_taken": "இந்தப் பயனர் பெயர் ஏற்கெனவே பதிவு செய்யப்பட்டுள்ளது",
+    "error.parcel_not_found": "ULPIN '{reference}' க்கான நிலப் பகுதி கண்டுபிடிக்கப்படவில்லை",
+    "error.parcel_exists": "இந்த ULPIN கொண்ட நிலப் பகுதி ஏற்கெனவே உள்ளது",
+    "error.mutation_not_found": "பெயர் மாற்ற வழக்கு '{reference}' கண்டுபிடிக்கப்படவில்லை",
+    "error.invalid_mutation_action": "தவறான நடவடிக்கை. 'approve', 'reject' அல்லது 'clarify' பயன்படுத்தவும்.",
+    "error.application_not_found": "விண்ணப்பம் '{reference}' கண்டுபிடிக்கப்படவில்லை",
+    "error.discrepancy_not_found": "வேறுபாட்டு வழக்கு '{reference}' கண்டுபிடிக்கப்படவில்லை",
+    "error.survey_not_found": "நேரடி நில அளவை '{reference}' கண்டுபிடிக்கப்படவில்லை",
+    "error.document_not_found": "ஆவணம் '{reference}' கண்டுபிடிக்கப்படவில்லை",
+    "error.empty_upload": "பதிவேற்றப்பட்ட கோப்பு காலியாக உள்ளது",
+    "error.unsupported_locale": "'{locale_code}' மொழி ஆதரிக்கப்படவில்லை. கிடைக்கும் மொழிகள்: {available}",
+    "error.database_unavailable": "ஆவணத் தரவுத்தளம் தற்போது கிடைக்கவில்லை",
+    "audit.mutation_action": "நிலப் பகுதி {ulpin} இல் பெயர் மாற்றம் {number} இன் நிலை {status} எனப் பதிவு செய்யப்பட்டது. குறிப்பு: {note}",
+    "audit.mutation_note_default": "{actor} '{action}' நடவடிக்கையைப் பதிவு செய்தார்.",
+    "audit.discrepancy_resolved": "வேறுபாட்டு வழக்கு {number} இன் நிலை {status} எனப் பதிவு செய்யப்பட்டது. குறிப்பு: {note}",
+    "audit.survey_scheduled": "நிலப் பகுதி {ulpin} க்கான அளவை {number}, {date} அன்று திட்டமிடப்பட்டது.",
+    "audit.availability_confirmed": "விண்ணப்பம் {number} இன் நேரடி அளவைக்கு குடிமகன் வருகையை உறுதிப்படுத்தினார்.",
+    "audit.document_uploaded": "ஆவணம் '{title}' நிலப் பகுதி {ulpin} உடன் இணைக்கப்பட்டது.",
+    "audit.application_filed": "விண்ணப்பம் {number} நிலப் பகுதி {ulpin} க்காக தாக்கல் செய்யப்பட்டது ({service}).",
+    "message.availability_confirmed": "அளவைக்கான வருகை உறுதிப்படுத்தப்பட்டது",
+    "message.chain_intact": "தணிக்கைத் தொடர் சரிபார்க்கப்பட்டது: {count} பதிவுகள், எந்தத் திருத்தமும் இல்லை.",
+    "message.chain_broken": "தணிக்கைத் தொடர் பதிவு {position} ({entry_id}) இல் முறிந்துள்ளது.",
+    "system.welcome": "பூநீதி நில நிர்வாக API க்கு வருக",
+    "system.service_name": "பூநீதி நில நிர்வாக தளம் API"
+  },
+  "labels": {
+    "application_status": {
+      "In Progress": "நடைபெறுகிறது",
+      "Action Required": "நடவடிக்கை தேவை",
+      "Under Review": "பரிசீலனையில்",
+      "Approved": "ஒப்புதல் அளிக்கப்பட்டது",
+      "Rejected": "நிராகரிக்கப்பட்டது",
+      "Completed": "நிறைவு"
+    },
+    "mutation_status": {
+      "Pending": "நிலுவையில்",
+      "Under Verification": "சரிபார்ப்பில்",
+      "Awaiting Docs": "ஆவணங்கள் எதிர்நோக்கப்படுகிறது",
+      "Approved": "ஒப்புதல் அளிக்கப்பட்டது",
+      "Rejected": "நிராகரிக்கப்பட்டது"
+    },
+    "stage": {
+      "Submitted": "சமர்ப்பிக்கப்பட்டது",
+      "Verified": "சரிபார்க்கப்பட்டது",
+      "Field Survey": "நேரடி நில அளவை",
+      "RO Review": "வருவாய் அதிகாரி பரிசீலனை",
+      "Approved": "ஒப்புதல் அளிக்கப்பட்டது"
+    },
+    "stage_state": {
+      "completed": "நிறைவு",
+      "in_progress": "நடைபெறுகிறது",
+      "pending": "நிலுவையில்"
+    },
+    "severity": {
+      "High": "உயர்",
+      "Medium": "நடுத்தரம்",
+      "Low": "குறைவு"
+    },
+    "discrepancy_status": {
+      "Open": "திறந்த நிலையில்",
+      "In Review": "பரிசீலனையில்",
+      "Resolved": "தீர்க்கப்பட்டது",
+      "Dismissed": "தள்ளுபடி"
+    },
+    "discrepancy_type": {
+      "Area Mismatch": "பரப்பளவில் வேறுபாடு",
+      "Boundary Overlap": "எல்லை மேற்பொருந்தல்",
+      "Registry Mismatch": "பதிவேட்டில் வேறுபாடு",
+      "Ownership Conflict": "உரிமைத் தகராறு",
+      "Encroachment": "ஆக்கிரமிப்பு"
+    },
+    "mutation_type": {
+      "Sale Mutation": "கிரயப் பெயர் மாற்றம்",
+      "Inheritance Mutation": "வாரிசுரிமை பெயர் மாற்றம்",
+      "Partition": "பாகப்பிரிவினை",
+      "Gift Deed": "தானப் பத்திரம்",
+      "Court Decree": "நீதிமன்ற ஆணை"
+    },
+    "verification_status": {
+      "Verified": "சரிபார்க்கப்பட்டது",
+      "Under Verification": "சரிபார்ப்பில்",
+      "Disputed": "தகராறில்",
+      "Pending": "நிலுவையில்",
+      "Verified (Govt)": "சரிபார்க்கப்பட்டது (அரசு)",
+      "Action Required (Mutation)": "நடவடிக்கை தேவை (பெயர் மாற்றம்)"
+    },
+    "encumbrance_status": {
+      "Clean": "வில்லங்கமில்லை",
+      "Mortgaged": "அடைமானம்",
+      "Leased": "குத்தகை",
+      "Court Stay": "நீதிமன்ற தடையாணை",
+      "Under Mutation": "பெயர் மாற்றம் நடைபெறுகிறது",
+      "Clean (Nishkank)": "பாரமில்லாதது",
+      "Under Mutation Review": "பெயர் மாற்ற ஆய்வில்",
+      "Boundary Notice Issued": "எல்லை அறிவிப்பு வழங்கப்பட்டது",
+      "Protected State Land": "பாதுகாக்கப்பட்ட அரசு நிலம்",
+      "Protected Water Reserve": "பாதுகாக்கப்பட்ட நீர்நிலை",
+      "Title Transfer Pending": "உரிமை மாற்றம் நிலுவையில்"
+    },
+    "land_type": {
+      "Agricultural": "விவசாயம்",
+      "Residential": "குடியிருப்பு",
+      "Commercial": "வணிகம்",
+      "Industrial": "தொழில்",
+      "Institutional": "நிறுவனம் சார்ந்த",
+      "Barren": "தரிசு",
+      "Agricultural (Zamin)": "விவசாயம் (நிலம்)",
+      "Agricultural (Fasli)": "விவசாயம் (பயிர் நிலம்)",
+      "Commercial / Warehouse": "வணிகம் / கிடங்கு",
+      "Residential / Abadi": "குடியிருப்பு (ஆபாதி)",
+      "Pasture / Charnot (Public)": "மேய்ச்சல் நிலம் (பொது)",
+      "Water Body / Canal Nala": "நீர்நிலை / வாய்க்கால்",
+      "Horticulture / Bagh (Mango Orchard)": "தோட்டக்கலை / மாந்தோப்பு"
+    },
+    "survey_status": {
+      "Scheduled": "திட்டமிடப்பட்டது",
+      "In Progress": "நடைபெறுகிறது",
+      "Completed": "நிறைவு",
+      "Rescheduled": "மீள்திட்டமிடப்பட்டது",
+      "Cancelled": "ரத்து"
+    },
+    "doc_type": {
+      "Record of Rights": "உரிமை ஆவணம் (பட்டா/சிட்டா)",
+      "Cadastral Map": "நில அளவை வரைபடம்",
+      "Sale Deed": "கிரயப் பத்திரம்",
+      "Survey Report": "அளவை அறிக்கை",
+      "Identity Proof": "அடையாளச் சான்று",
+      "Mutation Order": "பெயர் மாற்ற ஆணை",
+      "Encumbrance Certificate": "வில்லங்கச் சான்று"
+    },
+    "actor_role": {
+      "Citizen": "குடிமகன்",
+      "Revenue Officer": "வருவாய் அதிகாரி",
+      "District Officer": "மாவட்ட அதிகாரி",
+      "Surveyor": "நில அளவையர்",
+      "System": "அமைப்பு"
+    },
+    "party_type": {
+      "Transferee": "பெறுநர் (வாங்குபவர்)",
+      "Transferor": "அளிப்பவர் (விற்பவர்)",
+      "Applicant": "விண்ணப்பதாரர்",
+      "Co-owner": "கூட்டு உரிமையாளர்"
+    },
+    "action_type": {
+      "Mutation Approved": "பெயர் மாற்றம் ஒப்புதல்",
+      "Mutation Rejected": "பெயர் மாற்றம் நிராகரிப்பு",
+      "Clarification Requested": "விளக்கம் கோரப்பட்டது",
+      "Discrepancy Resolved": "வேறுபாடு தீர்க்கப்பட்டது",
+      "Field Survey Scheduled": "நேரடி அளவை திட்டமிடப்பட்டது",
+      "Survey Availability Confirmed": "அளவை வருகை உறுதிப்படுத்தப்பட்டது",
+      "Document Verified": "ஆவணம் சரிபார்க்கப்பட்டது",
+      "Document Uploaded": "ஆவணம் பதிவேற்றப்பட்டது",
+      "Title Transfer Application Filed": "உரிமை மாற்ற விண்ணப்பம் தாக்கல்",
+      "Record Digitized": "பதிவு எண்மயமாக்கப்பட்டது",
+      "Record Corrected": "பதிவு திருத்தப்பட்டது"
+    },
+    "officer_status": {
+      "Optimal": "சிறந்தது",
+      "Action Needed": "கவனம் தேவை",
+      "Overloaded": "அதிக பணிச்சுமை"
+    },
+    "service_type": {
+      "Title Transfer": "உரிமை மாற்றம்",
+      "Demarcation": "எல்லை வரையறை",
+      "Mutation": "பெயர் மாற்றம்",
+      "Record Correction": "ஆவணத் திருத்தம்",
+      "Encumbrance Certificate": "வில்லங்கச் சான்று"
+    },
+    "role": {
+      "citizen": "குடிமகன்",
+      "revenue_officer": "வருவாய் அதிகாரி",
+      "district_officer": "மாவட்ட அதிகாரி"
+    }
+  }
+}

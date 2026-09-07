@@ -1,0 +1,183 @@
+{
+  "messages": {
+    "error.invalid_credentials": "उपयोगकर्ता नाम या पासवर्ड ग़लत है",
+    "error.not_authenticated": "प्रमाणीकरण नहीं हुआ है",
+    "error.could_not_validate": "प्रमाण-पत्र सत्यापित नहीं हो सके",
+    "error.user_not_found": "उपयोगकर्ता खाता नहीं मिला",
+    "error.auth_required": "प्रमाणीकरण आवश्यक है",
+    "error.insufficient_permissions": "इस संसाधन के लिए पर्याप्त अनुमति नहीं है",
+    "error.username_taken": "यह उपयोगकर्ता नाम पहले से पंजीकृत है",
+    "error.parcel_not_found": "ULPIN '{reference}' के लिए कोई भूखंड नहीं मिला",
+    "error.parcel_exists": "इस ULPIN वाला भूखंड पहले से मौजूद है",
+    "error.mutation_not_found": "नामांतरण प्रकरण '{reference}' नहीं मिला",
+    "error.invalid_mutation_action": "अमान्य कार्रवाई। 'approve', 'reject' या 'clarify' का प्रयोग करें।",
+    "error.application_not_found": "आवेदन '{reference}' नहीं मिला",
+    "error.discrepancy_not_found": "विसंगति प्रकरण '{reference}' नहीं मिला",
+    "error.survey_not_found": "स्थल सर्वेक्षण '{reference}' नहीं मिला",
+    "error.document_not_found": "दस्तावेज़ '{reference}' नहीं मिला",
+    "error.empty_upload": "अपलोड की गई फ़ाइल खाली है",
+    "error.unsupported_locale": "भाषा '{locale_code}' समर्थित नहीं है। उपलब्ध भाषाएँ: {available}",
+    "error.database_unavailable": "अभिलेख डेटाबेस इस समय उपलब्ध नहीं है",
+    "audit.mutation_action": "भूखंड {ulpin} पर नामांतरण {number} की स्थिति {status} की गई। टिप्पणी: {note}",
+    "audit.mutation_note_default": "{actor} द्वारा '{action}' कार्रवाई दर्ज की गई।",
+    "audit.discrepancy_resolved": "विसंगति प्रकरण {number} की स्थिति {status} की गई। टिप्पणी: {note}",
+    "audit.survey_scheduled": "भूखंड {ulpin} हेतु सर्वेक्षण {number}, {date} को निर्धारित किया गया।",
+    "audit.availability_confirmed": "नागरिक ने आवेदन {number} के स्थल सर्वेक्षण हेतु उपलब्धता की पुष्टि की।",
+    "audit.document_uploaded": "दस्तावेज़ '{title}' भूखंड {ulpin} से संलग्न किया गया।",
+    "audit.application_filed": "आवेदन {number} भूखंड {ulpin} हेतु दायर किया गया ({service})।",
+    "message.availability_confirmed": "सर्वेक्षण हेतु उपलब्धता की पुष्टि हो गई",
+    "message.chain_intact": "अंकेक्षण श्रृंखला सत्यापित: {count} प्रविष्टियाँ, छेड़छाड़ का कोई प्रमाण नहीं।",
+    "message.chain_broken": "अंकेक्षण श्रृंखला प्रविष्टि {position} ({entry_id}) पर खंडित है।",
+    "system.welcome": "भूनीति भू-प्रशासन API में आपका स्वागत है",
+    "system.service_name": "भूनीति भू-प्रशासन प्लेटफ़ॉर्म API"
+  },
+  "labels": {
+    "application_status": {
+      "In Progress": "प्रक्रियाधीन",
+      "Action Required": "कार्रवाई अपेक्षित",
+      "Under Review": "समीक्षाधीन",
+      "Approved": "स्वीकृत",
+      "Rejected": "अस्वीकृत",
+      "Completed": "पूर्ण"
+    },
+    "mutation_status": {
+      "Pending": "लंबित",
+      "Under Verification": "सत्यापनाधीन",
+      "Awaiting Docs": "दस्तावेज़ प्रतीक्षित",
+      "Approved": "स्वीकृत",
+      "Rejected": "अस्वीकृत"
+    },
+    "stage": {
+      "Submitted": "प्रस्तुत",
+      "Verified": "सत्यापित",
+      "Field Survey": "स्थल सर्वेक्षण",
+      "RO Review": "राजस्व अधिकारी समीक्षा",
+      "Approved": "स्वीकृत"
+    },
+    "stage_state": {
+      "completed": "पूर्ण",
+      "in_progress": "प्रक्रियाधीन",
+      "pending": "लंबित"
+    },
+    "severity": {
+      "High": "उच्च",
+      "Medium": "मध्यम",
+      "Low": "निम्न"
+    },
+    "discrepancy_status": {
+      "Open": "खुला",
+      "In Review": "समीक्षा में",
+      "Resolved": "निस्तारित",
+      "Dismissed": "खारिज"
+    },
+    "discrepancy_type": {
+      "Area Mismatch": "क्षेत्रफल में अंतर",
+      "Boundary Overlap": "सीमा अतिव्यापन",
+      "Registry Mismatch": "निबंधन अभिलेख में अंतर",
+      "Ownership Conflict": "स्वामित्व विवाद",
+      "Encroachment": "अतिक्रमण"
+    },
+    "mutation_type": {
+      "Sale Mutation": "विक्रय नामांतरण",
+      "Inheritance Mutation": "उत्तराधिकार नामांतरण",
+      "Partition": "बँटवारा",
+      "Gift Deed": "दान विलेख",
+      "Court Decree": "न्यायालय डिक्री"
+    },
+    "verification_status": {
+      "Verified": "सत्यापित",
+      "Under Verification": "सत्यापनाधीन",
+      "Disputed": "विवादित",
+      "Pending": "लंबित",
+      "Verified (Govt)": "सत्यापित (शासकीय)",
+      "Action Required (Mutation)": "कार्रवाई अपेक्षित (नामांतरण)"
+    },
+    "encumbrance_status": {
+      "Clean": "भार-मुक्त",
+      "Mortgaged": "बंधक",
+      "Leased": "पट्टे पर",
+      "Court Stay": "न्यायालय द्वारा स्थगन",
+      "Under Mutation": "नामांतरण प्रक्रियाधीन",
+      "Clean (Nishkank)": "निष्कंटक",
+      "Under Mutation Review": "नामांतरण समीक्षाधीन",
+      "Boundary Notice Issued": "सीमा नोटिस जारी",
+      "Protected State Land": "संरक्षित राजकीय भूमि",
+      "Protected Water Reserve": "संरक्षित जल क्षेत्र",
+      "Title Transfer Pending": "स्वामित्व अंतरण लंबित"
+    },
+    "land_type": {
+      "Agricultural": "कृषि",
+      "Residential": "आवासीय",
+      "Commercial": "व्यावसायिक",
+      "Industrial": "औद्योगिक",
+      "Institutional": "संस्थागत",
+      "Barren": "बंजर",
+      "Agricultural (Zamin)": "कृषि (ज़मीन)",
+      "Agricultural (Fasli)": "कृषि (फसली)",
+      "Commercial / Warehouse": "व्यावसायिक / गोदाम",
+      "Residential / Abadi": "आवासीय / आबादी",
+      "Pasture / Charnot (Public)": "चरागाह / चारनोट (सार्वजनिक)",
+      "Water Body / Canal Nala": "जलाशय / नहर-नाला",
+      "Horticulture / Bagh (Mango Orchard)": "उद्यान / बाग़ (आम का बाग़)"
+    },
+    "survey_status": {
+      "Scheduled": "निर्धारित",
+      "In Progress": "प्रक्रियाधीन",
+      "Completed": "पूर्ण",
+      "Rescheduled": "पुनर्निर्धारित",
+      "Cancelled": "रद्द"
+    },
+    "doc_type": {
+      "Record of Rights": "अधिकार अभिलेख (खतौनी)",
+      "Cadastral Map": "भू-नक्शा",
+      "Sale Deed": "विक्रय विलेख",
+      "Survey Report": "सर्वेक्षण रिपोर्ट",
+      "Identity Proof": "पहचान प्रमाण",
+      "Mutation Order": "नामांतरण आदेश",
+      "Encumbrance Certificate": "भार-मुक्त प्रमाण पत्र"
+    },
+    "actor_role": {
+      "Citizen": "नागरिक",
+      "Revenue Officer": "राजस्व अधिकारी",
+      "District Officer": "जिला अधिकारी",
+      "Surveyor": "सर्वेक्षक (अमीन)",
+      "System": "सिस्टम"
+    },
+    "party_type": {
+      "Transferee": "अंतरिती (क्रेता)",
+      "Transferor": "अंतरक (विक्रेता)",
+      "Applicant": "आवेदक",
+      "Co-owner": "सह-स्वामी"
+    },
+    "action_type": {
+      "Mutation Approved": "नामांतरण स्वीकृत",
+      "Mutation Rejected": "नामांतरण अस्वीकृत",
+      "Clarification Requested": "स्पष्टीकरण मांगा गया",
+      "Discrepancy Resolved": "विसंगति निस्तारित",
+      "Field Survey Scheduled": "स्थल सर्वेक्षण निर्धारित",
+      "Survey Availability Confirmed": "सर्वेक्षण उपलब्धता की पुष्टि",
+      "Document Verified": "दस्तावेज़ सत्यापित",
+      "Document Uploaded": "दस्तावेज़ अपलोड किया गया",
+      "Title Transfer Application Filed": "स्वामित्व अंतरण आवेदन दाखिल",
+      "Record Digitized": "अभिलेख डिजिटल किया गया",
+      "Record Corrected": "अभिलेख संशोधित"
+    },
+    "officer_status": {
+      "Optimal": "उत्तम",
+      "Action Needed": "ध्यान आवश्यक",
+      "Overloaded": "अत्यधिक भार"
+    },
+    "service_type": {
+      "Title Transfer": "स्वामित्व अंतरण",
+      "Demarcation": "सीमांकन",
+      "Mutation": "नामांतरण",
+      "Record Correction": "अभिलेख शुद्धि",
+      "Encumbrance Certificate": "भार-मुक्त प्रमाण पत्र"
+    },
+    "role": {
+      "citizen": "नागरिक",
+      "revenue_officer": "राजस्व अधिकारी",
+      "district_officer": "जिला अधिकारी"
+    }
+  }
+}

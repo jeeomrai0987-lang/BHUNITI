@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base reset carried over from the original Stitch export (was an inline
+   <style> tag in the <head> of every page) */
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    overscroll-behavior: none;
+  }
+  main > :first-child {
+    margin-top: 0 !important;
+  }
+  main > :last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * Design-token theme scopes.
+ *
+ * The original Stitch export generated a SEPARATE Tailwind config per page,
+ * each with its own literal color/type-scale values. Diffing all of them
+ * showed there are really only two distinct visual themes in the product:
+ *   1. "main"      -> public marketing site + login screen
+ *   2. "dashboard" -> Citizen / Revenue Officer / District Officer portals
+ *      (these three were byte-for-byte identical design tokens)
+ *
+ * Every Tailwind color utility (bg-primary, text-on-surface, ...) resolves to
+ * a CSS variable (--color-primary, etc). Wrapping a layout in `.theme-main`
+ * or `.theme-dashboard` (see src/layouts) swaps every one of those variables
+ * at once, reproducing the exact colors from each original Stitch config
+ * with zero risk of the two palettes bleeding into each other.
+ */
+
+.theme-main {
+  --color-background: #f8f9fa;
+  --color-border-subtle: #e2e8f0;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-inverse-on-surface: #f0f1f2;
+  --color-inverse-primary: #bec6e0;
+  --color-inverse-surface: #2e3132;
+  --color-on-background: #191c1d;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #7c839b;
+  --color-on-primary-fixed: #131b2e;
+  --color-on-primary-fixed-variant: #3f465c;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #fefcff;
+  --color-on-secondary-fixed: #001a42;
+  --color-on-secondary-fixed-variant: #004395;
+  --color-on-surface: #191c1d;
+  --color-on-surface-variant: #45464d;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #75859d;
+  --color-on-tertiary-fixed: #0b1c30;
+  --color-on-tertiary-fixed-variant: #38485d;
+  --color-outline: #76777d;
+  --color-outline-variant: #c6c6cd;
+  --color-primary: #000000;
+  --color-primary-container: #131b2e;
+  --color-primary-fixed: #dae2fd;
+  --color-primary-fixed-dim: #bec6e0;
+  --color-secondary: #0058be;
+  --color-secondary-container: #2170e4;
+  --color-secondary-fixed: #d8e2ff;
+  --color-secondary-fixed-dim: #adc6ff;
+  --color-status-error: #ef4444;
+  --color-status-success: #10b981;
+  --color-status-warning: #f59e0b;
+  --color-surface: #f8f9fa;
+  --color-surface-bright: #f8f9fa;
+  --color-surface-container: #edeeef;
+  --color-surface-container-high: #e7e8e9;
+  --color-surface-container-highest: #e1e3e4;
+  --color-surface-container-low: #f3f4f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-dim: #d9dadb;
+  --color-surface-tint: #565e74;
+  --color-surface-variant: #e1e3e4;
+  --color-surface-white: #ffffff;
+  --color-tertiary: #000000;
+  --color-tertiary-container: #0b1c30;
+  --color-tertiary-fixed: #d3e4fe;
+  --color-tertiary-fixed-dim: #b7c8e1;
+}
+
+.theme-dashboard {
+  --color-background: #f8f9ff;
+  --color-border-subtle: #e2e8f0;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-inverse-on-surface: #eaf1ff;
+  --color-inverse-primary: #bec6e0;
+  --color-inverse-surface: #213145;
+  --color-on-background: #0b1c30;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #7c839b;
+  --color-on-primary-fixed: #131b2e;
+  --color-on-primary-fixed-variant: #3f465c;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #57657b;
+  --color-on-secondary-fixed: #0d1c2f;
+  --color-on-secondary-fixed-variant: #3a485c;
+  --color-on-surface: #0b1c30;
+  --color-on-surface-variant: #45464d;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #98805d;
+  --color-on-tertiary-fixed: #271901;
+  --color-on-tertiary-fixed-variant: #574425;
+  --color-outline: #76777d;
+  --color-outline-variant: #c6c6cd;
+  --color-primary: #000000;
+  --color-primary-container: #131b2e;
+  --color-primary-fixed: #dae2fd;
+  --color-primary-fixed-dim: #bec6e0;
+  --color-secondary: #515f74;
+  --color-secondary-container: #d5e3fd;
+  --color-secondary-fixed: #d5e3fd;
+  --color-secondary-fixed-dim: #b9c7e0;
+  --color-status-error: #ef4444;
+  --color-status-success: #10b981;
+  --color-status-warning: #f59e0b;
+  --color-surface: #f8f9ff;
+  --color-surface-bright: #f8f9ff;
+  --color-surface-container: #e5eeff;
+  --color-surface-container-high: #dce9ff;
+  --color-surface-container-highest: #d3e4fe;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-dim: #cbdbf5;
+  --color-surface-tint: #565e74;
+  --color-surface-variant: #d3e4fe;
+  --color-surface-white: #ffffff;
+  --color-tertiary: #000000;
+  --color-tertiary-container: #271901;
+  --color-tertiary-fixed: #fcdeb5;
+  --color-tertiary-fixed-dim: #dec29a;
+}
+/* Font-size tokens that differ (size / line-height / letter-spacing) between
+   the two themes - see the "display" and "headline-lg" entries in
+   tailwind.config.js */
+.theme-main {
+  --fs-display-size: 40px;
+  --fs-display-lh: 48px;
+  --fs-headline-lg-size: 32px;
+  --fs-headline-lg-lh: 40px;
+  --fs-headline-lg-ls: -0.02em;
+}
+
+.theme-dashboard {
+  --fs-display-size: 36px;
+  --fs-display-lh: 44px;
+  --fs-headline-lg-size: 28px;
+  --fs-headline-lg-lh: 36px;
+  --fs-headline-lg-ls: -0.01em;
+}
+
+/*
+ * Devanagari typography correction.
+ *
+ * LanguageProvider mirrors the active locale onto
+ * <html data-locale="hi">, which lets the stylesheet adjust for the script
+ * without any component knowing which language it is rendering.
+ *
+ * The headline tokens carry negative letter-spacing (-0.01em / -0.02em), which
+ * was chosen for Inter's Latin capitals. Applied to Devanagari it pulls
+ * conjuncts and their matras into each other and the text stops being legible,
+ * so tracking is reset for Hindi headings. The attribute selector plus the
+ * descendant class is specificity 0,2,0, which beats Tailwind's single-class
+ * utility, and only headings are affected -- body copy has no tracking.
+ */
+html[data-locale="hi"] [class*="text-display"],
+html[data-locale="hi"] [class*="text-headline"] {
+  letter-spacing: normal;
+}

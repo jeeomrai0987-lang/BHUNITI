@@ -1,0 +1,183 @@
+{
+  "messages": {
+    "error.invalid_credentials": "Invalid username or password",
+    "error.not_authenticated": "Not authenticated",
+    "error.could_not_validate": "Could not validate credentials",
+    "error.user_not_found": "User account not found",
+    "error.auth_required": "Authentication required",
+    "error.insufficient_permissions": "Insufficient permissions for this resource",
+    "error.username_taken": "That username is already registered",
+    "error.parcel_not_found": "No land parcel found for ULPIN '{reference}'",
+    "error.parcel_exists": "A land parcel with this ULPIN already exists",
+    "error.mutation_not_found": "Mutation case '{reference}' not found",
+    "error.invalid_mutation_action": "Invalid action. Use 'approve', 'reject' or 'clarify'.",
+    "error.application_not_found": "Application '{reference}' not found",
+    "error.discrepancy_not_found": "Discrepancy case '{reference}' not found",
+    "error.survey_not_found": "Field survey '{reference}' not found",
+    "error.document_not_found": "Document '{reference}' not found",
+    "error.empty_upload": "The uploaded file is empty",
+    "error.unsupported_locale": "Language '{locale_code}' is not supported. Available languages: {available}",
+    "error.database_unavailable": "The registry database is not reachable right now",
+    "audit.mutation_action": "Mutation {number} on parcel {ulpin} was marked as {status}. Note: {note}",
+    "audit.mutation_note_default": "Action '{action}' recorded by {actor}.",
+    "audit.discrepancy_resolved": "Discrepancy case {number} was set to {status}. Note: {note}",
+    "audit.survey_scheduled": "Survey {number} scheduled for {date} on parcel {ulpin}.",
+    "audit.availability_confirmed": "Citizen confirmed availability for the field survey on application {number}.",
+    "audit.document_uploaded": "Document '{title}' was attached to parcel {ulpin}.",
+    "audit.application_filed": "Application {number} was filed for parcel {ulpin} ({service}).",
+    "message.availability_confirmed": "Survey availability confirmed",
+    "message.chain_intact": "Audit chain verified: {count} entries, no tampering detected.",
+    "message.chain_broken": "Audit chain broken at entry {position} ({entry_id}).",
+    "system.welcome": "Welcome to the BHUNITI Land Governance API",
+    "system.service_name": "BHUNITI Land Governance Platform API"
+  },
+  "labels": {
+    "application_status": {
+      "In Progress": "In Progress",
+      "Action Required": "Action Required",
+      "Under Review": "Under Review",
+      "Approved": "Approved",
+      "Rejected": "Rejected",
+      "Completed": "Completed"
+    },
+    "mutation_status": {
+      "Pending": "Pending",
+      "Under Verification": "Under Verification",
+      "Awaiting Docs": "Awaiting Docs",
+      "Approved": "Approved",
+      "Rejected": "Rejected"
+    },
+    "stage": {
+      "Submitted": "Submitted",
+      "Verified": "Verified",
+      "Field Survey": "Field Survey",
+      "RO Review": "RO Review",
+      "Approved": "Approved"
+    },
+    "stage_state": {
+      "completed": "Completed",
+      "in_progress": "In Progress",
+      "pending": "Pending"
+    },
+    "severity": {
+      "High": "High",
+      "Medium": "Medium",
+      "Low": "Low"
+    },
+    "discrepancy_status": {
+      "Open": "Open",
+      "In Review": "In Review",
+      "Resolved": "Resolved",
+      "Dismissed": "Dismissed"
+    },
+    "discrepancy_type": {
+      "Area Mismatch": "Area Mismatch",
+      "Boundary Overlap": "Boundary Overlap",
+      "Registry Mismatch": "Registry Mismatch",
+      "Ownership Conflict": "Ownership Conflict",
+      "Encroachment": "Encroachment"
+    },
+    "mutation_type": {
+      "Sale Mutation": "Sale Mutation",
+      "Inheritance Mutation": "Inheritance Mutation",
+      "Partition": "Partition",
+      "Gift Deed": "Gift Deed",
+      "Court Decree": "Court Decree"
+    },
+    "verification_status": {
+      "Verified": "Verified",
+      "Under Verification": "Under Verification",
+      "Disputed": "Disputed",
+      "Pending": "Pending",
+      "Verified (Govt)": "Verified (Govt)",
+      "Action Required (Mutation)": "Action Required (Mutation)"
+    },
+    "encumbrance_status": {
+      "Clean": "Clean",
+      "Mortgaged": "Mortgaged",
+      "Leased": "Leased",
+      "Court Stay": "Court Stay",
+      "Under Mutation": "Under Mutation",
+      "Clean (Nishkank)": "Clean (Nishkank)",
+      "Under Mutation Review": "Under Mutation Review",
+      "Boundary Notice Issued": "Boundary Notice Issued",
+      "Protected State Land": "Protected State Land",
+      "Protected Water Reserve": "Protected Water Reserve",
+      "Title Transfer Pending": "Title Transfer Pending"
+    },
+    "land_type": {
+      "Agricultural": "Agricultural",
+      "Residential": "Residential",
+      "Commercial": "Commercial",
+      "Industrial": "Industrial",
+      "Institutional": "Institutional",
+      "Barren": "Barren",
+      "Agricultural (Zamin)": "Agricultural (Zamin)",
+      "Agricultural (Fasli)": "Agricultural (Fasli)",
+      "Commercial / Warehouse": "Commercial / Warehouse",
+      "Residential / Abadi": "Residential / Abadi",
+      "Pasture / Charnot (Public)": "Pasture / Charnot (Public)",
+      "Water Body / Canal Nala": "Water Body / Canal Nala",
+      "Horticulture / Bagh (Mango Orchard)": "Horticulture / Bagh (Mango Orchard)"
+    },
+    "survey_status": {
+      "Scheduled": "Scheduled",
+      "In Progress": "In Progress",
+      "Completed": "Completed",
+      "Rescheduled": "Rescheduled",
+      "Cancelled": "Cancelled"
+    },
+    "doc_type": {
+      "Record of Rights": "Record of Rights",
+      "Cadastral Map": "Cadastral Map",
+      "Sale Deed": "Sale Deed",
+      "Survey Report": "Survey Report",
+      "Identity Proof": "Identity Proof",
+      "Mutation Order": "Mutation Order",
+      "Encumbrance Certificate": "Encumbrance Certificate"
+    },
+    "actor_role": {
+      "Citizen": "Citizen",
+      "Revenue Officer": "Revenue Officer",
+      "District Officer": "District Officer",
+      "Surveyor": "Surveyor",
+      "System": "System"
+    },
+    "party_type": {
+      "Transferee": "Transferee",
+      "Transferor": "Transferor",
+      "Applicant": "Applicant",
+      "Co-owner": "Co-owner"
+    },
+    "action_type": {
+      "Mutation Approved": "Mutation Approved",
+      "Mutation Rejected": "Mutation Rejected",
+      "Clarification Requested": "Clarification Requested",
+      "Discrepancy Resolved": "Discrepancy Resolved",
+      "Field Survey Scheduled": "Field Survey Scheduled",
+      "Survey Availability Confirmed": "Survey Availability Confirmed",
+      "Document Verified": "Document Verified",
+      "Document Uploaded": "Document Uploaded",
+      "Title Transfer Application Filed": "Title Transfer Application Filed",
+      "Record Digitized": "Record Digitized",
+      "Record Corrected": "Record Corrected"
+    },
+    "officer_status": {
+      "Optimal": "Optimal",
+      "Action Needed": "Action Needed",
+      "Overloaded": "Overloaded"
+    },
+    "service_type": {
+      "Title Transfer": "Title Transfer",
+      "Demarcation": "Demarcation",
+      "Mutation": "Mutation",
+      "Record Correction": "Record Correction",
+      "Encumbrance Certificate": "Encumbrance Certificate"
+    },
+    "role": {
+      "citizen": "Citizen",
+      "revenue_officer": "Revenue Officer",
+      "district_officer": "District Officer"
+    }
+  }
+}

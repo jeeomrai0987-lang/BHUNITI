@@ -1,0 +1,37 @@
+# Node / React
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local databases (the SQLite fallback in app/core/config.py)
+*.db
+*.db-journal
+*.sqlite3
+
+# Environment variables -- .env holds live Supabase credentials, never commit it
+.env
+.env.*
+!.env.example
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs
+*.log
+npm-debug.log*

@@ -1,0 +1,9 @@
+# Everything here is also covered by ../.gitignore; this file keeps the frontend
+# self-contained if it is ever split into its own repository.
+node_modules/
+dist/
+.vite/
+.env
+.env.local
+.DS_Store
+npm-debug.log*
