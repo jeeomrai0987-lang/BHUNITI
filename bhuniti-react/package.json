@@ -3,14 +3,20 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:syntax": "node ../tools/check_syntax.mjs",
+    "check:i18n": "node ../tools/check_i18n.mjs",
+    "check:registry": "node ../tools/registry_check_catalogs.mjs && node ../tools/registry_check_source.mjs && node ../tools/registry_check_runtime.mjs",
+    "test:i18n": "node ../tools/test_i18n_runtime.mjs",
+    "verify": "npm run check:syntax && npm run check:i18n && npm run check:registry && npm run test:i18n"
   },
   "dependencies": {
-    "@babel/core": "^8.0.1",
-    "@babel/preset-react": "^8.0.1",
     "leaflet": "^1.9.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

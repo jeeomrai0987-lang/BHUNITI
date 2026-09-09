@@ -1,0 +1,183 @@
+{
+  "messages": {
+    "error.invalid_credentials": "ব্যবহারকারীর নাম বা পাসওয়ার্ড ভুল",
+    "error.not_authenticated": "প্রমাণীকরণ করা হয়নি",
+    "error.could_not_validate": "পরিচয়পত্র যাচাই করা যায়নি",
+    "error.user_not_found": "ব্যবহারকারীর অ্যাকাউন্ট পাওয়া যায়নি",
+    "error.auth_required": "প্রমাণীকরণ আবশ্যক",
+    "error.insufficient_permissions": "এই সম্পদের জন্য পর্যাপ্ত অনুমতি নেই",
+    "error.username_taken": "এই ব্যবহারকারীর নাম ইতিমধ্যেই নিবন্ধিত",
+    "error.parcel_not_found": "ULPIN '{reference}'-এর জন্য কোনো ভূখণ্ড পাওয়া যায়নি",
+    "error.parcel_exists": "এই ULPIN-এর ভূখণ্ড ইতিমধ্যেই বিদ্যমান",
+    "error.mutation_not_found": "নামজারি মামলা '{reference}' পাওয়া যায়নি",
+    "error.invalid_mutation_action": "অবৈধ পদক্ষেপ। 'approve', 'reject' বা 'clarify' ব্যবহার করুন।",
+    "error.application_not_found": "আবেদন '{reference}' পাওয়া যায়নি",
+    "error.discrepancy_not_found": "অসঙ্গতি মামলা '{reference}' পাওয়া যায়নি",
+    "error.survey_not_found": "সরেজমিন জরিপ '{reference}' পাওয়া যায়নি",
+    "error.document_not_found": "নথি '{reference}' পাওয়া যায়নি",
+    "error.empty_upload": "আপলোড করা ফাইলটি ফাঁকা",
+    "error.unsupported_locale": "'{locale_code}' ভাষা সমর্থিত নয়। উপলব্ধ ভাষা: {available}",
+    "error.database_unavailable": "নথি ডেটাবেস এই মুহূর্তে পাওয়া যাচ্ছে না",
+    "audit.mutation_action": "ভূখণ্ড {ulpin}-এর নামজারি {number}-এর অবস্থা {status} করা হয়েছে। মন্তব্য: {note}",
+    "audit.mutation_note_default": "{actor} '{action}' পদক্ষেপ নথিবদ্ধ করেছেন।",
+    "audit.discrepancy_resolved": "অসঙ্গতি মামলা {number}-এর অবস্থা {status} করা হয়েছে। মন্তব্য: {note}",
+    "audit.survey_scheduled": "ভূখণ্ড {ulpin}-এর জন্য জরিপ {number}, {date} তারিখে নির্ধারিত হয়েছে।",
+    "audit.availability_confirmed": "নাগরিক আবেদন {number}-এর সরেজমিন জরিপের জন্য উপস্থিতি নিশ্চিত করেছেন।",
+    "audit.document_uploaded": "নথি '{title}' ভূখণ্ড {ulpin}-এর সঙ্গে সংযুক্ত করা হয়েছে।",
+    "audit.application_filed": "আবেদন {number} ভূখণ্ড {ulpin}-এর জন্য দাখিল করা হয়েছে ({service})।",
+    "message.availability_confirmed": "জরিপের জন্য উপস্থিতি নিশ্চিত হয়েছে",
+    "message.chain_intact": "নিরীক্ষা শৃঙ্খল যাচাই সম্পন্ন: {count}টি নথি, কোনো কারচুপি পাওয়া যায়নি।",
+    "message.chain_broken": "নিরীক্ষা শৃঙ্খল {position} ({entry_id}) নথিতে ভেঙে গেছে।",
+    "system.welcome": "ভূনীতি ভূমি-প্রশাসন API-তে স্বাগতম",
+    "system.service_name": "ভূনীতি ভূমি-প্রশাসন প্ল্যাটফর্ম API"
+  },
+  "labels": {
+    "application_status": {
+      "In Progress": "চলমান",
+      "Action Required": "পদক্ষেপ প্রয়োজন",
+      "Under Review": "পর্যালোচনাধীন",
+      "Approved": "অনুমোদিত",
+      "Rejected": "প্রত্যাখ্যাত",
+      "Completed": "সম্পন্ন"
+    },
+    "mutation_status": {
+      "Pending": "মুলতুবি",
+      "Under Verification": "যাচাই চলছে",
+      "Awaiting Docs": "নথির অপেক্ষায়",
+      "Approved": "অনুমোদিত",
+      "Rejected": "প্রত্যাখ্যাত"
+    },
+    "stage": {
+      "Submitted": "জমা দেওয়া হয়েছে",
+      "Verified": "যাচাইকৃত",
+      "Field Survey": "সরেজমিন জরিপ",
+      "RO Review": "রাজস্ব আধিকারিকের পর্যালোচনা",
+      "Approved": "অনুমোদিত"
+    },
+    "stage_state": {
+      "completed": "সম্পন্ন",
+      "in_progress": "চলমান",
+      "pending": "মুলতুবি"
+    },
+    "severity": {
+      "High": "উচ্চ",
+      "Medium": "মধ্যম",
+      "Low": "নিম্ন"
+    },
+    "discrepancy_status": {
+      "Open": "খোলা",
+      "In Review": "পর্যালোচনায়",
+      "Resolved": "নিষ্পত্তি হয়েছে",
+      "Dismissed": "খারিজ"
+    },
+    "discrepancy_type": {
+      "Area Mismatch": "আয়তনে অসঙ্গতি",
+      "Boundary Overlap": "সীমানা অধিক্রমণ",
+      "Registry Mismatch": "রেজিস্ট্রি নথিতে অসঙ্গতি",
+      "Ownership Conflict": "মালিকানা বিরোধ",
+      "Encroachment": "জবরদখল"
+    },
+    "mutation_type": {
+      "Sale Mutation": "বিক্রয় নামজারি",
+      "Inheritance Mutation": "উত্তরাধিকার নামজারি",
+      "Partition": "বাঁটোয়ারা",
+      "Gift Deed": "দানপত্র",
+      "Court Decree": "আদালতের ডিক্রি"
+    },
+    "verification_status": {
+      "Verified": "যাচাইকৃত",
+      "Under Verification": "যাচাই চলছে",
+      "Disputed": "বিতর্কিত",
+      "Pending": "মুলতুবি",
+      "Verified (Govt)": "যাচাইকৃত (সরকারি)",
+      "Action Required (Mutation)": "ব্যবস্থা প্রয়োজন (নামজারি)"
+    },
+    "encumbrance_status": {
+      "Clean": "দায়মুক্ত",
+      "Mortgaged": "বন্ধকী",
+      "Leased": "ইজারাভুক্ত",
+      "Court Stay": "আদালতের স্থগিতাদেশ",
+      "Under Mutation": "নামজারি চলছে",
+      "Clean (Nishkank)": "দায়মুক্ত (নিষ্কণ্টক)",
+      "Under Mutation Review": "নামজারি পর্যালোচনাধীন",
+      "Boundary Notice Issued": "সীমানা নোটিশ জারি",
+      "Protected State Land": "সংরক্ষিত সরকারি ভূমি",
+      "Protected Water Reserve": "সংরক্ষিত জলাধার",
+      "Title Transfer Pending": "স্বত্ব হস্তান্তর মুলতুবি"
+    },
+    "land_type": {
+      "Agricultural": "কৃষি",
+      "Residential": "আবাসিক",
+      "Commercial": "বাণিজ্যিক",
+      "Industrial": "শিল্প",
+      "Institutional": "প্রাতিষ্ঠানিক",
+      "Barren": "পতিত",
+      "Agricultural (Zamin)": "কৃষি (জমি)",
+      "Agricultural (Fasli)": "কৃষি (ফসলি)",
+      "Commercial / Warehouse": "বাণিজ্যিক / গুদাম",
+      "Residential / Abadi": "আবাসিক / আবাদি",
+      "Pasture / Charnot (Public)": "চারণভূমি / গোচর (সরকারি)",
+      "Water Body / Canal Nala": "জলাশয় / খাল-নালা",
+      "Horticulture / Bagh (Mango Orchard)": "উদ্যান / বাগ (আমবাগান)"
+    },
+    "survey_status": {
+      "Scheduled": "নির্ধারিত",
+      "In Progress": "চলমান",
+      "Completed": "সম্পন্ন",
+      "Rescheduled": "পুনঃনির্ধারিত",
+      "Cancelled": "বাতিল"
+    },
+    "doc_type": {
+      "Record of Rights": "অধিকার নথি (আর.ও.আর.)",
+      "Cadastral Map": "মৌজা মানচিত্র",
+      "Sale Deed": "বিক্রয় দলিল",
+      "Survey Report": "জরিপ প্রতিবেদন",
+      "Identity Proof": "পরিচয়পত্র",
+      "Mutation Order": "নামজারি আদেশ",
+      "Encumbrance Certificate": "দায়মুক্তি শংসাপত্র"
+    },
+    "actor_role": {
+      "Citizen": "নাগরিক",
+      "Revenue Officer": "রাজস্ব আধিকারিক",
+      "District Officer": "জেলা আধিকারিক",
+      "Surveyor": "আমিন (জরিপকারী)",
+      "System": "সিস্টেম"
+    },
+    "party_type": {
+      "Transferee": "হস্তান্তরগ্রহীতা (ক্রেতা)",
+      "Transferor": "হস্তান্তরকারী (বিক্রেতা)",
+      "Applicant": "আবেদনকারী",
+      "Co-owner": "সহ-মালিক"
+    },
+    "action_type": {
+      "Mutation Approved": "নামজারি অনুমোদিত",
+      "Mutation Rejected": "নামজারি প্রত্যাখ্যাত",
+      "Clarification Requested": "ব্যাখ্যা চাওয়া হয়েছে",
+      "Discrepancy Resolved": "অসঙ্গতি নিষ্পত্তি",
+      "Field Survey Scheduled": "সরেজমিন জরিপ নির্ধারিত",
+      "Survey Availability Confirmed": "জরিপে উপস্থিতি নিশ্চিত",
+      "Document Verified": "নথি যাচাইকৃত",
+      "Document Uploaded": "নথি আপলোড করা হয়েছে",
+      "Title Transfer Application Filed": "স্বত্ব হস্তান্তরের আবেদন দাখিল",
+      "Record Digitized": "নথি ডিজিটাইজ করা হয়েছে",
+      "Record Corrected": "নথি সংশোধিত"
+    },
+    "officer_status": {
+      "Optimal": "উত্তম",
+      "Action Needed": "মনোযোগ প্রয়োজন",
+      "Overloaded": "অতিরিক্ত চাপ"
+    },
+    "service_type": {
+      "Title Transfer": "স্বত্ব হস্তান্তর",
+      "Demarcation": "সীমানা নির্ধারণ",
+      "Mutation": "নামজারি",
+      "Record Correction": "নথি সংশোধন",
+      "Encumbrance Certificate": "দায়মুক্তি শংসাপত্র"
+    },
+    "role": {
+      "citizen": "নাগরিক",
+      "revenue_officer": "রাজস্ব আধিকারিক",
+      "district_officer": "জেলা আধিকারিক"
+    }
+  }
+}

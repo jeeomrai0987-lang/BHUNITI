@@ -15,6 +15,9 @@
 |  [NEW] UP Bhunaksha (भू-नक्शा) Cadastral Engine (Ghaziabad 10 Contiguous Parcels)      |
 |  [NEW] ParcelMapViewer (Bhunaksha Palette + Khasra Badges + Bigha/Biswa Conversion)  |
 |  [NEW] Virtual360Viewer (360° Field Survey Inspection + Drone Orbit + DGPS Hotspots)  |
+|  [NEW] Digital Registry wizard at /registry (src/registry — 6 steps, own chrome,      |
+|        opened by the Platform section's Digital Registry card)                         |
+|  [NEW] English + हिंदी throughout, one language choice shared by both i18n runtimes    |
 +------------------------------------------+--------------------------------------------+
                                            |
                                 [REST API / JSON / JWT]

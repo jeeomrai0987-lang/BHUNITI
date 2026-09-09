@@ -169,3 +169,22 @@
   --fs-headline-lg-lh: 36px;
   --fs-headline-lg-ls: -0.01em;
 }
+
+/*
+ * Devanagari typography correction.
+ *
+ * LanguageProvider mirrors the active locale onto
+ * <html data-locale="hi">, which lets the stylesheet adjust for the script
+ * without any component knowing which language it is rendering.
+ *
+ * The headline tokens carry negative letter-spacing (-0.01em / -0.02em), which
+ * was chosen for Inter's Latin capitals. Applied to Devanagari it pulls
+ * conjuncts and their matras into each other and the text stops being legible,
+ * so tracking is reset for Hindi headings. The attribute selector plus the
+ * descendant class is specificity 0,2,0, which beats Tailwind's single-class
+ * utility, and only headings are affected -- body copy has no tracking.
+ */
+html[data-locale="hi"] [class*="text-display"],
+html[data-locale="hi"] [class*="text-headline"] {
+  letter-spacing: normal;
+}

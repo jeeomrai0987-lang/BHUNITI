@@ -1,159 +1,180 @@
+"""Land parcel lookup, search and the GIS layer feed.
+
+The demo fallbacks that used to live here (``DEFAULT_PARCEL_1024``) are gone:
+they made an empty database look populated, and the dict was missing
+``created_at``/``updated_at`` so ``ParcelResponse`` raised a 500 whenever it was
+returned. Demo content now lives in ``db/seed.py`` instead -- run that and the
+screens fill up honestly.
+"""
 import json
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
 
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from sqlalchemy import func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import get_locale
 from app.core.database import get_db
+from app.core.i18n import t
+from app.core.localize import PARCEL_LABELS, label_updates, localize, localize_many
 from app.models.parcel import Parcel
-from app.schemas.parcel import ParcelCreate, ParcelResponse, ParcelGISResponse
+from app.schemas.parcel import ParcelCreate, ParcelGISResponse, ParcelResponse
 
 router = APIRouter()
 
-# Default fallback parcel for testing / demo
-DEFAULT_PARCEL_1024 = {
-    "id": "p-1024-default",
-    "ulpin": "09-XXXX-XXXX-1024",
-    "survey_number": "142/B",
-    "khasra_number": "412/1",
-    "khata_number": "89",
-    "state": "Uttar Pradesh",
-    "district": "Ghaziabad",
-    "tehsil": "Modinagar",
-    "village": "Sikandrabad",
-    "owner_name": "Rahul Sharma",
-    "land_type": "Agricultural",
-    "area_ha": 2.00,
-    "area_sqm": 20000.0,
-    "valuation_inr": 4800000.0,
-    "verification_status": "Verified",
-    "is_disputed": False,
-    "encumbrance_status": "Clean",
-    "centroid_lat": 28.8354,
-    "centroid_lng": 77.5843,
-    "boundary_geojson": json.dumps({
-        "type": "Polygon",
-        "coordinates": [[[77.5830, 28.8340], [77.5860, 28.8342], [77.5865, 28.8365], [77.5832, 28.8368], [77.5830, 28.8340]]]
-    }),
-    "image_url": "https://lh3.googleusercontent.com/aida-public/AB6AXuAc62GgBhnA_gl-VEaDsXI5Hm8OzC-3Cixsx4ZTpqshVidHLud2VsQoUHnvMzrYugqpX67cyUhap74Jv0PW4T45aUG-Q6lIJZFWTQrV8M3HKGLfh3tq1-p6GVh8MTl9lY92ByC3518_Uo9fzRocJ9Kmq-tgFa_qVVPK5NAnL7DMa0eSGyzWhPuGPnBIMG1Zv7AKp3oJp21Dxo_7Fv7dmKR-F8RJiAMNYLStksTAbgpruTWb7d_qQbg"
-}
+GIS_LABELS = {"land_type": "land_type", "verification_status": "verification_status"}
+
+
+def _parse_boundary(raw: Optional[str]) -> Optional[Any]:
+    """The column stores GeoJSON as text; hand the client real JSON."""
+    if not raw:
+        return None
+    try:
+        return json.loads(raw)
+    except (TypeError, ValueError):
+        return None
+
 
 @router.get("/search", response_model=List[ParcelResponse])
 async def search_parcels(
+    response: Response,
     query: Optional[str] = Query(None, description="Search by ULPIN, Khasra, Survey or Owner"),
     district: Optional[str] = None,
     tehsil: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_locale),
 ) -> Any:
-    stmt = select(Parcel)
+    """Paginated search. The total match count comes back in ``X-Total-Count``."""
+    filters = []
     if query:
-        q = f"%{query.strip()}%"
-        stmt = stmt.where(
+        pattern = f"%{query.strip()}%"
+        filters.append(
             or_(
-                Parcel.ulpin.ilike(q),
-                Parcel.khasra_number.ilike(q),
-                Parcel.survey_number.ilike(q),
-                Parcel.owner_name.ilike(q)
+                Parcel.ulpin.ilike(pattern),
+                Parcel.khasra_number.ilike(pattern),
+                Parcel.survey_number.ilike(pattern),
+                Parcel.owner_name.ilike(pattern),
             )
         )
     if district:
-        stmt = stmt.where(Parcel.district == district)
+        filters.append(Parcel.district == district)
     if tehsil:
-        stmt = stmt.where(Parcel.tehsil == tehsil)
+        filters.append(Parcel.tehsil == tehsil)
 
-    result = await db.execute(stmt)
-    parcels = result.scalars().all()
-    
-    if not parcels and (not query or "1024" in str(query) or "rahul" in str(query).lower()):
-        # Return fallback mock if DB empty
-        return [DEFAULT_PARCEL_1024]
+    total = await db.scalar(select(func.count(Parcel.id)).where(*filters)) or 0
+    rows = (
+        (
+            await db.execute(
+                select(Parcel).where(*filters).order_by(Parcel.ulpin).limit(limit).offset(offset)
+            )
+        )
+        .scalars()
+        .all()
+    )
 
-    return parcels
+    response.headers["X-Total-Count"] = str(total)
+    return localize_many(ParcelResponse, rows, locale, PARCEL_LABELS)
+
 
 @router.get("/gis/all", response_model=List[ParcelGISResponse])
 async def get_all_gis_parcels(
+    response: Response,
     district: Optional[str] = None,
     tehsil: Optional[str] = None,
-    db: AsyncSession = Depends(get_db)
+    limit: int = Query(500, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_locale),
 ) -> Any:
-    stmt = select(Parcel)
+    """Trimmed parcel list for the map layers, boundaries already parsed."""
+    filters = []
     if district:
-        stmt = stmt.where(Parcel.district == district)
+        filters.append(Parcel.district == district)
     if tehsil:
-        stmt = stmt.where(Parcel.tehsil == tehsil)
-    result = await db.execute(stmt)
-    parcels = result.scalars().all()
+        filters.append(Parcel.tehsil == tehsil)
 
-    if not parcels:
-        return [{
-            "id": DEFAULT_PARCEL_1024["id"],
-            "ulpin": DEFAULT_PARCEL_1024["ulpin"],
-            "owner_name": DEFAULT_PARCEL_1024["owner_name"],
-            "area_ha": DEFAULT_PARCEL_1024["area_ha"],
-            "land_type": DEFAULT_PARCEL_1024["land_type"],
-            "verification_status": DEFAULT_PARCEL_1024["verification_status"],
-            "is_disputed": DEFAULT_PARCEL_1024["is_disputed"],
-            "centroid_lat": DEFAULT_PARCEL_1024["centroid_lat"],
-            "centroid_lng": DEFAULT_PARCEL_1024["centroid_lng"],
-            "boundary_geojson": DEFAULT_PARCEL_1024["boundary_geojson"],
-            "tehsil": DEFAULT_PARCEL_1024["tehsil"],
-            "village": DEFAULT_PARCEL_1024["village"]
-        }]
+    total = await db.scalar(select(func.count(Parcel.id)).where(*filters)) or 0
+    rows = (
+        (
+            await db.execute(
+                select(Parcel).where(*filters).order_by(Parcel.ulpin).limit(limit).offset(offset)
+            )
+        )
+        .scalars()
+        .all()
+    )
 
-    gis_list = []
-    for p in parcels:
-        gis_list.append({
-            "id": p.id,
-            "ulpin": p.ulpin,
-            "owner_name": p.owner_name,
-            "area_ha": p.area_ha,
-            "land_type": p.land_type,
-            "verification_status": p.verification_status,
-            "is_disputed": p.is_disputed,
-            "centroid_lat": p.centroid_lat,
-            "centroid_lng": p.centroid_lng,
-            "boundary_geojson": p.boundary_geojson,
-            "tehsil": p.tehsil,
-            "village": p.village
-        })
-    return gis_list
+    response.headers["X-Total-Count"] = str(total)
+    return [
+        ParcelGISResponse(
+            id=row.id,
+            ulpin=row.ulpin,
+            owner_name=row.owner_name,
+            area_ha=row.area_ha,
+            land_type=row.land_type,
+            verification_status=row.verification_status,
+            is_disputed=bool(row.is_disputed),
+            centroid_lat=row.centroid_lat,
+            centroid_lng=row.centroid_lng,
+            boundary_geojson=_parse_boundary(row.boundary_geojson),
+            tehsil=row.tehsil,
+            village=row.village,
+            **label_updates(row, GIS_LABELS, locale),
+        )
+        for row in rows
+    ]
+
 
 @router.get("/{ulpin}", response_model=ParcelResponse)
 async def get_parcel_by_ulpin(
     ulpin: str,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_locale),
 ) -> Any:
-    # Normalize query (handle "P-1024" or "09-XXXX-XXXX-1024")
+    """Exact ULPIN or survey number first, then a contains-match on the ULPIN."""
     normalized = ulpin.strip()
-    result = await db.execute(
-        select(Parcel).where(
-            or_(
-                Parcel.ulpin == normalized,
-                Parcel.ulpin.ilike(f"%{normalized}%"),
-                Parcel.survey_number == normalized
+    parcel = (
+        (
+            await db.execute(
+                select(Parcel)
+                .where(
+                    or_(
+                        Parcel.ulpin == normalized,
+                        Parcel.survey_number == normalized,
+                        Parcel.ulpin.ilike(f"%{normalized}%"),
+                    )
+                )
+                .order_by(func.length(Parcel.ulpin))
             )
         )
+        .scalars()
+        .first()
     )
-    parcel = result.scalars().first()
-    if parcel:
-        return parcel
+    if not parcel:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=t("error.parcel_not_found", locale, reference=normalized),
+        )
+    return localize(ParcelResponse, parcel, locale, PARCEL_LABELS)
 
-    if "1024" in normalized or normalized.upper() == "P-1024":
-        return DEFAULT_PARCEL_1024
 
-    raise HTTPException(status_code=404, detail=f"Parcel with ULPIN '{ulpin}' not found")
-
-@router.post("", response_model=ParcelResponse)
+@router.post("", response_model=ParcelResponse, status_code=status.HTTP_201_CREATED)
 async def create_parcel(
     parcel_in: ParcelCreate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_locale),
 ) -> Any:
-    existing = await db.execute(select(Parcel).where(Parcel.ulpin == parcel_in.ulpin))
-    if existing.scalars().first():
-        raise HTTPException(status_code=400, detail="Parcel with this ULPIN already exists")
+    existing = await db.scalar(select(Parcel.id).where(Parcel.ulpin == parcel_in.ulpin))
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=t("error.parcel_exists", locale),
+        )
 
     parcel = Parcel(**parcel_in.model_dump())
     db.add(parcel)
     await db.commit()
     await db.refresh(parcel)
-    return parcel
+    return localize(ParcelResponse, parcel, locale, PARCEL_LABELS)

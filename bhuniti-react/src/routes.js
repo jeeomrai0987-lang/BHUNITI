@@ -39,3 +39,10 @@ export const ADMIN_ROUTES = {
   mutationMonitor: "/administration/mutation-monitor",
   officerPerformance: "/administration/officer-performance",
 };
+
+// The Digital Registry wizard. It arrived as its own app and keeps its own
+// route table at src/registry/routes.js, which is where its header, both
+// steppers and every Previous/Continue button read from — so that stays the
+// source of truth and this is a re-export, not a second copy. Anything outside
+// src/registry (the Platform card, for one) should link through here.
+export { PATHS as REGISTRY_ROUTES, REGISTRY_BASE, registryServicePath } from "./registry/routes.js";

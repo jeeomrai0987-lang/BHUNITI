@@ -20,7 +20,7 @@ class Parcel(Base):
     pincode = Column(String(10), nullable=True)
 
     # Ownership & Classification
-    owner_name = Column(String(200), nullable=False)
+    owner_name = Column(String(200), index=True, nullable=False)  # searched by name
     co_owners_json = Column(Text, nullable=True)  # JSON array of co-owners
     land_type = Column(String(100), default="Agricultural")  # Agricultural, Residential, Commercial, etc.
     area_ha = Column(Float, nullable=False)

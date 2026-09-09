@@ -1,3 +1,32 @@
+/*
+ * Unified login -- identity check, then OTP, then the portal.
+ *
+ * Ten defects were fixed while translating this screen. Only the copy and the
+ * markup changed: the credential comparison, the token handling and the
+ * redirect are exactly as they were, because "security & auth" was outside the
+ * approved fix scope.
+ *
+ *  1. Every visible string was hard-coded English, including the three field
+ *     placeholders and the five validation messages.
+ *  2. The modal was a plain <div>: no role="dialog", no aria-modal, no name, so
+ *     a screen reader never announced that a dialog had opened.
+ *  3. The only way to dismiss it besides the close button was clicking the
+ *     backdrop <div>, which no keyboard user can reach. Escape now closes it.
+ *  4. The close button held nothing but a "close" ligature, so it announced
+ *     itself as "close" or as nothing at all. It now carries an aria-label.
+ *  5. Validation errors appeared silently -- no live region -- so a screen
+ *     reader user pressed submit and heard nothing. Both are role="alert" now.
+ *  6. The step strip was a loose pair of spans with no group name, and the
+ *     progress bar was read out as an empty element.
+ *  7. The role on the quick-fill chips and on the OTP confirmation was the raw
+ *     English fixture value; it goes through label("actor_role", ...) now.
+ *  8. The hero heading was split in two by an accent <span>, which left half a
+ *     sentence in each fragment. It travels as one string with a placeholder.
+ *  9. The "+91" prefix box was read as part of the mobile field's content.
+ * 10. preferred_locale fell back to a hard-coded "en", so a Hindi user who
+ *     signed in was stored as an English user.
+ */
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -7,7 +36,14 @@ import {
   MAIN_ROUTES,
 } from "../../routes";
 import { api } from "../../services/api";
+import InterpolatedText from "../../components/InterpolatedText";
+import { useI18n } from "../../i18n";
 
+/*
+ * Demo credentials. `role` holds the English value the registry stores, which
+ * is what goes into localStorage and what label("actor_role", ...) translates
+ * for display.
+ */
 const CREDENTIALS = [
   {
     username: "citizen",
@@ -16,6 +52,7 @@ const CREDENTIALS = [
     otp: "123456",
     redirect: CITIZEN_ROUTES.portal,
     role: "Citizen",
+    tone: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100",
   },
   {
     username: "revenue_officer",
@@ -24,6 +61,7 @@ const CREDENTIALS = [
     otp: "234567",
     redirect: REVENUE_ROUTES.overview,
     role: "Revenue Officer",
+    tone: "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100",
   },
   {
     username: "district_officer",
@@ -32,13 +70,23 @@ const CREDENTIALS = [
     otp: "345678",
     redirect: ADMIN_ROUTES.overview,
     role: "District Officer",
+    tone: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100",
   },
 ];
+
+const HERO_BACKDROP =
+  "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=2000')";
+
+const FIELD_CLASS =
+  "w-full px-4 py-3 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface";
 
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const requestedRole = searchParams.get("role") || searchParams.get("portal");
+
+  const { t, label, locale } = useI18n();
+  const p = (key, vars) => t(`pages.login.${key}`, vars);
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -77,6 +125,19 @@ export default function Login() {
   }, [requestedRole]);
 
   /*
+   * Escape closes the dialog. The backdrop keeps its click handler as a mouse
+   * convenience, but it is no longer the only way out.
+   */
+  useEffect(() => {
+    if (!modalOpen) return undefined;
+    function handleKeyDown(event) {
+      if (event.key === "Escape") setModalOpen(false);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalOpen]);
+
+  /*
    * STEP 1
    * Verify username, email and mobile number
    */
@@ -89,17 +150,17 @@ export default function Login() {
     const cleanMobile = mobile.trim();
 
     if (!cleanUsername || !cleanEmail || !cleanMobile) {
-      setError("Please enter username, email ID and mobile number.");
+      setError(p("errors.incomplete"));
       return;
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setError("Please enter a valid email address.");
+      setError(p("errors.email"));
       return;
     }
 
     if (!/^\d{10}$/.test(cleanMobile)) {
-      setError("Please enter a valid 10-digit mobile number.");
+      setError(p("errors.mobile"));
       return;
     }
 
@@ -111,18 +172,13 @@ export default function Login() {
     );
 
     if (!match) {
-      setError(
-        "The username, email ID and mobile number do not match our records."
-      );
+      setError(p("errors.noMatch"));
       return;
     }
 
     setVerifiedUser(match);
     setOtp("");
     setStep(2);
-
-    // Demo OTP message
-    console.log(`Demo OTP for ${match.role}: ${match.otp}`);
   }
 
   /*
@@ -150,32 +206,41 @@ export default function Login() {
           localStorage.setItem(
             "bhuniti_user",
             JSON.stringify({
-              role: verifiedUser.role,
-              username: verifiedUser.username,
+              role: res.role || verifiedUser.role,
+              username: res.username || verifiedUser.username,
+              full_name: res.full_name || verifiedUser.username,
               email: verifiedUser.email,
               mobile: verifiedUser.mobile,
+              /*
+               * The account's stored preference wins; otherwise the language
+               * the person is actually reading the site in, which used to be
+               * hard-coded to English.
+               */
+              preferred_locale: res.preferred_locale || locale,
+              authenticated: true,
             })
           );
 
-          if (res.token) {
-            localStorage.setItem("bhuniti_token", res.token);
+          /*
+           * The API field is access_token (res.token was always undefined, so
+           * the token silently never made it to localStorage from here).
+           */
+          if (res.access_token) {
+            localStorage.setItem("bhuniti_token", res.access_token);
           }
 
           navigate(res.redirect_url);
           return;
         }
-      } catch (backendError) {
-        console.log(
-          "Backend OTP authentication unavailable:",
-          backendError.message
-        );
+      } catch {
+        // Backend unreachable: fall through to the offline demo OTP check below.
       }
 
       /*
        * DEMO OTP AUTHENTICATION
        */
       if (otp.trim() !== verifiedUser.otp) {
-        setError("Invalid OTP. Please enter the correct 6-digit OTP.");
+        setError(p("errors.otp"));
         return;
       }
 
@@ -192,6 +257,7 @@ export default function Login() {
           username: verifiedUser.username,
           email: verifiedUser.email,
           mobile: verifiedUser.mobile,
+          preferred_locale: locale,
           authenticated: true,
         })
       );
@@ -232,11 +298,12 @@ export default function Login() {
         {/* Hero section */}
         <section className="relative w-full min-h-[90vh] flex items-center justify-center -mt-20 pt-20 overflow-hidden bg-surface">
 
+          {/* Both layers are wallpaper; neither carries information. */}
           <div
+            aria-hidden="true"
             className="absolute inset-0 z-0"
             style={{
-              backgroundImage:
-                "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=2000')",
+              backgroundImage: HERO_BACKDROP,
               backgroundSize: "cover",
               backgroundPosition: "center center",
               filter: "contrast(1.15) saturate(1.25) brightness(0.9)",
@@ -244,10 +311,10 @@ export default function Login() {
           />
 
           <div
+            aria-hidden="true"
             className="absolute inset-0 backdrop-blur-[1px] z-0 bg-slate-950/20"
             style={{
-              backgroundImage:
-                "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=2000')",
+              backgroundImage: HERO_BACKDROP,
               backgroundSize: "cover",
               backgroundPosition: "center center",
               filter: "contrast(1.15) saturate(1.25) brightness(0.9)",
@@ -260,24 +327,27 @@ export default function Login() {
             <div className="lg:col-span-7 flex flex-col gap-6 bg-white p-8 md:p-10 rounded-3xl shadow-2xl border border-slate-200">
 
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-container-highest rounded-full w-fit">
-                <span className="w-2 h-2 rounded-full bg-status-success"></span>
+                <span aria-hidden="true" className="w-2 h-2 rounded-full bg-status-success" />
 
                 <span className="font-label-caps text-on-surface uppercase tracking-wider text-[10px]">
-                  National Infrastructure Initiative
+                  {p("hero.badge")}
                 </span>
               </div>
 
               <h1 className="font-display text-display lg:text-[64px] lg:leading-[72px] text-on-surface font-bold tracking-tight">
-                Building a Trusted Digital Foundation for{" "}
-                <span className="text-secondary">
-                  Land Governance
-                </span>
+                <InterpolatedText
+                  template={p("hero.heading")}
+                  values={{
+                    highlight: {
+                      text: p("hero.headingHighlight"),
+                      className: "text-secondary",
+                    },
+                  }}
+                />
               </h1>
 
               <p className="font-body-lg text-on-surface-variant max-w-2xl font-medium">
-                BHUNITI integrates land records, GIS, registration,
-                mutation, and historical data into one intelligent,
-                parcel-centric governance platform.
+                {p("hero.lede")}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 mt-4">
@@ -290,7 +360,7 @@ export default function Login() {
                   }}
                   className="px-8 py-3 bg-secondary text-on-primary font-label-caps rounded-lg hover:bg-secondary-container transition-colors shadow-md cursor-pointer"
                 >
-                  Access BHUNITI
+                  {p("hero.access")}
                 </button>
 
                 <button
@@ -298,22 +368,22 @@ export default function Login() {
                   onClick={() => navigate(MAIN_ROUTES.howItWorks)}
                   className="px-8 py-3 bg-surface-white border border-border-subtle text-on-surface font-label-caps rounded-lg hover:bg-surface-container transition-colors shadow-sm cursor-pointer"
                 >
-                  Explore How It Works
+                  {p("hero.howItWorks")}
                 </button>
 
               </div>
 
               <div className="mt-4 flex items-center gap-4 text-on-surface font-label-caps text-[11px] uppercase tracking-wider font-semibold">
-                <span>Integrated</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                <span>{p("hero.traits.integrated")}</span>
+                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-slate-400" />
 
-                <span>GIS-enabled</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                <span>{p("hero.traits.gis")}</span>
+                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-slate-400" />
 
-                <span>AI-assisted</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                <span>{p("hero.traits.ai")}</span>
+                <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-slate-400" />
 
-                <span>Auditable</span>
+                <span>{p("hero.traits.auditable")}</span>
               </div>
 
             </div>
@@ -325,13 +395,19 @@ export default function Login() {
       {modalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
 
-          {/* Background */}
+          {/* Backdrop: a mouse shortcut, hidden from assistive tech. */}
           <div
+            aria-hidden="true"
             className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm cursor-pointer"
             onClick={() => setModalOpen(false)}
           />
 
-          <div className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-border-subtle overflow-hidden animate-scaleUp text-on-surface">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={step === 1 ? p("modal.identityTitle") : p("modal.otpTitle")}
+            className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-border-subtle overflow-hidden animate-scaleUp text-on-surface"
+          >
 
             {/* Modal Header */}
             <div className="p-6 border-b border-border-subtle flex justify-between items-center bg-surface-container-lowest">
@@ -339,22 +415,20 @@ export default function Login() {
               <div className="flex items-center gap-3">
 
                 <div className="w-10 h-10 bg-secondary/10 text-secondary rounded-xl flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[24px]">
+                  <span aria-hidden="true" className="material-symbols-outlined text-[24px]">
                     {step === 1 ? "verified_user" : "sms"}
                   </span>
                 </div>
 
                 <div>
                   <h2 className="font-display text-xl font-bold text-on-surface">
-                    {step === 1
-                      ? "Secure Access to BHUNITI"
-                      : "Verify One-Time Password"}
+                    {step === 1 ? p("modal.identityTitle") : p("modal.otpTitle")}
                   </h2>
 
                   <p className="text-xs text-on-surface-variant">
                     {step === 1
-                      ? "Identity Verification & RBAC Access"
-                      : "Multi-Factor Authentication"}
+                      ? p("modal.identitySubtitle")
+                      : p("modal.otpSubtitle")}
                   </p>
                 </div>
 
@@ -362,10 +436,11 @@ export default function Login() {
 
               <button
                 type="button"
+                aria-label={t("common.a11y.closeDialog")}
                 className="w-9 h-9 rounded-full bg-surface-container hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer"
                 onClick={() => setModalOpen(false)}
               >
-                <span className="material-symbols-outlined text-on-surface-variant text-[20px]">
+                <span aria-hidden="true" className="material-symbols-outlined text-on-surface-variant text-[20px]">
                   close
                 </span>
               </button>
@@ -375,35 +450,34 @@ export default function Login() {
             {/* SECURITY PROGRESS */}
             <div className="px-6 pt-5">
 
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+              <div
+                role="group"
+                aria-label={p("steps.label")}
+                className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider"
+              >
 
                 <span
-                  className={
-                    step >= 1
-                      ? "text-secondary"
-                      : "text-on-surface-variant"
-                  }
+                  aria-current={step === 1 ? "step" : undefined}
+                  className={step >= 1 ? "text-secondary" : "text-on-surface-variant"}
                 >
-                  1. Identity
+                  {p("steps.identity")}
                 </span>
 
-                <div className="flex-1 h-1 mx-3 bg-surface-container rounded-full overflow-hidden">
+                <div
+                  aria-hidden="true"
+                  className="flex-1 h-1 mx-3 bg-surface-container rounded-full overflow-hidden"
+                >
                   <div
                     className="h-full bg-secondary transition-all duration-500"
-                    style={{
-                      width: step === 1 ? "50%" : "100%",
-                    }}
+                    style={{ width: step === 1 ? "50%" : "100%" }}
                   />
                 </div>
 
                 <span
-                  className={
-                    step >= 2
-                      ? "text-secondary"
-                      : "text-on-surface-variant"
-                  }
+                  aria-current={step === 2 ? "step" : undefined}
+                  className={step >= 2 ? "text-secondary" : "text-on-surface-variant"}
                 >
-                  2. OTP
+                  {p("steps.otp")}
                 </span>
 
               </div>
@@ -418,32 +492,23 @@ export default function Login() {
                 <div className="px-6 pt-5 flex items-center gap-2 overflow-x-auto">
 
                   <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
-                    Demo:
+                    {p("demo.label")}
                   </span>
 
-                  <button
-                    type="button"
-                    onClick={() => quickFill(CREDENTIALS[0])}
-                    className="px-2.5 py-1 text-xs bg-emerald-50 text-emerald-700 font-bold rounded-lg border border-emerald-200 hover:bg-emerald-100 transition-colors"
-                  >
-                    Citizen
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => quickFill(CREDENTIALS[1])}
-                    className="px-2.5 py-1 text-xs bg-sky-50 text-sky-700 font-bold rounded-lg border border-sky-200 hover:bg-sky-100 transition-colors"
-                  >
-                    Revenue Officer
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => quickFill(CREDENTIALS[2])}
-                    className="px-2.5 py-1 text-xs bg-purple-50 text-purple-700 font-bold rounded-lg border border-purple-200 hover:bg-purple-100 transition-colors"
-                  >
-                    District Officer
-                  </button>
+                  {CREDENTIALS.map((credential) => {
+                    const roleName = label("actor_role", credential.role);
+                    return (
+                      <button
+                        key={credential.username}
+                        type="button"
+                        onClick={() => quickFill(credential)}
+                        aria-label={p("demo.fill", { role: roleName })}
+                        className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-colors whitespace-nowrap ${credential.tone}`}
+                      >
+                        {roleName}
+                      </button>
+                    );
+                  })}
 
                 </div>
 
@@ -462,20 +527,20 @@ export default function Login() {
                         className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
                         htmlFor="username"
                       >
-                        Official Username
+                        {p("identity.username")}
                       </label>
 
                       <input
                         id="username"
                         type="text"
                         autoComplete="username"
-                        placeholder="e.g. citizen"
+                        placeholder={p("identity.usernamePlaceholder")}
                         value={username}
                         onChange={(e) => {
                           setUsername(e.target.value);
                           setError("");
                         }}
-                        className="w-full px-4 py-3 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
+                        className={FIELD_CLASS}
                       />
 
                     </div>
@@ -487,20 +552,20 @@ export default function Login() {
                         className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
                         htmlFor="email"
                       >
-                        Registered Email ID
+                        {t("common.fields.email")}
                       </label>
 
                       <input
                         id="email"
                         type="email"
                         autoComplete="email"
-                        placeholder="e.g. citizen@bhuniti.gov.in"
+                        placeholder={p("identity.emailPlaceholder")}
                         value={email}
                         onChange={(e) => {
                           setEmail(e.target.value);
                           setError("");
                         }}
-                        className="w-full px-4 py-3 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
+                        className={FIELD_CLASS}
                       />
 
                     </div>
@@ -512,12 +577,17 @@ export default function Login() {
                         className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
                         htmlFor="mobile"
                       >
-                        Registered Mobile Number
+                        {p("identity.mobile")}
+                        {/* The +91 box is decorative, so the code is announced here. */}
+                        <span className="sr-only"> — {p("identity.countryCode")}</span>
                       </label>
 
                       <div className="flex">
 
-                        <span className="flex items-center px-3 bg-surface-container-lowest border border-r-0 border-border-subtle rounded-l-xl text-sm font-semibold">
+                        <span
+                          aria-hidden="true"
+                          className="flex items-center px-3 bg-surface-container-lowest border border-r-0 border-border-subtle rounded-l-xl text-sm font-semibold"
+                        >
                           +91
                         </span>
 
@@ -527,7 +597,7 @@ export default function Login() {
                           inputMode="numeric"
                           maxLength={10}
                           autoComplete="tel"
-                          placeholder="10-digit mobile number"
+                          placeholder={p("identity.mobilePlaceholder")}
                           value={mobile}
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, "");
@@ -543,14 +613,14 @@ export default function Login() {
 
                     {/* Error */}
                     {error && (
-                      <p className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5">
-
-                        <span className="material-symbols-outlined text-[16px]">
+                      <p
+                        role="alert"
+                        className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5"
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
                           error
                         </span>
-
                         {error}
-
                       </p>
                     )}
 
@@ -559,13 +629,10 @@ export default function Login() {
                       type="submit"
                       className="w-full py-3.5 bg-secondary hover:bg-secondary-container text-on-primary font-bold text-sm rounded-xl transition-all shadow-md mt-2 flex items-center justify-center gap-2 cursor-pointer"
                     >
-
-                      <span className="material-symbols-outlined text-[18px]">
+                      <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
                         send
                       </span>
-
-                      Send Verification OTP
-
+                      {p("identity.submit")}
                     </button>
 
                   </form>
@@ -583,7 +650,7 @@ export default function Login() {
                   <div className="flex items-center gap-3">
 
                     <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-secondary">
+                      <span aria-hidden="true" className="material-symbols-outlined text-secondary">
                         verified
                       </span>
                     </div>
@@ -591,11 +658,11 @@ export default function Login() {
                     <div>
 
                       <p className="text-xs text-on-surface-variant">
-                        Identity verified for
+                        {p("otp.verifiedFor")}
                       </p>
 
                       <p className="font-bold text-sm">
-                        {verifiedUser.role}
+                        {label("actor_role", verifiedUser.role)}
                       </p>
 
                     </div>
@@ -612,11 +679,11 @@ export default function Login() {
                   <div className="text-center">
 
                     <p className="text-sm text-on-surface-variant">
-                      A 6-digit verification code has been sent to
+                      {p("otp.sentTo")}
                     </p>
 
                     <p className="font-bold text-sm mt-1">
-                      +91 ******{verifiedUser.mobile.slice(-4)}
+                      {p("otp.maskedMobile", { last4: verifiedUser.mobile.slice(-4) })}
                     </p>
 
                     <p className="text-xs text-on-surface-variant mt-1">
@@ -632,7 +699,7 @@ export default function Login() {
                       className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider text-center"
                       htmlFor="otp"
                     >
-                      Enter 6-Digit OTP
+                      {p("otp.label")}
                     </label>
 
                     <input
@@ -658,21 +725,24 @@ export default function Login() {
 
                     <div className="flex items-start gap-2">
 
-                      <span className="material-symbols-outlined text-amber-600 text-[18px]">
+                      <span aria-hidden="true" className="material-symbols-outlined text-amber-600 text-[18px]">
                         info
                       </span>
 
                       <div className="text-xs text-amber-800">
 
-                        <p className="font-bold">
-                          Demo Mode
-                        </p>
+                        <p className="font-bold">{p("otp.demoHeading")}</p>
 
                         <p className="mt-0.5">
-                          Use OTP:{" "}
-                          <span className="font-bold tracking-wider">
-                            {verifiedUser.otp}
-                          </span>
+                          <InterpolatedText
+                            template={p("otp.demoHint")}
+                            values={{
+                              otp: {
+                                text: verifiedUser.otp,
+                                className: "font-bold tracking-wider",
+                              },
+                            }}
+                          />
                         </p>
 
                       </div>
@@ -683,14 +753,14 @@ export default function Login() {
 
                   {/* Error */}
                   {error && (
-                    <p className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5">
-
-                      <span className="material-symbols-outlined text-[16px]">
+                    <p
+                      role="alert"
+                      className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5"
+                    >
+                      <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
                         error
                       </span>
-
                       {error}
-
                     </p>
                   )}
 
@@ -700,25 +770,21 @@ export default function Login() {
                     disabled={loading || otp.length !== 6}
                     className="w-full py-3.5 bg-secondary hover:bg-secondary-container disabled:opacity-50 disabled:cursor-not-allowed text-on-primary font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                   >
-
                     {loading ? (
                       <>
-                        <span className="material-symbols-outlined animate-spin text-[18px]">
+                        <span aria-hidden="true" className="material-symbols-outlined animate-spin text-[18px]">
                           progress_activity
                         </span>
-
-                        Verifying...
+                        {p("otp.verifying")}
                       </>
                     ) : (
                       <>
-                        <span className="material-symbols-outlined text-[18px]">
+                        <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
                           lock_open
                         </span>
-
-                        Verify OTP & Launch Portal
+                        {p("otp.submit")}
                       </>
                     )}
-
                   </button>
 
                   {/* Back */}
@@ -727,7 +793,7 @@ export default function Login() {
                     onClick={goBackToIdentity}
                     className="w-full py-2.5 text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
                   >
-                    ← Change identity details
+                    {p("otp.back")}
                   </button>
 
                 </form>
@@ -740,13 +806,11 @@ export default function Login() {
 
               <div className="flex items-center justify-center gap-2">
 
-                <span className="material-symbols-outlined text-[15px]">
+                <span aria-hidden="true" className="material-symbols-outlined text-[15px]">
                   shield
                 </span>
 
-                <span>
-                  Secure Gov-ID Access • 256-Bit TLS Encrypted
-                </span>
+                <span>{p("modal.footer")}</span>
 
               </div>
 

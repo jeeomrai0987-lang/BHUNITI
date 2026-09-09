@@ -27,8 +27,8 @@ bhuniti-react/
 ├── index.html              # Root HTML with fonts, Material Symbols
 ├── src/
 │   ├── main.jsx           # React entry point
-│   ├── App.jsx            # Route configuration (all 27 pages)
-│   ├── routes.js          # Central route path constants
+│   ├── App.jsx            # Route configuration (all 27 pages + the /registry branch)
+│   ├── routes.js          # Central route path constants (re-exports REGISTRY_ROUTES)
 │   ├── index.css          # Global styles + theme scopes (.theme-main, .theme-dashboard)
 │   ├── assets/
 │   │   └── logo.jpeg      # BhuNiti sidebar logo
@@ -43,11 +43,24 @@ bhuniti-react/
 │   │   ├── CitizenLayout.jsx
 │   │   ├── RevenueOfficerLayout.jsx
 │   │   └── AdminLayout.jsx
-│   └── pages/             # 27 page components
-│       ├── main/          (Home, Platform, HowItWorks, Features, Governance, About, Login)
-│       ├── citizen/       (Portal, SearchRecords, MyApplications, LandServices)
-│       ├── revenue/       (Overview, GisExplorer, DataReconciliation, ...)
-│       └── admin/         (Overview, DistrictGis, TehsilAnalytics, ...)
+│   ├── i18n/              # English + Hindi catalogs and the LanguageProvider
+│   │   ├── index.jsx      # useI18n(), t(), label(), Intl formatters
+│   │   ├── locale-store.js  # SUPPORTED_LOCALES — plain JS so node can read it
+│   │   └── en/  hi/       # the two catalogs, mirrored file for file
+│   ├── pages/             # 27 page components
+│   │   ├── main/          (Home, Platform, HowItWorks, Features, Governance, About, Login)
+│   │   ├── citizen/       (Portal, SearchRecords, MyApplications, LandServices)
+│   │   ├── revenue/       (Overview, GisExplorer, DataReconciliation, ...)
+│   │   └── admin/         (Overview, DistrictGis, TehsilAnalytics, ...)
+│   └── registry/          # Digital Registry wizard, mounted at /registry
+│       ├── README.md      # how the section is embedded — read this first
+│       ├── App.jsx        # layout element for the /registry branch
+│       ├── routes.js      # REGISTRY_SEGMENT, SEGMENTS, PATHS, WIZARD_STEPS
+│       ├── index.css      # the prototypes' styles, all .registry-scope'd
+│       ├── i18n/          # its own 332-key catalogs + React-free translator
+│       ├── context/       # RegistryContext (draft state), ToastContext
+│       ├── components/    # Layout, Header, Footer, GisMap, steppers
+│       └── pages/         # the five wizard pages
 ├── tailwind.config.js     # Tailwind config with CSS variable color refs
 ├── vite.config.js
 ├── postcss.config.js
@@ -55,6 +68,10 @@ bhuniti-react/
 └── scripts/               # Build-time HTML→JSX converter (not needed after build)
     ├── html_to_jsx.py
     └── page_manifest.py
+
+../tools/                  # Offline checkers — see `npm run verify`
+    ├── check_syntax.mjs   check_i18n.mjs   test_i18n_runtime.mjs
+    └── registry_check_{catalogs,source,runtime}.mjs
 ```
 
 ## Getting Started
@@ -77,6 +94,20 @@ The app will start at http://localhost:5173
 npm run build
 npm run preview   # Preview the production build locally
 ```
+
+### Checks
+
+```bash
+npm run verify          # everything below, in order
+npm run check:syntax    # parses every .jsx
+npm run check:i18n      # catalog parity + every t() key the site asks for
+npm run check:registry   # the Digital Registry section's three checkers
+npm run test:i18n       # behavioural test of the i18n runtime
+```
+
+`check:i18n` and `check:registry` need nothing installed — they run on plain `node`.
+`check:syntax` and `test:i18n` use Babel from `devDependencies` and skip with a message if
+`npm install` has not run yet.
 
 ## Demo Credentials
 
@@ -167,6 +198,17 @@ display: [
 - `/administration/mutation-monitor` — Mutation Monitor
 - `/administration/officer-performance` — Officer Performance
 
+### Digital Registry wizard (`theme-main`, own header/footer)
+Reached from the Digital Registry card in the Platform section. Paths come from
+`REGISTRY_ROUTES` (re-exported by `src/routes.js`), never hard-coded — see
+[`src/registry/README.md`](src/registry/README.md).
+- `/registry` — redirects to step 1
+- `/registry/parcel-identification` — Step 1 · Parcel & Land
+- `/registry/owner-and-party` — Step 2 · Parties
+- `/registry/transaction-documents` — Steps 3 + 4 · Transaction & Documents
+- `/registry/review-submission` — Steps 5 + 6 · Review & Submit
+- `/registry/registry-tracking` — Post-submission tracking
+
 ## Key Features Reimplemented
 
 ### 1. GIS Explorer Drawer Toggle (Revenue Officer)
@@ -250,6 +292,8 @@ npm run build
 ### Route not found (404)?
 - Verify the path in `src/routes.js` matches the route definition in `src/App.jsx`
 - Use `<Link to={ROUTES.path}>` instead of `<a href>` for client-side navigation
+- For `/registry/*`, the paths come from `src/registry/routes.js`; `npm run check:registry`
+  fails if a segment there is not mounted in `src/App.jsx`
 
 ### Build failing?
 - `npm run build` output will show the exact error; check that all page imports in `App.jsx` exist
@@ -259,7 +303,8 @@ npm run build
 
 1. **Code-splitting by route** for faster initial load (currently ~128 KB gzip)
 2. **Mock API layer** (e.g., MSW) for realistic data workflows
-3. **i18n** (internationalization) for Hindi / regional languages
+3. **More languages** — English and Hindi ship today (`src/i18n/`, plus the registry section's
+   own catalogs); adding one means a new folder per catalog and a line in `locale-store.js`
 4. **Dark mode** theme (third CSS scope)
 5. **Offline support** (PWA manifest + Service Worker)
 6. **E2E tests** (Cypress / Playwright) for all critical flows

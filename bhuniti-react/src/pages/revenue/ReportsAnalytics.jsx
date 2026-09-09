@@ -1,299 +1,530 @@
+import { Link } from "react-router-dom";
+import { REVENUE_ROUTES } from "../../routes";
+import { useI18n } from "../../i18n";
+
+/*
+ * Reports & Analytics, demo figures.
+ *
+ * Every chart is drawn from the arrays below rather than from hand-placed SVG
+ * coordinates, which is what the original markup did. The old version had drifted:
+ * the processing-time curve peaked at a y value worth about 26 days while its own
+ * tooltip read "22d", and the series rose (worse) under a heading that described an
+ * improvement. Deriving the geometry from the numbers means the axis, the plotted
+ * point and the tooltip cannot disagree again.
+ */
+
+// ── Headline figures ────────────────────────────────────────────────────────
+// `deltaUnit` picks how the change chip is written: a percentage or a day count.
+const KPIS = [
+  {
+    key: "openDiscrepancies",
+    value: 1248,
+    delta: 12,
+    deltaUnit: "percent",
+    icon: "warning",
+    iconClass: "text-error",
+    glow: "bg-error-container",
+    chip: "text-error bg-error-container",
+  },
+  {
+    key: "resolvedCases",
+    value: 8432,
+    delta: 4.2,
+    deltaUnit: "percent",
+    icon: "check_circle",
+    iconClass: "text-primary",
+    glow: "bg-surface-container-high",
+    chip: "text-primary bg-surface-container-highest",
+  },
+  {
+    key: "processingTime",
+    value: 14,
+    unit: "days",
+    delta: -2,
+    deltaUnit: "days",
+    icon: "schedule",
+    iconClass: "text-on-tertiary-fixed-variant",
+    glow: "bg-tertiary-fixed",
+    chip: "text-on-tertiary-fixed-variant bg-tertiary-fixed",
+  },
+  {
+    key: "accuracyIndex",
+    value: 94.2,
+    percent: true,
+    delta: 0.8,
+    deltaUnit: "percent",
+    icon: "verified_user",
+    iconClass: "text-secondary",
+    glow: "bg-secondary-container",
+    chip: "text-secondary bg-secondary-container",
+  },
+];
+
+// ── Bar chart: open discrepancies by root cause ─────────────────────────────
+const CATEGORIES = [
+  { key: "areaMismatch", value: 480, barClass: "fill-primary" },
+  { key: "titleDispute", value: 640, barClass: "fill-tertiary-fixed-dim" },
+  { key: "boundary", value: 360, barClass: "fill-secondary-fixed" },
+  { key: "missingDoc", value: 240, barClass: "fill-error-container" },
+  { key: "classificationError", value: 560, barClass: "fill-surface-tint" },
+  { key: "other", value: 160, barClass: "fill-outline" },
+];
+
+/*
+ * Chart 1 geometry. The viewBox is 800x240 with the baseline at y=200, so a bar
+ * is `value / BAR_AXIS_MAX * BAR_PLOT_H` pixels tall and the gridlines sit at
+ * the same scale -- no magic numbers in the markup.
+ */
+const BAR_AXIS_MAX = 800;
+const BAR_PLOT_H = 200;
+const BAR_TICKS = [0, 200, 400, 600];
+const BAR_WIDTH = 60;
+const BAR_STEP = 120;
+const BAR_LEFT = 50;
+const barY = (value) => BAR_PLOT_H - (value / BAR_AXIS_MAX) * BAR_PLOT_H;
+
+// ── Source reliability ──────────────────────────────────────────────────────
+const SOURCES = [
+  { key: "legacy", score: 78, barClass: "bg-tertiary-fixed shadow-[0_0_10px_rgba(252,222,181,0.5)]" },
+  { key: "drone", score: 96, barClass: "bg-primary-fixed shadow-[0_0_10px_rgba(218,226,253,0.5)]" },
+  { key: "satellite", score: 89, barClass: "bg-secondary-fixed shadow-[0_0_10px_rgba(213,227,253,0.5)]" },
+  { key: "citizen", score: 64, barClass: "bg-error-container" },
+];
+
+/*
+ * Village hotspots. The three names the original shipped (Govindpura, Bairagarh,
+ * Kolar) are Bhopal-area villages, which sat oddly in a dashboard scoped to
+ * Ghaziabad; these three are in the demo tehsil.
+ */
+const VILLAGES = [
+  { key: "duhai", cases: 142, level: "critical", chip: "bg-error-container text-on-error-container" },
+  { key: "bhojpur", cases: 89, level: "elevated", chip: "bg-tertiary-fixed text-on-tertiary-fixed-variant" },
+  { key: "kadrabad", cases: 45, level: "normal", chip: "bg-surface-container-highest text-on-surface" },
+];
+
+// ── Line chart: average mutation processing time, in days ───────────────────
+// Declining, which is what "avg processing time -2 days" in the KPI row claims.
+const TREND = [
+  { key: "jan", days: 22 },
+  { key: "feb", days: 18 },
+  { key: "mar", days: 16 },
+  { key: "apr", days: 15 },
+  { key: "may", days: 14 },
+];
+
+const TREND_AXIS_MAX = 30;
+const TREND_PLOT_H = 160;         // y=200 is 0 days, y=40 is 30 days
+const TREND_BASELINE = 200;
+const TREND_TICKS = [0, 15, 30];
+const TREND_LEFT = 50;
+const TREND_STEP = 100;
+const trendX = (index) => TREND_LEFT + index * TREND_STEP;
+const trendY = (days) => TREND_BASELINE - (days / TREND_AXIS_MAX) * TREND_PLOT_H;
+
+const ONE_DECIMAL = { minimumFractionDigits: 1, maximumFractionDigits: 1 };
+const SIGNED = { signDisplay: "always" };
+
 export default function ReportsAnalytics() {
+  const { t, formatNumber } = useI18n();
+  const p = (key, vars) => t(`pages.reportsAnalytics.${key}`, vars);
+
+  const percent = (value) =>
+    `${formatNumber(value, Number.isInteger(value) ? undefined : ONE_DECIMAL)}${t(
+      "common.units.percent"
+    )}`;
+
+  /* "+12%" or "-2 days", depending on what the figure above it measures. */
+  const changeChip = (kpi) =>
+    kpi.deltaUnit === "percent"
+      ? `${formatNumber(kpi.delta, { ...SIGNED, ...(Number.isInteger(kpi.delta) ? {} : ONE_DECIMAL) })}${t("common.units.percent")}`
+      : `${formatNumber(kpi.delta, SIGNED)} ${t("common.units.days")}`;
+
+  const dayTick = (value) => p("trend.axisTick", { value: formatNumber(value) });
+
+  /* Screen readers get the series as a sentence, since an SVG is opaque to them. */
+  const barSummary = [...CATEGORIES]
+    .sort((a, b) => b.value - a.value)
+    .map((item) => `${p(`categories.items.${item.key}`)} ${formatNumber(item.value)}`)
+    .join(", ");
+  const trendSummary = TREND.map((point) =>
+    p("trend.point", { month: p(`trend.months.${point.key}`), value: dayTick(point.days) })
+  ).join(", ");
+
+  const trendLine = TREND.map((point, index) => `${trendX(index)} ${trendY(point.days)}`).join(" L ");
+  const trendArea = `M ${trendLine} L ${trendX(TREND.length - 1)} ${TREND_BASELINE} L ${TREND_LEFT} ${TREND_BASELINE} Z`;
+
   return (
-    <main className="relative pt-16 min-h-screen bg-background"><div className="px-8 py-4 flex items-center gap-2 text-label-md text-on-surface-variant"><a className="hover:text-primary" href="#">System</a><span className="material-symbols-outlined text-[14px]">chevron_right</span><span className="text-on-surface font-semibold">Dashboard</span></div><div className="flex flex-col w-full p-8 gap-8">
+    <main className="relative pt-16 min-h-screen bg-background">
+      <nav
+        className="px-8 py-4 flex items-center gap-2 text-label-md text-on-surface-variant"
+        aria-label={t("common.a11y.breadcrumb")}
+      >
+        <span>{p("breadcrumb.system")}</span>
+        <span className="material-symbols-outlined text-[14px]" aria-hidden="true">
+          chevron_right
+        </span>
+        <span className="text-on-surface font-semibold" aria-current="page">
+          {p("breadcrumb.dashboard")}
+        </span>
+      </nav>
 
-    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-    <div className="flex flex-col gap-1">
-    <h1 className="font-headline-lg text-on-surface">Reports & Analytics</h1>
-    <p className="font-body-md text-on-surface-variant">System-wide performance, reconciliation metrics, and discrepancy analysis.</p>
-    </div>
-    <div className="flex flex-wrap items-center bg-surface-container-lowest shadow-sm rounded-full p-2 gap-2">
-    <button className="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full hover:bg-surface-container-high transition-colors text-on-surface">
-    <span className="font-label-md">District: All</span>
-    <span className="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
-    </button>
-    <button className="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full hover:bg-surface-container-high transition-colors text-on-surface">
-    <span className="font-label-md">Tehsil: All</span>
-    <span className="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
-    </button>
-    <button className="flex items-center gap-2 bg-surface-container px-4 py-2 rounded-full hover:bg-surface-container-high transition-colors text-on-surface">
-    <span className="font-label-md">Village: All</span>
-    <span className="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
-    </button>
-    <div className="w-px h-6 bg-surface-container-highest mx-2"></div>
-    <button className="flex items-center gap-2 bg-primary text-on-primary px-5 py-2 rounded-full shadow-sm hover:opacity-90 transition-opacity">
-    <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-    <span className="font-label-md">Last 30 Days</span>
-    </button>
-    </div>
-    </div>
+      <div className="flex flex-col w-full p-8 gap-8">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+          <div className="flex flex-col gap-1">
+            <h1 className="font-headline-lg text-on-surface">{p("title")}</h1>
+            <p className="font-body-md text-on-surface-variant">{p("intro")}</p>
+          </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* The scope strip states what the extract covers. The original drew it
+              as four buttons with dropdown chevrons, none of which were wired to
+              anything, so they are plain chips here instead of dead controls. */}
+          <div
+            className="flex flex-wrap items-center bg-surface-container-lowest shadow-sm rounded-full p-2 gap-2"
+            role="group"
+            aria-label={p("scope.heading")}
+          >
+            <span className="bg-surface-container px-4 py-2 rounded-full text-on-surface font-label-md">
+              {p("scope.district", { value: p("scope.all") })}
+            </span>
+            <span className="bg-surface-container px-4 py-2 rounded-full text-on-surface font-label-md">
+              {p("scope.tehsil", { value: p("scope.all") })}
+            </span>
+            <span className="bg-surface-container px-4 py-2 rounded-full text-on-surface font-label-md">
+              {p("scope.village", { value: p("scope.all") })}
+            </span>
+            <span className="w-px h-6 bg-surface-container-highest mx-2" aria-hidden="true"></span>
+            <span className="flex items-center gap-2 bg-primary text-on-primary px-5 py-2 rounded-full shadow-sm">
+              <span className="material-symbols-outlined text-[18px]" aria-hidden="true">
+                calendar_today
+              </span>
+              <span className="font-label-md">{p("scope.period")}</span>
+            </span>
+          </div>
+        </div>
 
-    <div className="bg-surface-container-lowest shadow-sm rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden group">
-    <div className="absolute -right-6 -top-6 w-24 h-24 bg-error-container rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out"></div>
-    <div className="flex justify-between items-start relative z-10">
-    <span className="font-label-md text-on-surface-variant uppercase tracking-wider">Open Discrepancies</span>
-    <span className="material-symbols-outlined text-error">warning</span>
-    </div>
-    <div className="flex items-baseline gap-3 relative z-10">
-    <h2 className="font-display text-on-surface">1,248</h2>
-    <span className="font-label-md text-error bg-error-container px-2 py-0.5 rounded-full">+12%</span>
-    </div>
-    </div>
+        {/* KPI row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {KPIS.map((kpi) => (
+            <div
+              key={kpi.key}
+              className="bg-surface-container-lowest shadow-sm rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden group"
+            >
+              <div
+                className={`absolute -right-6 -top-6 w-24 h-24 ${kpi.glow} rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out`}
+                aria-hidden="true"
+              ></div>
+              <div className="flex justify-between items-start relative z-10">
+                <span className="font-label-md text-on-surface-variant uppercase tracking-wider">
+                  {p(`kpi.${kpi.key}`)}
+                </span>
+                <span className={`material-symbols-outlined ${kpi.iconClass}`} aria-hidden="true">
+                  {kpi.icon}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-3 relative z-10">
+                <h2 className="font-display text-on-surface">
+                  {kpi.percent ? percent(kpi.value) : formatNumber(kpi.value)}
+                  {kpi.unit && (
+                    <span className="font-headline-md text-on-surface-variant ml-1">
+                      {t(`common.units.${kpi.unit}`)}
+                    </span>
+                  )}
+                </h2>
+                <span
+                  className={`font-label-md ${kpi.chip} px-2 py-0.5 rounded-full`}
+                  title={p("kpi.change", { value: changeChip(kpi) })}
+                >
+                  {changeChip(kpi)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
 
-    <div className="bg-surface-container-lowest shadow-sm rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden group">
-    <div className="absolute -right-6 -top-6 w-24 h-24 bg-surface-container-high rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out"></div>
-    <div className="flex justify-between items-start relative z-10">
-    <span className="font-label-md text-on-surface-variant uppercase tracking-wider">Resolved Cases (YTD)</span>
-    <span className="material-symbols-outlined text-primary">check_circle</span>
-    </div>
-    <div className="flex items-baseline gap-3 relative z-10">
-    <h2 className="font-display text-on-surface">8,432</h2>
-    <span className="font-label-md text-primary bg-surface-container-highest px-2 py-0.5 rounded-full">+4.2%</span>
-    </div>
-    </div>
+        <div className="grid grid-cols-12 gap-6">
+          {/* Discrepancies by category */}
+          <div className="col-span-12 xl:col-span-8 bg-surface-container-lowest shadow-sm rounded-2xl p-8 flex flex-col">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h3 className="font-headline-md text-on-surface">{p("categories.heading")}</h3>
+                <p className="font-body-sm text-on-surface-variant mt-1">{p("categories.intro")}</p>
+              </div>
+            </div>
+            <div className="relative w-full h-72 mt-auto">
+              <svg
+                className="w-full h-full overflow-visible"
+                preserveAspectRatio="none"
+                viewBox="0 0 800 240"
+                role="img"
+                aria-label={p("categories.caption", { summary: barSummary })}
+              >
+                {BAR_TICKS.map((tick) => (
+                  <g key={tick}>
+                    <line
+                      className="text-surface-container-highest"
+                      stroke="currentColor"
+                      strokeDasharray={tick === 0 ? undefined : "4"}
+                      strokeWidth="1"
+                      x1="0"
+                      x2="800"
+                      y1={barY(tick)}
+                      y2={barY(tick)}
+                    ></line>
+                    <text
+                      className="fill-on-surface-variant font-tabular-nums text-[12px]"
+                      textAnchor="end"
+                      x="-10"
+                      y={barY(tick) + 5}
+                    >
+                      {p("categories.axisTick", { value: formatNumber(tick) })}
+                    </text>
+                  </g>
+                ))}
 
-    <div className="bg-surface-container-lowest shadow-sm rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden group">
-    <div className="absolute -right-6 -top-6 w-24 h-24 bg-tertiary-fixed rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out"></div>
-    <div className="flex justify-between items-start relative z-10">
-    <span className="font-label-md text-on-surface-variant uppercase tracking-wider">Avg Processing Time</span>
-    <span className="material-symbols-outlined text-on-tertiary-fixed-variant">schedule</span>
-    </div>
-    <div className="flex items-baseline gap-3 relative z-10">
-    <h2 className="font-display text-on-surface">14<span className="font-headline-md text-on-surface-variant ml-1">Days</span></h2>
-    <span className="font-label-md text-on-tertiary-fixed-variant bg-tertiary-fixed px-2 py-0.5 rounded-full">-2 Days</span>
-    </div>
-    </div>
+                {CATEGORIES.map((item, index) => {
+                  const x = BAR_LEFT + index * BAR_STEP;
+                  const top = barY(item.value);
+                  return (
+                    <g key={item.key} className="chart-bar group">
+                      <rect
+                        className={`${item.barClass} transition-all duration-300 group-hover:opacity-80`}
+                        height={BAR_PLOT_H - top}
+                        rx="4"
+                        width={BAR_WIDTH}
+                        x={x}
+                        y={top}
+                      ></rect>
+                      <text
+                        className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity"
+                        textAnchor="middle"
+                        x={x + BAR_WIDTH / 2}
+                        y={top - 10}
+                      >
+                        {formatNumber(item.value)}
+                      </text>
+                      <text
+                        className="fill-on-surface-variant font-label-md text-[12px]"
+                        textAnchor="middle"
+                        x={x + BAR_WIDTH / 2}
+                        y="230"
+                      >
+                        {p(`categories.items.${item.key}`)}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+          </div>
 
-    <div className="bg-surface-container-lowest shadow-sm rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden group">
-    <div className="absolute -right-6 -top-6 w-24 h-24 bg-secondary-container rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700 ease-out"></div>
-    <div className="flex justify-between items-start relative z-10">
-    <span className="font-label-md text-on-surface-variant uppercase tracking-wider">Source Accuracy Index</span>
-    <span className="material-symbols-outlined text-secondary">verified_user</span>
-    </div>
-    <div className="flex items-baseline gap-3 relative z-10">
-    <h2 className="font-display text-on-surface">94.2%</h2>
-    <span className="font-label-md text-secondary bg-secondary-container px-2 py-0.5 rounded-full">+0.8%</span>
-    </div>
-    </div>
-    </div>
+          {/* Source reliability */}
+          <div className="col-span-12 xl:col-span-4 bg-primary-container shadow-md rounded-2xl p-8 text-on-primary-container relative overflow-hidden flex flex-col justify-between">
+            <div
+              className="absolute -top-32 -right-32 w-96 h-96 bg-primary-fixed rounded-full blur-[100px] opacity-20 pointer-events-none"
+              aria-hidden="true"
+            ></div>
+            <div className="relative z-10">
+              <h3 className="font-headline-md text-white">{p("sources.heading")}</h3>
+              <p className="font-body-sm text-primary-fixed mt-1">{p("sources.intro")}</p>
+            </div>
+            <div className="relative z-10 flex flex-col gap-6 mt-8">
+              {SOURCES.map((source) => (
+                <div key={source.key} className="flex flex-col gap-2">
+                  <div className="flex justify-between items-end">
+                    <span className="font-label-md text-white">{p(`sources.items.${source.key}`)}</span>
+                    <span className="font-tabular-nums text-primary-fixed">
+                      {percent(source.score)}
+                    </span>
+                  </div>
+                  {/* The bar repeats the figure beside it, so it is decorative.
+                      The width is inline because a Tailwind class built from a
+                      template literal never reaches the stylesheet. */}
+                  <div
+                    className="w-full h-2 bg-inverse-surface rounded-full overflow-hidden"
+                    aria-hidden="true"
+                  >
+                    <div
+                      className={`h-full ${source.barClass} rounded-full`}
+                      style={{ width: `${source.score}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="relative z-10 mt-8 pt-6 bg-inverse-surface/30 px-4 py-3 rounded-lg flex items-start gap-3 backdrop-blur-sm">
+              <span
+                className="material-symbols-outlined text-tertiary-fixed text-[20px]"
+                aria-hidden="true"
+              >
+                lightbulb
+              </span>
+              <p className="font-body-sm text-primary-fixed leading-tight">
+                {p("sources.insight", { tehsil: t("common.place.tehsils.muradnagar") })}
+              </p>
+            </div>
+          </div>
 
-    <div className="grid grid-cols-12 gap-6">
+          {/* Village hotspots over a satellite basemap */}
+          <div className="col-span-12 xl:col-span-7 bg-surface-container-lowest shadow-sm rounded-2xl overflow-hidden relative h-[500px]">
+            <div
+              className="absolute inset-0 w-full h-full bg-cover bg-center"
+              role="img"
+              aria-label={p("hotspots.mapCaption")}
+              style={{
+                backgroundImage:
+                  "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1600')",
+              }}
+            ></div>
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/20 to-surface-container-lowest/10"
+              aria-hidden="true"
+            ></div>
 
-    <div className="col-span-12 xl:col-span-8 bg-surface-container-lowest shadow-sm rounded-2xl p-8 flex flex-col">
-    <div className="flex justify-between items-start mb-8">
-    <div>
-    <h3 className="font-headline-md text-on-surface">Discrepancies by Category</h3>
-    <p className="font-body-sm text-on-surface-variant mt-1">Volume of reported issues classified by root cause.</p>
-    </div>
-    <button className="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">more_vert</button>
-    </div>
-    <div className="relative w-full h-72 mt-auto">
-    <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 800 240">
+            <div className="absolute top-6 left-6 bg-surface-container-lowest/90 backdrop-blur-xl shadow-lg rounded-xl p-4 min-w-[280px]">
+              <h3 className="font-headline-md text-on-surface">{p("hotspots.heading")}</h3>
+              <p className="font-body-sm text-on-surface-variant">{p("hotspots.intro")}</p>
+              <div className="mt-4 flex gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-error" aria-hidden="true"></div>
+                  <span className="font-label-md text-on-surface">{p("hotspots.legend.high")}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-tertiary-fixed-dim" aria-hidden="true"></div>
+                  <span className="font-label-md text-on-surface">
+                    {p("hotspots.legend.monitoring")}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-    <line className="text-surface-container-highest" stroke="currentColor" strokeWidth="1" x1="0" x2="800" y1="200" y2="200"></line>
-    <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4" strokeWidth="1" x1="0" x2="800" y1="150" y2="150"></line>
-    <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4" strokeWidth="1" x1="0" x2="800" y1="100" y2="100"></line>
-    <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4" strokeWidth="1" x1="0" x2="800" y1="50" y2="50"></line>
+            <div className="absolute bottom-6 left-6 right-6 bg-surface-container-lowest/95 backdrop-blur-xl shadow-xl rounded-xl overflow-hidden flex flex-col max-h-[200px]">
+              <div className="px-6 py-3 bg-surface-container-low flex justify-between items-center shadow-[0_1px_0_rgba(0,0,0,0.05)]">
+                <h4 className="font-label-md text-on-surface uppercase tracking-wider">
+                  {p("hotspots.tableHeading")}
+                </h4>
+                {/* The full case list already exists as its own screen, so this
+                    links there rather than being a button with no handler. */}
+                <Link
+                  to={REVENUE_ROUTES.discrepancyCases}
+                  className="text-primary font-label-md hover:underline"
+                >
+                  {p("hotspots.viewFull")}
+                </Link>
+              </div>
+              <ul className="overflow-y-auto w-full p-2">
+                {VILLAGES.map((village) => (
+                  <li
+                    key={village.key}
+                    className="flex items-center px-4 py-3 hover:bg-surface-container rounded-lg transition-colors"
+                  >
+                    <span className="flex-1 font-body-md text-on-surface font-medium">
+                      {p(`hotspots.villages.${village.key}`)}
+                    </span>
+                    <span className="w-32 font-tabular-nums text-on-surface-variant">
+                      {p("hotspots.cases", { count: village.cases })}
+                    </span>
+                    <span className="w-24 text-right">
+                      <span
+                        className={`inline-block ${village.chip} font-label-md px-2 py-1 rounded-md`}
+                      >
+                        {p(`hotspots.levels.${village.level}`)}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
-    <text className="fill-on-surface-variant font-tabular-nums text-[12px]" textAnchor="end" x="-10" y="205">0</text>
-    <text className="fill-on-surface-variant font-tabular-nums text-[12px]" textAnchor="end" x="-10" y="155">200</text>
-    <text className="fill-on-surface-variant font-tabular-nums text-[12px]" textAnchor="end" x="-10" y="105">400</text>
-    <text className="fill-on-surface-variant font-tabular-nums text-[12px]" textAnchor="end" x="-10" y="55">600</text>
+          {/* Mutation processing time */}
+          <div className="col-span-12 xl:col-span-5 bg-surface-container-lowest shadow-sm rounded-2xl p-8 flex flex-col">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h3 className="font-headline-md text-on-surface">{p("trend.heading")}</h3>
+                <p className="font-body-sm text-on-surface-variant mt-1">{p("trend.intro")}</p>
+              </div>
+            </div>
+            <div className="relative w-full h-64 mt-auto">
+              <svg
+                className="w-full h-full overflow-visible"
+                preserveAspectRatio="none"
+                viewBox="0 0 500 240"
+                role="img"
+                aria-label={p("trend.caption", { summary: trendSummary })}
+              >
+                <defs>
+                  <linearGradient id="lineAreaGrad" x1="0" x2="0" y1="0" y2="1">
+                    <stop className="text-primary" offset="0%" stopColor="currentColor" stopOpacity="0.15"></stop>
+                    <stop className="text-primary" offset="100%" stopColor="currentColor" stopOpacity="0"></stop>
+                  </linearGradient>
+                </defs>
 
-    <g className="chart-bar group cursor-pointer">
-    <rect className="fill-primary transition-all duration-300 group-hover:opacity-80" height="120" rx="4" width="60" x="50" y="80"></rect>
-    <text className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity" textAnchor="middle" x="80" y="70">480</text>
-    </g>
-    <g className="chart-bar group cursor-pointer">
-    <rect className="fill-tertiary-fixed-dim transition-all duration-300 group-hover:opacity-80" height="160" rx="4" width="60" x="170" y="40"></rect>
-    <text className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity" textAnchor="middle" x="200" y="30">640</text>
-    </g>
-    <g className="chart-bar group cursor-pointer">
-    <rect className="fill-secondary-fixed transition-all duration-300 group-hover:opacity-80" height="90" rx="4" width="60" x="290" y="110"></rect>
-    <text className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity" textAnchor="middle" x="320" y="100">360</text>
-    </g>
-    <g className="chart-bar group cursor-pointer">
-    <rect className="fill-error-container transition-all duration-300 group-hover:opacity-80" height="60" rx="4" width="60" x="410" y="140"></rect>
-    <text className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity" textAnchor="middle" x="440" y="130">240</text>
-    </g>
-    <g className="chart-bar group cursor-pointer">
-    <rect className="fill-surface-tint transition-all duration-300 group-hover:opacity-80" height="140" rx="4" width="60" x="530" y="60"></rect>
-    <text className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity" textAnchor="middle" x="560" y="50">560</text>
-    </g>
-    <g className="chart-bar group cursor-pointer">
-    <rect className="fill-outline transition-all duration-300 group-hover:opacity-80" height="40" rx="4" width="60" x="650" y="160"></rect>
-    <text className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity" textAnchor="middle" x="680" y="150">160</text>
-    </g>
+                {TREND_TICKS.map((tick) => (
+                  <g key={tick}>
+                    <line
+                      className="text-surface-container-highest"
+                      stroke="currentColor"
+                      strokeDasharray={tick === 0 ? undefined : "4"}
+                      strokeWidth="1"
+                      x1="0"
+                      x2="500"
+                      y1={trendY(tick)}
+                      y2={trendY(tick)}
+                    ></line>
+                    <text
+                      className="fill-on-surface-variant font-tabular-nums text-[12px]"
+                      textAnchor="end"
+                      x="-10"
+                      y={trendY(tick) + 5}
+                    >
+                      {dayTick(tick)}
+                    </text>
+                  </g>
+                ))}
 
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="80" y="230">Area Mismatch</text>
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="200" y="230">Title Dispute</text>
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="320" y="230">Boundary</text>
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="440" y="230">Missing Doc</text>
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="560" y="230">Class. Error</text>
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="680" y="230">Other</text>
-    </svg>
-    </div>
-    </div>
+                <path d={trendArea} fill="url(#lineAreaGrad)"></path>
+                <path
+                  className="text-primary"
+                  d={`M ${trendLine}`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="3"
+                ></path>
 
-    <div className="col-span-12 xl:col-span-4 bg-primary-container shadow-md rounded-2xl p-8 text-on-primary-container relative overflow-hidden flex flex-col justify-between">
-
-    <div className="absolute -top-32 -right-32 w-96 h-96 bg-primary-fixed rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
-    <div className="relative z-10">
-    <h3 className="font-headline-md text-white">Source Reliability</h3>
-    <p className="font-body-sm text-primary-fixed mt-1">Trust scores across integration endpoints.</p>
-    </div>
-    <div className="relative z-10 flex flex-col gap-6 mt-8">
-
-    <div className="flex flex-col gap-2">
-    <div className="flex justify-between items-end">
-    <span className="font-label-md text-white">Legacy Land Records</span>
-    <span className="font-tabular-nums text-primary-fixed">78%</span>
-    </div>
-    <div className="w-full h-2 bg-inverse-surface rounded-full overflow-hidden">
-    <div className="h-full bg-tertiary-fixed w-[78%] rounded-full shadow-[0_0_10px_rgba(252,222,181,0.5)]"></div>
-    </div>
-    </div>
-
-    <div className="flex flex-col gap-2">
-    <div className="flex justify-between items-end">
-    <span className="font-label-md text-white">Drone Survey (2023)</span>
-    <span className="font-tabular-nums text-primary-fixed">96%</span>
-    </div>
-    <div className="w-full h-2 bg-inverse-surface rounded-full overflow-hidden">
-    <div className="h-full bg-primary-fixed w-[96%] rounded-full shadow-[0_0_10px_rgba(218,226,253,0.5)]"></div>
-    </div>
-    </div>
-
-    <div className="flex flex-col gap-2">
-    <div className="flex justify-between items-end">
-    <span className="font-label-md text-white">Satellite Imagery</span>
-    <span className="font-tabular-nums text-primary-fixed">89%</span>
-    </div>
-    <div className="w-full h-2 bg-inverse-surface rounded-full overflow-hidden">
-    <div className="h-full bg-secondary-fixed w-[89%] rounded-full shadow-[0_0_10px_rgba(213,227,253,0.5)]"></div>
-    </div>
-    </div>
-
-    <div className="flex flex-col gap-2">
-    <div className="flex justify-between items-end">
-    <span className="font-label-md text-white">Citizen Portal Submissions</span>
-    <span className="font-tabular-nums text-primary-fixed">64%</span>
-    </div>
-    <div className="w-full h-2 bg-inverse-surface rounded-full overflow-hidden">
-    <div className="h-full bg-error-container w-[64%] rounded-full"></div>
-    </div>
-    </div>
-    </div>
-    <div className="relative z-10 mt-8 pt-6 bg-inverse-surface/30 px-4 py-3 rounded-lg flex items-start gap-3 backdrop-blur-sm">
-    <span className="material-symbols-outlined text-tertiary-fixed text-[20px]">lightbulb</span>
-    <p className="font-body-sm text-primary-fixed leading-tight">Legacy records in Tehsil 4 require manual reconciliation due to shifting datum coordinates.</p>
-    </div>
-    </div>
-
-    <div className="col-span-12 xl:col-span-7 bg-surface-container-lowest shadow-sm rounded-2xl overflow-hidden relative h-[500px]">
-    <div className="absolute inset-0 w-full h-full bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1600')" }}></div>
-
-    <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/20 to-surface-container-lowest/10"></div>
-
-    <div className="absolute top-6 left-6 bg-surface-container-lowest/90 backdrop-blur-xl shadow-lg rounded-xl p-4 min-w-[280px]">
-    <h3 className="font-headline-md text-on-surface">Cases by Village</h3>
-    <p className="font-body-sm text-on-surface-variant">Geospatial Discrepancy Hotspots</p>
-    <div className="mt-4 flex gap-4">
-    <div className="flex items-center gap-2">
-    <div className="w-3 h-3 rounded-full bg-error"></div>
-    <span className="font-label-md text-on-surface">High Volume</span>
-    </div>
-    <div className="flex items-center gap-2">
-    <div className="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></div>
-    <span className="font-label-md text-on-surface">Monitoring</span>
-    </div>
-    </div>
-    </div>
-
-    <div className="absolute bottom-6 left-6 right-6 bg-surface-container-lowest/95 backdrop-blur-xl shadow-xl rounded-xl overflow-hidden flex flex-col max-h-[200px]">
-    <div className="px-6 py-3 bg-surface-container-low flex justify-between items-center shadow-[0_1px_0_rgba(0,0,0,0.05)]">
-    <span className="font-label-md text-on-surface uppercase tracking-wider">Top Affected Villages</span>
-    <button className="text-primary font-label-md hover:underline">View Full Table</button>
-    </div>
-    <div className="overflow-y-auto w-full p-2">
-
-    <div className="flex items-center px-4 py-3 hover:bg-surface-container rounded-lg transition-colors cursor-pointer group">
-    <div className="flex-1 font-body-md text-on-surface font-medium">Govindpura</div>
-    <div className="w-32 font-tabular-nums text-on-surface-variant">142 Cases</div>
-    <div className="w-24 text-right">
-    <span className="inline-block bg-error-container text-on-error-container font-label-md px-2 py-1 rounded-md">Critical</span>
-    </div>
-    </div>
-    <div className="flex items-center px-4 py-3 hover:bg-surface-container rounded-lg transition-colors cursor-pointer group">
-    <div className="flex-1 font-body-md text-on-surface font-medium">Bairagarh</div>
-    <div className="w-32 font-tabular-nums text-on-surface-variant">89 Cases</div>
-    <div className="w-24 text-right">
-    <span className="inline-block bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-md px-2 py-1 rounded-md">Elevated</span>
-    </div>
-    </div>
-    <div className="flex items-center px-4 py-3 hover:bg-surface-container rounded-lg transition-colors cursor-pointer group">
-    <div className="flex-1 font-body-md text-on-surface font-medium">Kolar</div>
-    <div className="w-32 font-tabular-nums text-on-surface-variant">45 Cases</div>
-    <div className="w-24 text-right">
-    <span className="inline-block bg-surface-container-highest text-on-surface font-label-md px-2 py-1 rounded-md">Normal</span>
-    </div>
-    </div>
-    </div>
-    </div>
-    </div>
-
-    <div className="col-span-12 xl:col-span-5 bg-surface-container-lowest shadow-sm rounded-2xl p-8 flex flex-col">
-    <div className="flex justify-between items-start mb-6">
-    <div>
-    <h3 className="font-headline-md text-on-surface">Mutation Processing Time</h3>
-    <p className="font-body-sm text-on-surface-variant mt-1">Average days to resolve land mutations over time.</p>
-    </div>
-    </div>
-    <div className="relative w-full h-64 mt-auto">
-    <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 500 240">
-    <defs>
-    <lineargradient id="lineAreaGrad" x1="0" x2="0" y1="0" y2="1">
-    <stop className="text-primary" offset="0%" stopColor="currentColor" stopOpacity="0.15"></stop>
-    <stop className="text-primary" offset="100%" stopColor="currentColor" stopOpacity="0"></stop>
-    </lineargradient>
-    </defs>
-
-    <line className="text-surface-container-highest" stroke="currentColor" strokeWidth="1" x1="0" x2="500" y1="200" y2="200"></line>
-    <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4" strokeWidth="1" x1="0" x2="500" y1="120" y2="120"></line>
-    <line className="text-surface-container-highest" stroke="currentColor" strokeDasharray="4" strokeWidth="1" x1="0" x2="500" y1="40" y2="40"></line>
-
-    <text className="fill-on-surface-variant font-tabular-nums text-[12px]" textAnchor="end" x="-10" y="205">0d</text>
-    <text className="fill-on-surface-variant font-tabular-nums text-[12px]" textAnchor="end" x="-10" y="125">15d</text>
-    <text className="fill-on-surface-variant font-tabular-nums text-[12px]" textAnchor="end" x="-10" y="45">30d</text>
-
-    <path className="transition-all duration-1000 ease-out" d="M 0 160 C 50 150, 100 80, 150 100 C 200 120, 250 180, 300 140 C 350 100, 400 90, 450 60 L 500 50 L 500 200 L 0 200 Z" fill="url(#lineAreaGrad)"></path>
-
-    <path className="text-primary" d="M 0 160 C 50 150, 100 80, 150 100 C 200 120, 250 180, 300 140 C 350 100, 400 90, 450 60 L 500 50" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="3"></path>
-
-    <g className="group cursor-pointer">
-    <circle className="fill-surface-container-lowest stroke-primary transition-all duration-300 group-hover:r-7" cx="150" cy="100" r="5" strokeWidth="2"></circle>
-    <text className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity" textAnchor="middle" x="150" y="80">18d</text>
-    </g>
-    <g className="group cursor-pointer">
-    <circle className="fill-surface-container-lowest stroke-primary transition-all duration-300 group-hover:r-7" cx="300" cy="140" r="5" strokeWidth="2"></circle>
-    <text className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity" textAnchor="middle" x="300" y="120">12d</text>
-    </g>
-    <g className="group cursor-pointer">
-    <circle className="fill-surface-container-lowest stroke-primary transition-all duration-300 group-hover:r-7" cx="450" cy="60" r="5" strokeWidth="2"></circle>
-    <text className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity" textAnchor="middle" x="450" y="40">22d</text>
-    </g>
-
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="50" y="225">Jan</text>
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="150" y="225">Feb</text>
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="250" y="225">Mar</text>
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="350" y="225">Apr</text>
-    <text className="fill-on-surface-variant font-label-md text-[12px]" textAnchor="middle" x="450" y="225">May</text>
-    </svg>
-    </div>
-    </div>
-    </div>
-    </div></main>
+                {TREND.map((point, index) => (
+                  <g key={point.key} className="group">
+                    <circle
+                      className="fill-surface-container-lowest stroke-primary"
+                      cx={trendX(index)}
+                      cy={trendY(point.days)}
+                      r="5"
+                      strokeWidth="2"
+                    ></circle>
+                    <text
+                      className="fill-on-surface font-label-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      textAnchor="middle"
+                      x={trendX(index)}
+                      y={trendY(point.days) - 20}
+                    >
+                      {dayTick(point.days)}
+                    </text>
+                    <text
+                      className="fill-on-surface-variant font-label-md text-[12px]"
+                      textAnchor="middle"
+                      x={trendX(index)}
+                      y="225"
+                    >
+                      {p(`trend.months.${point.key}`)}
+                    </text>
+                  </g>
+                ))}
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }

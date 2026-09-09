@@ -41,6 +41,15 @@ import ReconciliationMonitor  from "./pages/admin/ReconciliationMonitor";
 import MutationMonitor        from "./pages/admin/MutationMonitor";
 import OfficerPerformance     from "./pages/admin/OfficerPerformance";
 
+// ── Digital Registry wizard (src/registry — brings its own header/footer) ────
+import RegistrySection        from "./registry/App";
+import { PATHS as REG_PATH, SEGMENTS as REG, REGISTRY_SEGMENT } from "./registry/routes";
+import ParcelIdentification   from "./registry/pages/ParcelIdentification";
+import OwnerAndParty          from "./registry/pages/OwnerAndParty";
+import TransactionsDocuments  from "./registry/pages/TransactionsDocuments";
+import ReviewSubmission       from "./registry/pages/ReviewSubmission";
+import RegistryTracking       from "./registry/pages/RegistryTracking";
+
 export default function App() {
   return (
     <Routes>
@@ -89,6 +98,22 @@ export default function App() {
         <Route path="reconciliation-monitor" element={<ReconciliationMonitor />} />
         <Route path="mutation-monitor"       element={<MutationMonitor />} />
         <Route path="officer-performance"    element={<OfficerPerformance />} />
+      </Route>
+
+      {/* Digital Registry entry and service-aware wizard. */}
+      <Route
+        path={REGISTRY_SEGMENT}
+        element={<Navigate to="/registry/sale/parcel-identification" replace />}
+      />
+
+      <Route path={`${REGISTRY_SEGMENT}/:serviceType`} element={<RegistrySection />}>
+        <Route index                  element={<Navigate to={REG.parcel} replace />} />
+        <Route path={REG.parcel}      element={<ParcelIdentification />} />
+        <Route path={REG.owner}       element={<OwnerAndParty />} />
+        <Route path={REG.transaction} element={<TransactionsDocuments />} />
+        <Route path={REG.review}      element={<ReviewSubmission />} />
+        <Route path={REG.tracking}    element={<RegistryTracking />} />
+        <Route path="*"               element={<Navigate to={REG.parcel} replace />} />
       </Route>
 
       {/* ── Wildcard Fallback ───────────────────────────────────────────── */}

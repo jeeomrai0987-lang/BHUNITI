@@ -1,18 +1,38 @@
 // Central API service layer for BHUNITI Land Governance Platform
 // Connects React frontend with FastAPI backend (http://127.0.0.1:8000/api/v1)
 
+import { getLocale } from "../i18n/locale-store";
+import { logFallback } from "../utils/log";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1";
+
+/*
+ * Every response carries `*_label` fields translated into the locale named by
+ * `?lang=`, so the language has to travel with the request rather than being
+ * applied afterwards. The backend also reads Accept-Language, but an explicit
+ * query parameter survives proxies and is visible in the network tab, which
+ * makes a mismatch easy to spot.
+ */
+function withLocale(endpoint) {
+  const [path, query = ""] = endpoint.split("?");
+  const params = new URLSearchParams(query);
+  if (!params.has("lang")) params.set("lang", getLocale());
+  return `${path}?${params.toString()}`;
+}
 
 async function request(endpoint, options = {}) {
   const token = localStorage.getItem("bhuniti_token");
   const headers = {
     "Content-Type": "application/json",
+    // Second channel for the same preference: any endpoint that ignores the
+    // query parameter still resolves the locale from this header.
+    "Accept-Language": getLocale(),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_BASE_URL}${withLocale(endpoint)}`, {
       ...options,
       headers,
     });
@@ -24,7 +44,8 @@ async function request(endpoint, options = {}) {
 
     return await response.json();
   } catch (err) {
-    console.warn(`API call error for ${endpoint}:`, err.message);
+    // Callers decide what to show; this is dev-only diagnostics.
+    logFallback(`API ${endpoint}`, err);
     throw err;
   }
 }

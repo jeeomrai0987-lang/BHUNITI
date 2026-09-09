@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { MAIN_ROUTES, CITIZEN_ROUTES, REVENUE_ROUTES, ADMIN_ROUTES } from "../routes";
+import { useI18n } from "../i18n";
 
-export default function PortalSwitcherDropdown({
-  children,
-  align = "left",
-}) {
+export default function PortalSwitcherDropdown({ children, align = "left" }) {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const location = useLocation();
@@ -38,40 +37,38 @@ export default function PortalSwitcherDropdown({
     setIsOpen(false);
   }, [location.pathname]);
 
+  // `key` indexes components.portalSwitcher in the catalogs; `badge` indexes
+  // components.portalSwitcher.badge.
   const PORTALS = [
     {
-      name: "Citizen Portal",
-      desc: "Requires Citizen login & mobile OTP authentication",
+      key: "citizen",
       path: `${MAIN_ROUTES.login}?role=citizen`,
       icon: "person",
-      badge: "Auth Required",
+      badge: "authRequired",
       badgeColor: "bg-primary-fixed text-primary",
-      active: location.pathname.startsWith("/citizen"),
+      active: location.pathname.startsWith(CITIZEN_ROUTES.portal),
     },
     {
-      name: "Revenue Officer Portal",
-      desc: "Requires Revenue Officer credentials & OTP verification",
+      key: "revenue",
       path: `${MAIN_ROUTES.login}?role=revenue_officer`,
       icon: "account_balance",
-      badge: "Auth Required",
+      badge: "authRequired",
       badgeColor: "bg-secondary-fixed text-on-secondary-fixed",
-      active: location.pathname.startsWith("/revenue-officer"),
+      active: location.pathname.startsWith(REVENUE_ROUTES.overview),
     },
     {
-      name: "District Administration",
-      desc: "Requires District Officer credentials & 2FA login",
+      key: "admin",
       path: `${MAIN_ROUTES.login}?role=district_officer`,
       icon: "admin_panel_settings",
-      badge: "Auth Required",
+      badge: "authRequired",
       badgeColor: "bg-tertiary-fixed text-on-tertiary-fixed",
-      active: location.pathname.startsWith("/administration"),
+      active: location.pathname.startsWith(ADMIN_ROUTES.overview),
     },
     {
-      name: "Public Landing Page",
-      desc: "Platform overview & public services (No login needed)",
+      key: "publicSite",
       path: MAIN_ROUTES.home,
       icon: "home",
-      badge: "Public",
+      badge: "public",
       badgeColor: "bg-surface-container-high text-on-surface",
       active:
         location.pathname === MAIN_ROUTES.home ||
@@ -80,11 +77,10 @@ export default function PortalSwitcherDropdown({
         location.pathname === MAIN_ROUTES.about,
     },
     {
-      name: "Login / Authentication Hub",
-      desc: "Choose role and authenticate with OTP",
+      key: "login",
       path: MAIN_ROUTES.login,
       icon: "login",
-      badge: "Auth Screen",
+      badge: "authScreen",
       badgeColor: "bg-primary text-on-primary",
       active: location.pathname === MAIN_ROUTES.login,
     },
@@ -99,7 +95,9 @@ export default function PortalSwitcherDropdown({
           setIsOpen(!isOpen);
         }}
         className="cursor-pointer select-none"
-        title="Tap to switch portal or log in"
+        title={t("components.portalSwitcher.trigger")}
+        aria-label={t("common.portals.switchPortal")}
+        aria-expanded={isOpen}
         role="button"
         tabIndex={0}
       >
@@ -122,16 +120,17 @@ export default function PortalSwitcherDropdown({
               </span>
               <div>
                 <h4 className="font-headline-md text-sm font-bold text-white">
-                  Switch Portal / Login
+                  {t("components.portalSwitcher.heading")}
                 </h4>
                 <p className="text-[11px] text-primary-fixed/80">
-                  Quick navigation across BHUNITI layers
+                  {t("components.portalSwitcher.subheading")}
                 </p>
               </div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
               className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+              aria-label={t("common.a11y.closeDialog")}
             >
               <span className="material-symbols-outlined text-sm">close</span>
             </button>
@@ -141,7 +140,7 @@ export default function PortalSwitcherDropdown({
           <div className="p-2 space-y-1 max-h-[380px] overflow-y-auto bg-surface">
             {PORTALS.map((portal) => (
               <Link
-                key={portal.name}
+                key={portal.key}
                 to={portal.path}
                 onClick={() => setIsOpen(false)}
                 className={`flex items-start gap-3 p-3 rounded-xl transition-all ${
@@ -164,16 +163,16 @@ export default function PortalSwitcherDropdown({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-1 mb-0.5">
                     <span className="font-label-md text-body-sm font-semibold text-on-surface truncate">
-                      {portal.name}
+                      {t(`components.portalSwitcher.${portal.key}.name`)}
                     </span>
                     <span
                       className={`text-[10px] px-2 py-0.5 rounded-full font-label-md font-semibold flex-shrink-0 ${portal.badgeColor}`}
                     >
-                      {portal.badge}
+                      {t(`components.portalSwitcher.badge.${portal.badge}`)}
                     </span>
                   </div>
                   <p className="text-[11px] text-on-surface-variant line-clamp-1">
-                    {portal.desc}
+                    {t(`components.portalSwitcher.${portal.key}.desc`)}
                   </p>
                 </div>
               </Link>
@@ -183,14 +182,14 @@ export default function PortalSwitcherDropdown({
           {/* Quick Login Action Footer */}
           <div className="p-3 bg-surface-container-low border-t border-outline-variant/30 flex items-center justify-between">
             <span className="text-[11px] text-on-surface-variant font-medium">
-              Demo Fast Switch
+              {t("components.portalSwitcher.footerNote")}
             </span>
             <Link
               to={MAIN_ROUTES.login}
               onClick={() => setIsOpen(false)}
               className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
             >
-              <span>Go to Login Screen</span>
+              <span>{t("components.portalSwitcher.goToLogin")}</span>
               <span className="material-symbols-outlined text-[14px]">
                 arrow_forward
               </span>

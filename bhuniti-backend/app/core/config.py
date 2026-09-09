@@ -1,23 +1,33 @@
-import os
-from typing import List, Union
-from pydantic import AnyHttpUrl, field_validator
+from typing import List
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+DEFAULT_SECRET_KEY = "bhuniti_secret_jwt_key_super_secure_development_key_12345"
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "BHUNITI Land Governance Platform API"
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = "bhuniti_secret_jwt_key_super_secure_development_key_12345"
+    SECRET_KEY: str = DEFAULT_SECRET_KEY
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     ALGORITHM: str = "HS256"
     ENVIRONMENT: str = "development"
 
-    # CORS
+    # Internationalisation
+    DEFAULT_LOCALE: str = "en"
+    SUPPORTED_LOCALES: List[str] = ["en", "hi", "mr", "bn", "ta"]
+
+    # CORS. Accepts a JSON array or a plain comma-separated list, because both
+    # spellings turn up in .env files.
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
-        "http://127.0.0.1:3000"
+        "http://127.0.0.1:3000",
     ]
+    # Optional regex for deployed frontends, e.g. r"https://.*\.vercel\.app"
+    CORS_ORIGIN_REGEX: str = ""
 
     # Supabase configuration
     SUPABASE_URL: str = ""
@@ -32,20 +42,42 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        extra="ignore"
+        extra="ignore",
     )
+
+    @field_validator("BACKEND_CORS_ORIGINS", "SUPPORTED_LOCALES", mode="before")
+    @classmethod
+    def _split_comma_separated(cls, value):
+        if isinstance(value, str):
+            text = value.strip()
+            if text and not text.startswith("["):
+                return [item.strip() for item in text.split(",") if item.strip()]
+        return value
+
+    @property
+    def is_default_secret_key(self) -> bool:
+        return self.SECRET_KEY == DEFAULT_SECRET_KEY
+
+    @property
+    def uses_sqlite(self) -> bool:
+        return not bool(self.DATABASE_URL.strip())
 
     @property
     def async_database_url(self) -> str:
         if self.DATABASE_URL and self.DATABASE_URL.strip():
             url = self.DATABASE_URL.strip()
-            # If user provided standard postgresql:// URL, convert to postgresql+asyncpg://
+            # Accept the plain postgresql:// form Supabase hands out.
             if url.startswith("postgresql://"):
                 url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
             elif url.startswith("postgres://"):
                 url = url.replace("postgres://", "postgresql+asyncpg://", 1)
             return url
-        # Fallback to local SQLite using aiosqlite
+        if not self.USE_SQLITE_FALLBACK:
+            raise RuntimeError(
+                "DATABASE_URL is empty and USE_SQLITE_FALLBACK is disabled. "
+                "Set DATABASE_URL in .env, or set USE_SQLITE_FALLBACK=True to use "
+                f"the local SQLite file at {self.SQLITE_DB_PATH}."
+            )
         return f"sqlite+aiosqlite:///{self.SQLITE_DB_PATH}"
 
     @property
@@ -56,5 +88,6 @@ class Settings(BaseSettings):
                 url = url.replace("postgresql+asyncpg://", "postgresql://", 1)
             return url
         return f"sqlite:///{self.SQLITE_DB_PATH}"
+
 
 settings = Settings()

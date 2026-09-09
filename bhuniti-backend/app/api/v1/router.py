@@ -1,15 +1,16 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
-    auth,
-    parcels,
-    applications,
-    mutations,
-    discrepancies,
-    surveys,
-    documents,
-    audit,
     analytics,
+    applications,
+    audit,
+    auth,
+    discrepancies,
+    documents,
+    i18n,
+    mutations,
+    parcels,
+    surveys,
 )
 
 api_router = APIRouter()
@@ -23,3 +24,4 @@ api_router.include_router(surveys.router, prefix="/surveys", tags=["Field Survey
 api_router.include_router(documents.router, prefix="/documents", tags=["Documents & Evidence"])
 api_router.include_router(audit.router, prefix="/audit", tags=["Audit Trail"])
 api_router.include_router(analytics.router, prefix="/analytics", tags=["District & Tehsil Analytics"])
+api_router.include_router(i18n.router, prefix="/i18n", tags=["Languages"])

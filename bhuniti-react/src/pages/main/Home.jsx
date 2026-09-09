@@ -2,12 +2,35 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MAIN_ROUTES, CITIZEN_ROUTES, REVENUE_ROUTES } from "../../routes";
 import Virtual360Viewer from "../../components/Virtual360Viewer";
+import { useI18n } from "../../i18n";
+
+/*
+ * Identifiers, not copy: a parcel label and the masked ULPIN read the same in
+ * every language, so they stay out of the catalogs.
+ */
+const PARCEL_LABEL = "P-1024";
+const MASKED_ULPIN = "09-XXXX-XXXX-1024";
 
 export default function Home() {
+  const { t, label, formatArea, formatNumber, formatCurrency } = useI18n();
   const navigate = useNavigate();
   const [showParcelModal, setShowParcelModal] = useState(false);
   const [is360Open, setIs360Open] = useState(false);
 
+  /*
+   * Areas in hectares: what the record of rights holds, what the GIS polygon
+   * computes, and the gap between the two. Kept as numbers so formatArea() can
+   * render them in the active locale instead of shipping "2.00 ha" as text.
+   */
+  const recordAreaHa = 2.0;
+  const gisAreaHa = 2.18;
+  const areaVarianceHa = gisAreaHa - recordAreaHa;
+
+  /*
+   * Showcase parcel. Status values stay as the exact English strings the
+   * database stores so label() can localise them; everything else is either a
+   * number, an identifier or a translated sentence.
+   */
   const parcelP1024 = {
     id: "p-1024",
     ulpin: "09-0824-0014-1024",
@@ -17,12 +40,20 @@ export default function Home() {
     owner_name: "Rahul Sharma",
     co_owners: ["Sunita Sharma (50%)"],
     land_type: "Agricultural (Zamin)",
-    area_ha: 2.00,
+    area_ha: recordAreaHa,
     area_sqm: 20000.0,
+    area_bigha: 7.9,
+    gis_area_ha: gisAreaHa,
     valuation_inr: 4800000.0,
     verification_status: "Requires Verification",
     is_disputed: true,
-    dispute_reason: "Registered RoR Area: 2.00 ha vs GIS Computed Polygon: 2.18 ha (+0.18 ha discrepancy)",
+    dispute_case_id: "DC-2026-8941",
+    // Read back by Virtual360Viewer, so it is translated here rather than there.
+    dispute_reason: t("pages.home.parcel.disputeReason", {
+      recordArea: formatArea(recordAreaHa),
+      gisArea: formatArea(gisAreaHa),
+      variance: formatArea(areaVarianceHa),
+    }),
     encumbrance_status: "Pending Field Verification",
     state: "Uttar Pradesh",
     district: "Ghaziabad",
@@ -32,6 +63,15 @@ export default function Home() {
     centroid_lng: 77.5825
   };
 
+  /*
+   * The headline paints one phrase in the accent colour. The sentence is a
+   * single catalog key carrying a {{highlight}} marker, so Hindi can place that
+   * phrase where its own word order needs it; it is split out here.
+   */
+  const [headlineBefore, headlineAfter] = t("pages.home.hero.title").split(
+    "{{highlight}}"
+  );
+
   return (
     <main className="w-full pt-20">
       <div className="flex flex-col w-full font-body-md text-on-surface">
@@ -39,7 +79,7 @@ export default function Home() {
         <section className="relative w-full min-h-[90vh] flex items-center justify-center -mt-20 pt-20 overflow-hidden bg-surface">
           <div
             className="absolute inset-0 z-0"
-            data-alt="A detailed realistic cadastral map showing land parcels, boundaries, and survey lines."
+            data-alt={t("pages.home.hero.mapAlt")}
             style={{
               backgroundImage:
                 'url("https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=2000")',
@@ -65,14 +105,16 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-container-highest rounded-full w-fit">
                 <span className="w-2 h-2 rounded-full bg-status-success" />
                 <span className="font-label-caps text-on-surface uppercase tracking-wider text-[10px]">
-                  National Infrastructure Initiative
+                  {t("pages.home.hero.badge")}
                 </span>
               </div>
               <h1 className="font-display text-display lg:text-[64px] lg:leading-[72px] text-on-surface font-bold tracking-tight">
-                Building a Trusted Digital Foundation for <span className="text-secondary">Land Governance</span>
+                {headlineBefore}
+                <span className="text-secondary">{t("pages.home.hero.titleHighlight")}</span>
+                {headlineAfter}
               </h1>
               <p className="font-body-lg text-on-surface-variant max-w-2xl">
-                BHUNITI integrates land records, GIS, registration, mutation, and historical data into one intelligent, parcel-centric governance platform.
+                {t("pages.home.hero.subtitle")}
               </p>
               <div className="flex flex-wrap items-center gap-4 mt-4">
                 <button
@@ -80,24 +122,24 @@ export default function Home() {
                   onClick={() => navigate(MAIN_ROUTES.login)}
                   className="px-8 py-3 bg-secondary text-on-primary font-label-caps rounded-lg hover:bg-secondary-container transition-colors shadow-md cursor-pointer"
                 >
-                  Access BHUNITI
+                  {t("pages.home.hero.access")}
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate(MAIN_ROUTES.howItWorks)}
                   className="px-8 py-3 bg-surface-white border border-border-subtle text-on-surface font-label-caps rounded-lg hover:bg-surface-container transition-colors shadow-sm cursor-pointer"
                 >
-                  Explore How It Works
+                  {t("pages.home.hero.explore")}
                 </button>
               </div>
               <div className="mt-4 flex items-center gap-4 text-on-surface-variant font-label-caps text-[11px] uppercase tracking-wider">
-                <span>Integrated</span>
+                <span>{t("pages.home.hero.traits.integrated")}</span>
                 <span className="w-1 h-1 rounded-full bg-border-subtle" />
-                <span>GIS-enabled</span>
+                <span>{t("pages.home.hero.traits.gis")}</span>
                 <span className="w-1 h-1 rounded-full bg-border-subtle" />
-                <span>AI-assisted</span>
+                <span>{t("pages.home.hero.traits.ai")}</span>
                 <span className="w-1 h-1 rounded-full bg-border-subtle" />
-                <span>Auditable</span>
+                <span>{t("pages.home.hero.traits.auditable")}</span>
               </div>
             </div>
 
@@ -110,39 +152,62 @@ export default function Home() {
                       <span className="material-symbols-outlined text-secondary text-[24px]">my_location</span>
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-headline-md text-on-surface leading-tight">Parcel P-1024</span>
-                      <span className="font-label-caps text-on-surface-variant text-[10px]">Active Selection</span>
+                      <span className="font-headline-md text-on-surface leading-tight">
+                        {t("pages.home.preview.title", { id: PARCEL_LABEL })}
+                      </span>
+                      <span className="font-label-caps text-on-surface-variant text-[10px]">
+                        {t("pages.home.preview.activeSelection")}
+                      </span>
                     </div>
                   </div>
                 </div>
                 <div className="p-5 flex flex-col gap-4 bg-surface-white">
                   <div className="px-3 py-2 bg-status-error/10 border border-status-error/20 rounded-md flex items-center gap-2">
                     <span className="material-symbols-outlined text-status-error text-[16px]">warning</span>
-                    <span className="font-label-caps text-status-error text-[11px]">Potential Area Discrepancy</span>
+                    <span className="font-label-caps text-status-error text-[11px]">
+                      {t("pages.home.preview.discrepancy")}
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 gap-y-4 gap-x-6 border-b border-border-subtle pb-4">
                     <div className="flex flex-col gap-1">
-                      <span className="font-label-caps text-on-surface-variant text-[10px]">ULPIN</span>
-                      <span className="font-tabular-nums text-on-surface text-sm">09-XXXX-XXXX-1024</span>
+                      <span className="font-label-caps text-on-surface-variant text-[10px]">
+                        {t("common.fields.ulpin")}
+                      </span>
+                      <span className="font-tabular-nums text-on-surface text-sm">{MASKED_ULPIN}</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="font-label-caps text-on-surface-variant text-[10px]">Survey Number</span>
-                      <span className="font-tabular-nums text-on-surface text-sm">145/2</span>
+                      <span className="font-label-caps text-on-surface-variant text-[10px]">
+                        {t("common.fields.surveyNo")}
+                      </span>
+                      <span className="font-tabular-nums text-on-surface text-sm">
+                        {parcelP1024.survey_number}
+                      </span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="font-label-caps text-on-surface-variant text-[10px]">Record Area</span>
-                      <span className="font-tabular-nums text-on-surface text-sm">2.00 ha</span>
+                      <span className="font-label-caps text-on-surface-variant text-[10px]">
+                        {t("pages.home.fields.recordArea")}
+                      </span>
+                      <span className="font-tabular-nums text-on-surface text-sm">
+                        {formatArea(parcelP1024.area_ha)}
+                      </span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="font-label-caps text-on-surface-variant text-[10px]">GIS Computed Area</span>
-                      <span className="font-tabular-nums text-status-error font-medium text-sm">2.18 ha</span>
+                      <span className="font-label-caps text-on-surface-variant text-[10px]">
+                        {t("pages.home.fields.gisArea")}
+                      </span>
+                      <span className="font-tabular-nums text-status-error font-medium text-sm">
+                        {formatArea(parcelP1024.gis_area_ha)}
+                      </span>
                     </div>
                   </div>
                   <div className="flex justify-between items-center pt-1">
                     <div className="flex flex-col gap-1">
-                      <span className="font-label-caps text-on-surface-variant text-[10px]">Status</span>
+                      <span className="font-label-caps text-on-surface-variant text-[10px]">
+                        {t("common.fields.status")}
+                      </span>
                       <span className="font-body-sm text-status-warning font-medium flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-status-warning" /> Requires Verification
+                        <span className="w-1.5 h-1.5 rounded-full bg-status-warning" />{" "}
+                        {label("verification_status", parcelP1024.verification_status)}
                       </span>
                     </div>
                     <button
@@ -150,7 +215,8 @@ export default function Home() {
                       onClick={() => setShowParcelModal(true)}
                       className="text-secondary font-label-caps hover:underline text-[11px] flex items-center gap-1 cursor-pointer font-bold"
                     >
-                      View Details <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+                      {t("common.actions.viewDetails")}{" "}
+                      <span className="material-symbols-outlined text-[14px]">chevron_right</span>
                     </button>
                   </div>
                 </div>
@@ -163,10 +229,10 @@ export default function Home() {
         <section className="w-full py-24 bg-surface-container-lowest border-y border-border-subtle relative overflow-hidden">
           <div className="max-w-[1440px] mx-auto px-margin-desktop text-center">
             <h2 className="font-headline-lg text-headline-lg text-on-surface mb-6">
-              Land Data Is Fragmented. Governance Shouldn't Be.
+              {t("pages.home.fragmentation.heading")}
             </h2>
             <p className="font-body-lg text-on-surface-variant max-w-3xl mx-auto mb-16">
-              Land information often exists across multiple disconnected systems. When textual records, spatial data, and legal registrations don't align, differences become systemic problems.
+              {t("pages.home.fragmentation.body")}
             </p>
             <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
               <div className="flex flex-col gap-6 items-center md:items-end">
@@ -174,13 +240,17 @@ export default function Home() {
                   <div className="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-on-surface-variant">
                     <span className="material-symbols-outlined">description</span>
                   </div>
-                  <span className="font-label-caps text-on-surface">Land Records (RoR)</span>
+                  <span className="font-label-caps text-on-surface">
+                    {t("pages.home.fragmentation.sources.records")}
+                  </span>
                 </div>
                 <div className="flex items-center gap-4 bg-surface px-4 py-3 border border-border-subtle rounded-lg shadow-sm w-64 justify-start transition-all duration-300 hover:shadow-md hover:border-primary/40 hover:scale-[1.02]">
                   <div className="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-on-surface-variant">
                     <span className="material-symbols-outlined">map</span>
                   </div>
-                  <span className="font-label-caps text-on-surface">GIS Spatial Data</span>
+                  <span className="font-label-caps text-on-surface">
+                    {t("pages.home.fragmentation.sources.gis")}
+                  </span>
                 </div>
               </div>
 
@@ -198,13 +268,17 @@ export default function Home() {
                   <div className="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-on-surface-variant">
                     <span className="material-symbols-outlined">gavel</span>
                   </div>
-                  <span className="font-label-caps text-on-surface">Registration</span>
+                  <span className="font-label-caps text-on-surface">
+                    {t("pages.home.fragmentation.sources.registration")}
+                  </span>
                 </div>
                 <div className="flex items-center gap-4 bg-surface px-4 py-3 border border-border-subtle rounded-lg shadow-sm w-64 justify-start flex-row-reverse md:flex-row transition-all duration-300 hover:shadow-md hover:border-primary/40 hover:scale-[1.02]">
                   <div className="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-on-surface-variant">
                     <span className="material-symbols-outlined">history</span>
                   </div>
-                  <span className="font-label-caps text-on-surface">Historical Data</span>
+                  <span className="font-label-caps text-on-surface">
+                    {t("pages.home.fragmentation.sources.history")}
+                  </span>
                 </div>
               </div>
             </div>
@@ -224,9 +298,11 @@ export default function Home() {
             }}
           />
           <div className="max-w-[1440px] mx-auto px-margin-desktop relative z-10 text-center mb-16">
-            <h2 className="font-headline-lg text-headline-lg mb-6">One Parcel. One Connected View.</h2>
+            <h2 className="font-headline-lg text-headline-lg mb-6">
+              {t("pages.home.unified.heading")}
+            </h2>
             <p className="font-body-lg text-on-primary/80 max-w-3xl mx-auto">
-              BHUNITI creates a unified intelligence layer around the land parcel, connecting all attributes, history, and spatial realities into a single source of truth.
+              {t("pages.home.unified.body")}
             </p>
           </div>
 
@@ -234,8 +310,10 @@ export default function Home() {
             <div className="relative w-[300px] h-[300px] md:w-[500px] md:h-[500px]">
               {/* Central Entity Node (Hover Showcase) */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-surface-white text-primary flex flex-col items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.2)] z-20 border-4 border-surface-container transition-all duration-300 hover:scale-110 hover:shadow-[0_0_50px_rgba(255,255,255,0.4)] cursor-default">
-                <span className="font-label-caps text-[10px] text-on-surface-variant">Central Entity</span>
-                <span className="font-headline-md text-on-surface font-bold">P-1024</span>
+                <span className="font-label-caps text-[10px] text-on-surface-variant">
+                  {t("pages.home.unified.centralEntity")}
+                </span>
+                <span className="font-headline-md text-on-surface font-bold">{PARCEL_LABEL}</span>
               </div>
 
               <svg className="absolute inset-0 w-full h-full z-10" viewBox="0 0 500 500">
@@ -250,23 +328,23 @@ export default function Home() {
               {/* Orbiting Showcase Nodes (Hover Only) */}
               <div className="absolute top-[20px] left-1/2 -translate-x-1/2 bg-surface/10 backdrop-blur-md border border-on-primary/20 px-4 py-2 rounded-lg text-center z-20 transition-all duration-300 hover:bg-surface/30 hover:scale-110 hover:border-white/40 cursor-default shadow-sm">
                 <span className="material-symbols-outlined text-on-primary mb-1 text-[20px]">person</span>
-                <div className="font-label-caps">Owner Data</div>
+                <div className="font-label-caps">{t("pages.home.unified.nodes.owner")}</div>
               </div>
               <div className="absolute top-[160px] right-[10px] bg-surface/10 backdrop-blur-md border border-on-primary/20 px-4 py-2 rounded-lg text-center z-20 transition-all duration-300 hover:bg-surface/30 hover:scale-110 hover:border-white/40 cursor-default shadow-sm">
                 <span className="material-symbols-outlined text-on-primary mb-1 text-[20px]">share_location</span>
-                <div className="font-label-caps">GIS Boundary</div>
+                <div className="font-label-caps">{t("pages.home.unified.nodes.boundary")}</div>
               </div>
               <div className="absolute bottom-[60px] right-[60px] bg-surface/10 backdrop-blur-md border border-on-primary/20 px-4 py-2 rounded-lg text-center z-20 transition-all duration-300 hover:bg-surface/30 hover:scale-110 hover:border-white/40 cursor-default shadow-sm">
                 <span className="material-symbols-outlined text-on-primary mb-1 text-[20px]">edit_document</span>
-                <div className="font-label-caps">Mutation</div>
+                <div className="font-label-caps">{t("pages.home.unified.nodes.mutation")}</div>
               </div>
               <div className="absolute bottom-[60px] left-[60px] bg-surface/10 backdrop-blur-md border border-on-primary/20 px-4 py-2 rounded-lg text-center z-20 transition-all duration-300 hover:bg-surface/30 hover:scale-110 hover:border-white/40 cursor-default shadow-sm">
                 <span className="material-symbols-outlined text-on-primary mb-1 text-[20px]">timeline</span>
-                <div className="font-label-caps">History</div>
+                <div className="font-label-caps">{t("pages.home.unified.nodes.history")}</div>
               </div>
               <div className="absolute top-[160px] left-[10px] bg-surface/10 backdrop-blur-md border border-on-primary/20 px-4 py-2 rounded-lg text-center z-20 transition-all duration-300 hover:bg-surface/30 hover:scale-110 hover:border-white/40 cursor-default shadow-sm">
                 <span className="material-symbols-outlined text-on-primary mb-1 text-[20px]">memory</span>
-                <div className="font-label-caps">AI Analysis</div>
+                <div className="font-label-caps">{t("pages.home.unified.nodes.ai")}</div>
               </div>
             </div>
           </div>
@@ -281,12 +359,17 @@ export default function Home() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="px-2.5 py-0.5 bg-status-warning/10 text-status-warning rounded-full text-[10px] font-bold uppercase tracking-wider">
-                    Requires Verification
+                    {label("verification_status", parcelP1024.verification_status)}
                   </span>
-                  <span className="text-xs text-on-surface-variant">Khasra 412/1 • Khata 89</span>
+                  <span className="text-xs text-on-surface-variant">
+                    {t("pages.home.modal.ids", {
+                      khasra: parcelP1024.khasra_number,
+                      khata: parcelP1024.khata_number,
+                    })}
+                  </span>
                 </div>
                 <h3 className="font-display text-xl font-bold text-on-surface">
-                  Parcel P-1024 (09-XXXX-XXXX-1024)
+                  {t("pages.home.modal.title", { id: PARCEL_LABEL, ulpin: MASKED_ULPIN })}
                 </h3>
               </div>
               <button
@@ -302,29 +385,52 @@ export default function Home() {
               <div className="p-3 bg-status-error/10 border border-status-error/20 rounded-xl text-status-error">
                 <p className="font-bold flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-[16px]">warning</span>
-                  Area Discrepancy Detected
+                  {t("pages.home.modal.discrepancyHeading")}
                 </p>
                 <p className="text-[11px] mt-0.5 leading-relaxed text-on-surface-variant">
-                  Textual RoR specifies 2.00 ha, but GIS satellite vector computes 2.18 ha (+0.18 ha variance). Field survey assigned under Case DC-2026-8941.
+                  {t("pages.home.modal.discrepancyBody", {
+                    recordArea: formatArea(parcelP1024.area_ha),
+                    gisArea: formatArea(parcelP1024.gis_area_ha),
+                    variance: formatArea(areaVarianceHa),
+                    caseId: parcelP1024.dispute_case_id,
+                  })}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-3 bg-surface-container-low rounded-xl border border-border-subtle">
-                  <span className="text-[10px] text-on-surface-variant uppercase font-bold block">Owner</span>
+                  <span className="text-[10px] text-on-surface-variant uppercase font-bold block">
+                    {t("common.fields.ownerName")}
+                  </span>
                   <span className="font-bold text-on-surface">{parcelP1024.owner_name}</span>
                 </div>
                 <div className="p-3 bg-surface-container-low rounded-xl border border-border-subtle">
-                  <span className="text-[10px] text-on-surface-variant uppercase font-bold block">Location</span>
+                  <span className="text-[10px] text-on-surface-variant uppercase font-bold block">
+                    {t("pages.home.fields.location")}
+                  </span>
                   <span className="font-bold text-on-surface">{parcelP1024.village}, {parcelP1024.tehsil}</span>
                 </div>
                 <div className="p-3 bg-surface-container-low rounded-xl border border-border-subtle">
-                  <span className="text-[10px] text-on-surface-variant uppercase font-bold block">Record Area</span>
-                  <span className="font-bold text-on-surface">{parcelP1024.area_ha} ha (7.90 Bigha)</span>
+                  <span className="text-[10px] text-on-surface-variant uppercase font-bold block">
+                    {t("pages.home.fields.recordArea")}
+                  </span>
+                  <span className="font-bold text-on-surface">
+                    {t("pages.home.modal.areaWithBigha", {
+                      area: formatArea(parcelP1024.area_ha),
+                      bigha: formatNumber(parcelP1024.area_bigha, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }),
+                    })}
+                  </span>
                 </div>
                 <div className="p-3 bg-surface-container-low rounded-xl border border-border-subtle">
-                  <span className="text-[10px] text-on-surface-variant uppercase font-bold block">Valuation</span>
-                  <span className="font-bold text-secondary">₹48.0 Lakh</span>
+                  <span className="text-[10px] text-on-surface-variant uppercase font-bold block">
+                    {t("pages.home.fields.valuation")}
+                  </span>
+                  <span className="font-bold text-secondary">
+                    {formatCurrency(parcelP1024.valuation_inr)}
+                  </span>
                 </div>
               </div>
             </div>
@@ -339,7 +445,7 @@ export default function Home() {
                 className="flex-1 py-3 px-4 bg-secondary text-on-primary font-bold text-xs rounded-xl shadow hover:bg-secondary-container transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[18px]">360</span>
-                Launch 360° Ground Inspection
+                {t("pages.home.modal.launch360")}
               </button>
               <button
                 type="button"
@@ -349,7 +455,7 @@ export default function Home() {
                 }}
                 className="py-3 px-4 bg-surface-white border border-border-subtle text-on-surface font-bold text-xs rounded-xl hover:bg-surface-container transition-colors flex items-center justify-center gap-1 cursor-pointer"
               >
-                View on GIS Map →
+                {t("pages.home.modal.viewOnGisMap")} →
               </button>
             </div>
           </div>

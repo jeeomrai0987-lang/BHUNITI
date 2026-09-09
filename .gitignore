@@ -1,23 +1,37 @@
-# React
-bhuniti-react/node_modules/
-bhuniti-react/dist/
+# Node / React
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
 
 # Python
-bhuniti-backend/__pycache__/
-bhuniti-backend/.venv/
-bhuniti-backend/venv/
-bhuniti-backend/env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Environment variables
+# Local databases (the SQLite fallback in app/core/config.py)
+*.db
+*.db-journal
+*.sqlite3
+
+# Environment variables -- .env holds live Supabase credentials, never commit it
 .env
 .env.*
 !.env.example
 
-# Python cache
-__pycache__/
-*.py[cod]
-
-# IDE
+# Editors / OS
 .vscode/
 .idea/
-bhuniti-backend/*.db
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs
+*.log
+npm-debug.log*

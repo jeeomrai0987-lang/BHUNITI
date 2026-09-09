@@ -1,11 +1,12 @@
-from app.models.user import User
-from app.models.parcel import Parcel
 from app.models.application import Application
-from app.models.mutation import Mutation
-from app.models.discrepancy import Discrepancy
-from app.models.survey import Survey
-from app.models.document import Document
 from app.models.audit import AuditLog
+from app.models.discrepancy import Discrepancy
+from app.models.document import Document
+from app.models.mutation import Mutation
+from app.models.parcel import Parcel
+from app.models.ref_translation import RefTranslation
+from app.models.survey import Survey
+from app.models.user import User
 
 __all__ = [
     "User",
@@ -15,5 +16,6 @@ __all__ = [
     "Discrepancy",
     "Survey",
     "Document",
-    "AuditLog"
+    "AuditLog",
+    "RefTranslation",
 ]

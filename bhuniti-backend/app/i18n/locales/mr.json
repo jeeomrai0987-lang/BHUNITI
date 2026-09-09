@@ -1,0 +1,183 @@
+{
+  "messages": {
+    "error.invalid_credentials": "वापरकर्तानाव किंवा पासवर्ड चुकीचा आहे",
+    "error.not_authenticated": "प्रमाणीकरण झालेले नाही",
+    "error.could_not_validate": "ओळखपत्रे पडताळता आली नाहीत",
+    "error.user_not_found": "वापरकर्ता खाते सापडले नाही",
+    "error.auth_required": "प्रमाणीकरण आवश्यक आहे",
+    "error.insufficient_permissions": "या संसाधनासाठी पुरेशी परवानगी नाही",
+    "error.username_taken": "हे वापरकर्तानाव आधीच नोंदणीकृत आहे",
+    "error.parcel_not_found": "ULPIN '{reference}' साठी कोणताही भूखंड सापडला नाही",
+    "error.parcel_exists": "या ULPIN चा भूखंड आधीच अस्तित्वात आहे",
+    "error.mutation_not_found": "फेरफार प्रकरण '{reference}' सापडले नाही",
+    "error.invalid_mutation_action": "अवैध कार्यवाही. 'approve', 'reject' किंवा 'clarify' वापरा.",
+    "error.application_not_found": "अर्ज '{reference}' सापडला नाही",
+    "error.discrepancy_not_found": "तफावत प्रकरण '{reference}' सापडले नाही",
+    "error.survey_not_found": "स्थळ मोजणी '{reference}' सापडली नाही",
+    "error.document_not_found": "कागदपत्र '{reference}' सापडले नाही",
+    "error.empty_upload": "अपलोड केलेली फाईल रिकामी आहे",
+    "error.unsupported_locale": "भाषा '{locale_code}' समर्थित नाही. उपलब्ध भाषा: {available}",
+    "error.database_unavailable": "अभिलेख डेटाबेस सध्या उपलब्ध नाही",
+    "audit.mutation_action": "भूखंड {ulpin} वरील फेरफार {number} ची स्थिती {status} करण्यात आली. टिप्पणी: {note}",
+    "audit.mutation_note_default": "{actor} यांनी '{action}' कार्यवाही नोंदवली.",
+    "audit.discrepancy_resolved": "तफावत प्रकरण {number} ची स्थिती {status} करण्यात आली. टिप्पणी: {note}",
+    "audit.survey_scheduled": "भूखंड {ulpin} साठी मोजणी {number}, {date} रोजी नियोजित केली.",
+    "audit.availability_confirmed": "नागरिकाने अर्ज {number} च्या स्थळ मोजणीसाठी उपलब्धतेची पुष्टी केली.",
+    "audit.document_uploaded": "कागदपत्र '{title}' भूखंड {ulpin} ला जोडले गेले.",
+    "audit.application_filed": "अर्ज {number} भूखंड {ulpin} साठी दाखल केला ({service}).",
+    "message.availability_confirmed": "मोजणीसाठी उपलब्धतेची पुष्टी झाली",
+    "message.chain_intact": "लेखापरीक्षण शृंखला पडताळली: {count} नोंदी, कोणतीही छेडछाड आढळली नाही.",
+    "message.chain_broken": "लेखापरीक्षण शृंखला नोंद {position} ({entry_id}) येथे खंडित आहे.",
+    "system.welcome": "भूनीती भू-प्रशासन API मध्ये आपले स्वागत आहे",
+    "system.service_name": "भूनीती भू-प्रशासन प्लॅटफॉर्म API"
+  },
+  "labels": {
+    "application_status": {
+      "In Progress": "प्रगतीपथावर",
+      "Action Required": "कार्यवाही आवश्यक",
+      "Under Review": "आढाव्याखाली",
+      "Approved": "मंजूर",
+      "Rejected": "नामंजूर",
+      "Completed": "पूर्ण"
+    },
+    "mutation_status": {
+      "Pending": "प्रलंबित",
+      "Under Verification": "पडताळणी सुरू",
+      "Awaiting Docs": "कागदपत्रांची प्रतीक्षा",
+      "Approved": "मंजूर",
+      "Rejected": "नामंजूर"
+    },
+    "stage": {
+      "Submitted": "सादर केले",
+      "Verified": "पडताळले",
+      "Field Survey": "स्थळ मोजणी",
+      "RO Review": "महसूल अधिकारी आढावा",
+      "Approved": "मंजूर"
+    },
+    "stage_state": {
+      "completed": "पूर्ण",
+      "in_progress": "प्रगतीपथावर",
+      "pending": "प्रलंबित"
+    },
+    "severity": {
+      "High": "उच्च",
+      "Medium": "मध्यम",
+      "Low": "कमी"
+    },
+    "discrepancy_status": {
+      "Open": "खुले",
+      "In Review": "आढाव्यात",
+      "Resolved": "निराकरण झाले",
+      "Dismissed": "फेटाळले"
+    },
+    "discrepancy_type": {
+      "Area Mismatch": "क्षेत्रात तफावत",
+      "Boundary Overlap": "हद्द अतिव्याप्ती",
+      "Registry Mismatch": "नोंदणी अभिलेखात तफावत",
+      "Ownership Conflict": "मालकी हक्क वाद",
+      "Encroachment": "अतिक्रमण"
+    },
+    "mutation_type": {
+      "Sale Mutation": "खरेदी-विक्री फेरफार",
+      "Inheritance Mutation": "वारसा फेरफार",
+      "Partition": "वाटप",
+      "Gift Deed": "बक्षीसपत्र",
+      "Court Decree": "न्यायालयीन हुकूमनामा"
+    },
+    "verification_status": {
+      "Verified": "पडताळले",
+      "Under Verification": "पडताळणी सुरू",
+      "Disputed": "वादग्रस्त",
+      "Pending": "प्रलंबित",
+      "Verified (Govt)": "पडताळणी पूर्ण (शासकीय)",
+      "Action Required (Mutation)": "कार्यवाही आवश्यक (फेरफार)"
+    },
+    "encumbrance_status": {
+      "Clean": "बोजा-मुक्त",
+      "Mortgaged": "तारण",
+      "Leased": "भाडेपट्ट्यावर",
+      "Court Stay": "न्यायालयीन स्थगिती",
+      "Under Mutation": "फेरफार सुरू",
+      "Clean (Nishkank)": "निष्कंटक (बोजारहित)",
+      "Under Mutation Review": "फेरफार पडताळणीत",
+      "Boundary Notice Issued": "हद्द नोटीस जारी",
+      "Protected State Land": "संरक्षित शासकीय जमीन",
+      "Protected Water Reserve": "संरक्षित जलक्षेत्र",
+      "Title Transfer Pending": "मालकी हस्तांतरण प्रलंबित"
+    },
+    "land_type": {
+      "Agricultural": "शेती",
+      "Residential": "रहिवासी",
+      "Commercial": "व्यावसायिक",
+      "Industrial": "औद्योगिक",
+      "Institutional": "संस्थात्मक",
+      "Barren": "पडीक",
+      "Agricultural (Zamin)": "शेती (जमीन)",
+      "Agricultural (Fasli)": "शेती (फसली)",
+      "Commercial / Warehouse": "व्यावसायिक / गोदाम",
+      "Residential / Abadi": "रहिवासी / आबादी",
+      "Pasture / Charnot (Public)": "गायरान / चराई (सार्वजनिक)",
+      "Water Body / Canal Nala": "जलस्रोत / कालवा-नाला",
+      "Horticulture / Bagh (Mango Orchard)": "फळबाग / बाग (आंबा बाग)"
+    },
+    "survey_status": {
+      "Scheduled": "नियोजित",
+      "In Progress": "प्रगतीपथावर",
+      "Completed": "पूर्ण",
+      "Rescheduled": "पुनर्नियोजित",
+      "Cancelled": "रद्द"
+    },
+    "doc_type": {
+      "Record of Rights": "अधिकार अभिलेख (सात-बारा)",
+      "Cadastral Map": "भूमापन नकाशा",
+      "Sale Deed": "खरेदीखत",
+      "Survey Report": "मोजणी अहवाल",
+      "Identity Proof": "ओळखपत्र",
+      "Mutation Order": "फेरफार आदेश",
+      "Encumbrance Certificate": "बोजा-मुक्त दाखला"
+    },
+    "actor_role": {
+      "Citizen": "नागरिक",
+      "Revenue Officer": "महसूल अधिकारी",
+      "District Officer": "जिल्हा अधिकारी",
+      "Surveyor": "भूमापक",
+      "System": "प्रणाली"
+    },
+    "party_type": {
+      "Transferee": "हस्तांतरिती (खरेदीदार)",
+      "Transferor": "हस्तांतरक (विक्रेता)",
+      "Applicant": "अर्जदार",
+      "Co-owner": "सह-मालक"
+    },
+    "action_type": {
+      "Mutation Approved": "फेरफार मंजूर",
+      "Mutation Rejected": "फेरफार नामंजूर",
+      "Clarification Requested": "स्पष्टीकरण मागवले",
+      "Discrepancy Resolved": "तफावत निराकरण",
+      "Field Survey Scheduled": "स्थळ मोजणी नियोजित",
+      "Survey Availability Confirmed": "मोजणी उपलब्धतेची पुष्टी",
+      "Document Verified": "कागदपत्र पडताळले",
+      "Document Uploaded": "कागदपत्र अपलोड केले",
+      "Title Transfer Application Filed": "मालकी हक्क हस्तांतरण अर्ज दाखल",
+      "Record Digitized": "अभिलेख डिजिटल केले",
+      "Record Corrected": "अभिलेख दुरुस्त केले"
+    },
+    "officer_status": {
+      "Optimal": "उत्तम",
+      "Action Needed": "लक्ष आवश्यक",
+      "Overloaded": "अतिभारित"
+    },
+    "service_type": {
+      "Title Transfer": "मालकी हक्क हस्तांतरण",
+      "Demarcation": "हद्द निश्चिती",
+      "Mutation": "फेरफार",
+      "Record Correction": "अभिलेख दुरुस्ती",
+      "Encumbrance Certificate": "बोजा-मुक्त दाखला"
+    },
+    "role": {
+      "citizen": "नागरिक",
+      "revenue_officer": "महसूल अधिकारी",
+      "district_officer": "जिल्हा अधिकारी"
+    }
+  }
+}

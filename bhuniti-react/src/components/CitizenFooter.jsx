@@ -1,6 +1,11 @@
 import logoImg from "../assets/logo.jpeg";
+import { useI18n } from "../i18n";
 
 export default function CitizenFooter() {
+  const { t } = useI18n();
+
+  const quickLinks = ["privacyPolicy", "termsOfService", "systemStatus"];
+
   return (
     <footer className="w-full bg-surface-container-low border-t border-outline-variant py-12">
       <div className="max-w-7xl mx-auto px-margin-mobile lg:px-margin-desktop">
@@ -10,54 +15,52 @@ export default function CitizenFooter() {
               <img
                 className="h-8 w-auto rounded-lg object-contain shadow-sm"
                 src={logoImg}
-                alt="BHUNITI"
+                alt={t("common.app.name")}
               />
-              <span className="font-headline-md text-primary font-bold">BHUNITI</span>
+              <span className="font-headline-md text-primary font-bold">
+                {t("common.app.name")}
+              </span>
             </div>
             <p className="text-body-sm text-on-surface-variant max-w-sm">
-              A secure, digital gateway for land governance and property
-              administration. Empowering citizens with transparent access to
-              land records and legal services.
+              {t("components.citizenFooter.about")}
             </p>
           </div>
           <div>
             <h4 className="font-label-md text-on-surface mb-4">
-              Quick Links
+              {t("components.citizenFooter.quickLinks")}
             </h4>
             <ul className="space-y-2 text-body-sm text-on-surface-variant">
-              <li>
-                <a className="hover:text-primary" href="#">
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a className="hover:text-primary" href="#">
-                  Terms of Service
-                </a>
-              </li>
-              <li>
-                <a className="hover:text-primary" href="#">
-                  System Status
-                </a>
-              </li>
+              {quickLinks.map((link) => (
+                <li key={link}>
+                  <a className="hover:text-primary" href="#">
+                    {t(`components.citizenFooter.${link}`)}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
-            <h4 className="font-label-md text-on-surface mb-4">Contact</h4>
+            <h4 className="font-label-md text-on-surface mb-4">
+              {t("components.footer.contact")}
+            </h4>
             <ul className="space-y-2 text-body-sm text-on-surface-variant">
-              <li>Support: 1-800-BHU-NEXIS</li>
-              <li>Email: support@bhunexis.gov</li>
+              <li className="font-tabular-nums">
+                {t("components.citizenFooter.support", { number: "1800-180-1551" })}
+              </li>
+              <li>
+                {t("components.citizenFooter.email", { address: "support@bhuniti.gov.in" })}
+              </li>
             </ul>
           </div>
         </div>
         <div className="pt-8 border-t border-outline-variant flex flex-col md:flex-row justify-between items-center gap-4 text-body-sm text-on-surface-variant">
-          <span>© 2024 BHUNEXIS Land Administration. Government of BH.</span>
+          <span>{t("components.citizenFooter.copyright")}</span>
           <div className="flex gap-6">
             <a className="hover:text-primary" href="#">
-              Accessibility
+              {t("components.citizenFooter.accessibility")}
             </a>
             <a className="hover:text-primary" href="#">
-              Language
+              {t("common.language.label")}
             </a>
           </div>
         </div>

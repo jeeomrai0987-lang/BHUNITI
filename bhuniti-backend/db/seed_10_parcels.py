@@ -1,21 +1,69 @@
+"""Load the ten contiguous Modinagar cadastral parcels the GIS screens plot.
+
+These are the parcels ``bhuniti-react/src/components/ParcelMapViewer.jsx`` draws
+as a Bhunaksha-style sheet (ULPIN ``09-0824-0014-1024`` .. ``-1033``). They are a
+separate demo surface from the three-parcel open case file in ``db/seed.py``, so
+both scripts can be run, in either order, against the same database.
+
+Fixed here relative to the prototype version of this file:
+
+  * It never called ``init_models()``, so running it first against a fresh
+    database (or the SQLite fallback) failed on a missing ``parcels`` table.
+  * It never disposed the engine, leaving the asyncpg pool to be torn down by
+    interpreter shutdown.
+  * A re-run logged "Updated existing parcel" for all ten rows even when nothing
+    had changed, which made it impossible to see what a run actually did.
+  * ``encumbrance_status`` was ``"Title Transfer Pending (MUT-2023-8941)"`` -- a
+    case number inside a status value, so it could never be a translatable
+    label. The status is now ``"Title Transfer Pending"``; the case number lives
+    on the linked application, where it belongs.
+  * Ten rows entered the registry with no audit provenance at all. Every insert
+    and every field change now appends a hash-chained entry via
+    ``append_audit``.
+  * ``datetime``, ``timezone``, ``Base`` and ``async_engine`` were imported and
+    never used (``async_engine`` is used now, to dispose it).
+
+Usage
+-----
+    python db/seed_10_parcels.py              # insert or update, then report
+    python db/seed_10_parcels.py --dry-run    # print the plan, write nothing
+"""
+import argparse
 import asyncio
 import json
 import logging
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from datetime import datetime, timezone
+from typing import Any, Dict, List, Sequence
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from app.core.database import AsyncSessionLocal, async_engine, Base
-from app.models.parcel import Parcel
-from sqlalchemy import select
+from sqlalchemy import func, select  # noqa: E402
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("seed_27_parcels")
+from app.core.audit_trail import append_audit  # noqa: E402
+from app.core.database import AsyncSessionLocal, async_engine, init_models  # noqa: E402
+from app.models.audit import AuditLog  # noqa: E402
+from app.models.parcel import Parcel  # noqa: E402
 
-# 27 Contiguous Ghaziabad (Modinagar / Sikandrabad) Cadastral Parcels with Variable Multi-Vertex Geometries
-GHAZIABAD_27_PARCELS = [
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger("seed_10_parcels")
+
+# Fields quoted in the audit entry, so the trail says what changed without
+# carrying a copy of every polygon coordinate.
+AUDITED_FIELDS: Sequence[str] = (
+    "owner_name",
+    "area_ha",
+    "land_type",
+    "verification_status",
+    "encumbrance_status",
+)
+
+# 10 contiguous Ghaziabad (Modinagar / Sikandrabad) cadastral parcels.
+# land_type / verification_status / encumbrance_status are stored in English and
+# translated at read time (app/i18n/locales/*.json), so every value used here
+# has to exist in the matching label catalog.
+GHAZIABAD_10_PARCELS: Sequence[Dict[str, Any]] = [
     {
         "ulpin": "09-0824-0014-1024",
         "survey_number": "142/B",
@@ -36,7 +84,7 @@ GHAZIABAD_27_PARCELS = [
         "centroid_lng": 77.5825,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8340], [77.5840, 28.8340], [77.5842, 28.8352], [77.5838, 28.8360], [77.5810, 28.8360], [77.5810, 28.8340]]]
+            "coordinates": [[[77.5810, 28.8340], [77.5840, 28.8340], [77.5840, 28.8360], [77.5810, 28.8360], [77.5810, 28.8340]]]
         }),
         "verification_status": "Verified",
         "is_disputed": False,
@@ -59,11 +107,11 @@ GHAZIABAD_27_PARCELS = [
         "area_ha": 1.45,
         "area_sqm": 14500.0,
         "valuation_inr": 3480000.0,
-        "centroid_lat": 28.8348,
-        "centroid_lng": 77.5854,
+        "centroid_lat": 28.8350,
+        "centroid_lng": 77.5852,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5840, 28.8340], [77.5865, 28.8338], [77.5868, 28.8360], [77.5842, 28.8352], [77.5840, 28.8340]]]
+            "coordinates": [[[77.5840, 28.8340], [77.5865, 28.8340], [77.5865, 28.8360], [77.5840, 28.8360], [77.5840, 28.8340]]]
         }),
         "verification_status": "Verified",
         "is_disputed": False,
@@ -86,11 +134,11 @@ GHAZIABAD_27_PARCELS = [
         "area_ha": 14.68,
         "area_sqm": 146800.0,
         "valuation_inr": 22000000.0,
-        "centroid_lat": 28.8328,
+        "centroid_lat": 28.8327,
         "centroid_lng": 77.5837,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8315], [77.5835, 28.8312], [77.5865, 28.8315], [77.5865, 28.8338], [77.5840, 28.8340], [77.5810, 28.8340], [77.5810, 28.8315]]]
+            "coordinates": [[[77.5810, 28.8315], [77.5865, 28.8315], [77.5865, 28.8340], [77.5810, 28.8340], [77.5810, 28.8315]]]
         }),
         "verification_status": "Under Verification",
         "is_disputed": True,
@@ -115,10 +163,10 @@ GHAZIABAD_27_PARCELS = [
         "area_sqm": 34000.0,
         "valuation_inr": 18500000.0,
         "centroid_lat": 28.8372,
-        "centroid_lng": 77.5824,
+        "centroid_lng": 77.5825,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8360], [77.5838, 28.8360], [77.5842, 28.8375], [77.5835, 28.8385], [77.5810, 28.8385], [77.5810, 28.8360]]]
+            "coordinates": [[[77.5810, 28.8360], [77.5840, 28.8360], [77.5840, 28.8385], [77.5810, 28.8385], [77.5810, 28.8360]]]
         }),
         "verification_status": "Disputed",
         "is_disputed": True,
@@ -142,11 +190,11 @@ GHAZIABAD_27_PARCELS = [
         "area_ha": 5.80,
         "area_sqm": 58000.0,
         "valuation_inr": 31000000.0,
-        "centroid_lat": 28.8371,
-        "centroid_lng": 77.5862,
+        "centroid_lat": 28.8375,
+        "centroid_lng": 77.5860,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5842, 28.8352], [77.5868, 28.8360], [77.5885, 28.8365], [77.5880, 28.8390], [77.5855, 28.8385], [77.5842, 28.8375], [77.5842, 28.8352]]]
+            "coordinates": [[[77.5840, 28.8360], [77.5880, 28.8360], [77.5880, 28.8390], [77.5840, 28.8390], [77.5840, 28.8360]]]
         }),
         "verification_status": "Verified (Govt)",
         "is_disputed": False,
@@ -170,10 +218,10 @@ GHAZIABAD_27_PARCELS = [
         "area_sqm": 8500.0,
         "valuation_inr": 12750000.0,
         "centroid_lat": 28.8395,
-        "centroid_lng": 77.5826,
+        "centroid_lng": 77.5825,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8385], [77.5835, 28.8385], [77.5842, 28.8398], [77.5836, 28.8405], [77.5810, 28.8405], [77.5810, 28.8385]]]
+            "coordinates": [[[77.5810, 28.8385], [77.5840, 28.8385], [77.5840, 28.8405], [77.5810, 28.8405], [77.5810, 28.8385]]]
         }),
         "verification_status": "Verified",
         "is_disputed": False,
@@ -196,11 +244,11 @@ GHAZIABAD_27_PARCELS = [
         "area_ha": 1.20,
         "area_sqm": 12000.0,
         "valuation_inr": 6000000.0,
-        "centroid_lat": 28.8340,
-        "centroid_lng": 77.5876,
+        "centroid_lat": 28.8337,
+        "centroid_lng": 77.5872,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5865, 28.8315], [77.5885, 28.8312], [77.5890, 28.8345], [77.5885, 28.8365], [77.5868, 28.8360], [77.5865, 28.8338], [77.5865, 28.8315]]]
+            "coordinates": [[[77.5865, 28.8315], [77.5880, 28.8315], [77.5880, 28.8360], [77.5865, 28.8360], [77.5865, 28.8315]]]
         }),
         "verification_status": "Verified (Govt)",
         "is_disputed": False,
@@ -224,10 +272,10 @@ GHAZIABAD_27_PARCELS = [
         "area_sqm": 41000.0,
         "valuation_inr": 9840000.0,
         "centroid_lat": 28.8402,
-        "centroid_lng": 77.5863,
+        "centroid_lng": 77.5860,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5855, 28.8385], [77.5880, 28.8390], [77.5885, 28.8415], [77.5850, 28.8420], [77.5845, 28.8400], [77.5855, 28.8385]]]
+            "coordinates": [[[77.5840, 28.8390], [77.5880, 28.8390], [77.5880, 28.8415], [77.5840, 28.8415], [77.5840, 28.8390]]]
         }),
         "verification_status": "Verified",
         "is_disputed": False,
@@ -250,11 +298,11 @@ GHAZIABAD_27_PARCELS = [
         "area_ha": 2.75,
         "area_sqm": 27500.0,
         "valuation_inr": 7425000.0,
-        "centroid_lat": 28.8416,
-        "centroid_lng": 77.5824,
+        "centroid_lat": 28.8415,
+        "centroid_lng": 77.5825,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8405], [77.5836, 28.8405], [77.5840, 28.8428], [77.5810, 28.8425], [77.5810, 28.8405]]]
+            "coordinates": [[[77.5810, 28.8405], [77.5840, 28.8405], [77.5840, 28.8425], [77.5810, 28.8425], [77.5810, 28.8405]]]
         }),
         "verification_status": "Verified",
         "is_disputed": False,
@@ -277,496 +325,191 @@ GHAZIABAD_27_PARCELS = [
         "area_ha": 1.95,
         "area_sqm": 19500.0,
         "valuation_inr": 4680000.0,
-        "centroid_lat": 28.8422,
+        "centroid_lat": 28.8425,
         "centroid_lng": 77.5860,
         "boundary_geojson": json.dumps({
             "type": "Polygon",
-            "coordinates": [[[77.5845, 28.8400], [77.5850, 28.8420], [77.5885, 28.8415], [77.5880, 28.8438], [77.5838, 28.8435], [77.5845, 28.8400]]]
+            "coordinates": [[[77.5840, 28.8415], [77.5880, 28.8415], [77.5880, 28.8435], [77.5840, 28.8435], [77.5840, 28.8415]]]
         }),
         "verification_status": "Action Required (Mutation)",
         "is_disputed": False,
-        "encumbrance_status": "Title Transfer Pending (MUT-2023-8941)",
+        # The prototype stored "Title Transfer Pending (MUT-2023-8941)" here. The
+        # case number is on the application; a status value has to stay a status
+        # value or it can never be looked up in a label catalog.
+        "encumbrance_status": "Title Transfer Pending",
         "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
     },
-    {
-        "ulpin": "09-0824-0014-1034",
-        "survey_number": "151/A",
-        "khasra_number": "420",
-        "khata_number": "140",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Harish Chand Tyagi",
-        "co_owners_json": json.dumps(["Santosh Tyagi (Co-owner)"]),
-        "land_type": "Agricultural (Fasli)",
-        "area_ha": 2.30,
-        "area_sqm": 23000.0,
-        "valuation_inr": 5520000.0,
-        "centroid_lat": 28.8441,
-        "centroid_lng": 77.5827,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8425], [77.5840, 28.8428], [77.5845, 28.8445], [77.5832, 28.8455], [77.5810, 28.8450], [77.5810, 28.8425]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1035",
-        "survey_number": "152/1",
-        "khasra_number": "421/1",
-        "khata_number": "148",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Geeta Rani & Suresh Pal",
-        "co_owners_json": json.dumps(["Suresh Pal (Spouse)"]),
-        "land_type": "Agricultural (Zamin)",
-        "area_ha": 3.15,
-        "area_sqm": 31500.0,
-        "valuation_inr": 7560000.0,
-        "centroid_lat": 28.8447,
-        "centroid_lng": 77.5858,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5838, 28.8435], [77.5880, 28.8438], [77.5875, 28.8460], [77.5850, 28.8458], [77.5845, 28.8445], [77.5838, 28.8435]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1036",
-        "survey_number": "152/2",
-        "khasra_number": "421/2",
-        "khata_number": "149",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Kavita Singhal",
-        "co_owners_json": json.dumps(["Ashok Singhal (Husband)"]),
-        "land_type": "Residential / Abadi",
-        "area_ha": 1.10,
-        "area_sqm": 11000.0,
-        "valuation_inr": 16500000.0,
-        "centroid_lat": 28.8462,
-        "centroid_lng": 77.5820,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5810, 28.8450], [77.5832, 28.8455], [77.5828, 28.8475], [77.5810, 28.8470], [77.5810, 28.8450]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1037",
-        "survey_number": "153/B",
-        "khasra_number": "422",
-        "khata_number": "155",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Dharamvir Singh Yadav",
-        "co_owners_json": json.dumps(["Pradeep Yadav (Son)"]),
-        "land_type": "Agricultural (Fasli)",
-        "area_ha": 2.85,
-        "area_sqm": 28500.0,
-        "valuation_inr": 6840000.0,
-        "centroid_lat": 28.8469,
-        "centroid_lng": 77.5850,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5850, 28.8458], [77.5875, 28.8460], [77.5870, 28.8480], [77.5842, 28.8485], [77.5828, 28.8475], [77.5832, 28.8455], [77.5850, 28.8458]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1038",
-        "survey_number": "154/T",
-        "khasra_number": "423",
-        "khata_number": "3",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Gram Panchayat Talab / Pokhar",
-        "co_owners_json": json.dumps(["Panchayati Raj Dept, UP"]),
-        "land_type": "Water Body / Canal Nala",
-        "area_ha": 1.75,
-        "area_sqm": 17500.0,
-        "valuation_inr": 8750000.0,
-        "centroid_lat": 28.8366,
-        "centroid_lng": 77.5896,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5885, 28.8365], [77.5890, 28.8345], [77.5915, 28.8350], [77.5910, 28.8380], [77.5880, 28.8390], [77.5885, 28.8365]]]
-        }),
-        "verification_status": "Verified (Govt)",
-        "is_disputed": False,
-        "encumbrance_status": "Protected Water Reserve",
-        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1039",
-        "survey_number": "155/M",
-        "khasra_number": "424",
-        "khata_number": "160",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Krishi Utpadan Mandi Samiti",
-        "co_owners_json": json.dumps(["UP Mandi Board"]),
-        "land_type": "Commercial / Warehouse",
-        "area_ha": 4.50,
-        "area_sqm": 45000.0,
-        "valuation_inr": 24500000.0,
-        "centroid_lat": 28.8399,
-        "centroid_lng": 77.5898,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5880, 28.8390], [77.5910, 28.8380], [77.5915, 28.8410], [77.5885, 28.8415], [77.5880, 28.8390]]]
-        }),
-        "verification_status": "Verified (Govt)",
-        "is_disputed": False,
-        "encumbrance_status": "State Commercial Property",
-        "image_url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1040",
-        "survey_number": "156/BG",
-        "khasra_number": "425",
-        "khata_number": "167",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Anil Kumar & Brothers",
-        "co_owners_json": json.dumps(["Sunil Kumar (50%)"]),
-        "land_type": "Horticulture / Bagh (Mango Orchard)",
-        "area_ha": 3.20,
-        "area_sqm": 32000.0,
-        "valuation_inr": 8640000.0,
-        "centroid_lat": 28.8429,
-        "centroid_lng": 77.5896,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5885, 28.8415], [77.5915, 28.8410], [77.5910, 28.8440], [77.5890, 28.8445], [77.5880, 28.8438], [77.5885, 28.8415]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1041",
-        "survey_number": "157/1",
-        "khasra_number": "426/1",
-        "khata_number": "172",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Sanjay Rathi",
-        "co_owners_json": json.dumps([]),
-        "land_type": "Agricultural (Zamin)",
-        "area_ha": 2.10,
-        "area_sqm": 21000.0,
-        "valuation_inr": 5040000.0,
-        "centroid_lat": 28.8453,
-        "centroid_lng": 77.5891,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5880, 28.8438], [77.5890, 28.8445], [77.5910, 28.8440], [77.5905, 28.8468], [77.5885, 28.8465], [77.5875, 28.8460], [77.5880, 28.8438]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1042",
-        "survey_number": "157/2",
-        "khasra_number": "426/2",
-        "khata_number": "173",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Om Prakash Gupta",
-        "co_owners_json": json.dumps(["Renu Gupta (Spouse)"]),
-        "land_type": "Agricultural (Fasli)",
-        "area_ha": 1.80,
-        "area_sqm": 18000.0,
-        "valuation_inr": 4320000.0,
-        "centroid_lat": 28.8472,
-        "centroid_lng": 77.5887,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5875, 28.8460], [77.5885, 28.8465], [77.5905, 28.8468], [77.5900, 28.8488], [77.5870, 28.8480], [77.5875, 28.8460]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1043",
-        "survey_number": "158/W",
-        "khasra_number": "427",
-        "khata_number": "180",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Sunil Kumar Verma",
-        "co_owners_json": json.dumps(["Anita Verma (Co-owner)"]),
-        "land_type": "Agricultural (Zamin)",
-        "area_ha": 3.60,
-        "area_sqm": 36000.0,
-        "valuation_inr": 8640000.0,
-        "centroid_lat": 28.8351,
-        "centroid_lng": 77.5794,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5780, 28.8340], [77.5810, 28.8340], [77.5810, 28.8360], [77.5790, 28.8365], [77.5780, 28.8350], [77.5780, 28.8340]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1044",
-        "survey_number": "159/S",
-        "khasra_number": "428",
-        "khata_number": "188",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Vandana Sharma",
-        "co_owners_json": json.dumps([]),
-        "land_type": "Agricultural (Fasli)",
-        "area_ha": 4.25,
-        "area_sqm": 42500.0,
-        "valuation_inr": 10200000.0,
-        "centroid_lat": 28.8327,
-        "centroid_lng": 77.5791,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5780, 28.8315], [77.5810, 28.8315], [77.5810, 28.8340], [77.5780, 28.8350], [77.5775, 28.8330], [77.5780, 28.8315]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1045",
-        "survey_number": "160/C",
-        "khasra_number": "429",
-        "khata_number": "195",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Vijay Pal Singh",
-        "co_owners_json": json.dumps(["Yogesh Pal (Brother)"]),
-        "land_type": "Commercial / Warehouse",
-        "area_ha": 2.90,
-        "area_sqm": 29000.0,
-        "valuation_inr": 15950000.0,
-        "centroid_lat": 28.8376,
-        "centroid_lng": 77.5798,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5790, 28.8365], [77.5810, 28.8360], [77.5810, 28.8385], [77.5795, 28.8390], [77.5785, 28.8378], [77.5790, 28.8365]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1046",
-        "survey_number": "161/R",
-        "khasra_number": "430",
-        "khata_number": "201",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Mukesh Kumar & Rajendra",
-        "co_owners_json": json.dumps(["Rajendra Prasad (Brother)"]),
-        "land_type": "Residential / Abadi",
-        "area_ha": 1.65,
-        "area_sqm": 16500.0,
-        "valuation_inr": 24750000.0,
-        "centroid_lat": 28.8398,
-        "centroid_lng": 77.5798,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5795, 28.8390], [77.5810, 28.8385], [77.5810, 28.8405], [77.5790, 28.8410], [77.5785, 28.8400], [77.5795, 28.8390]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1047",
-        "survey_number": "162/B",
-        "khasra_number": "431",
-        "khata_number": "208",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Babu Ram & Sons",
-        "co_owners_json": json.dumps(["Devendra Kumar (50%)"]),
-        "land_type": "Horticulture / Bagh (Mango Orchard)",
-        "area_ha": 3.40,
-        "area_sqm": 34000.0,
-        "valuation_inr": 9180000.0,
-        "centroid_lat": 28.8418,
-        "centroid_lng": 77.5795,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5790, 28.8410], [77.5810, 28.8405], [77.5810, 28.8425], [77.5795, 28.8430], [77.5780, 28.8425], [77.5782, 28.8415], [77.5790, 28.8410]]]
-        }),
-        "verification_status": "Verified",
-        "is_disputed": False,
-        "encumbrance_status": "Clean (Nishkank)",
-        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1048",
-        "survey_number": "163/GS",
-        "khasra_number": "432",
-        "khata_number": "4",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Gram Sabha (Pashuchar Land)",
-        "co_owners_json": json.dumps(["Animal Husbandry Dept, UP"]),
-        "land_type": "Pasture / Charnot (Public)",
-        "area_ha": 4.80,
-        "area_sqm": 48000.0,
-        "valuation_inr": 25600000.0,
-        "centroid_lat": 28.8440,
-        "centroid_lng": 77.5798,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5795, 28.8430], [77.5810, 28.8425], [77.5810, 28.8450], [77.5790, 28.8455], [77.5785, 28.8440], [77.5795, 28.8430]]]
-        }),
-        "verification_status": "Verified (Govt)",
-        "is_disputed": False,
-        "encumbrance_status": "Protected State Land",
-        "image_url": "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1049",
-        "survey_number": "164/1",
-        "khasra_number": "433",
-        "khata_number": "215",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Satyapal Singh Tomar",
-        "co_owners_json": json.dumps(["Kiran Tomar (Spouse)"]),
-        "land_type": "Agricultural (Zamin)",
-        "area_ha": 3.75,
-        "area_sqm": 37500.0,
-        "valuation_inr": 9000000.0,
-        "centroid_lat": 28.8468,
-        "centroid_lng": 77.5806,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5790, 28.8455], [77.5810, 28.8450], [77.5810, 28.8470], [77.5828, 28.8475], [77.5820, 28.8485], [77.5790, 28.8480], [77.5790, 28.8455]]]
-        }),
-        "verification_status": "Action Required (Mutation)",
-        "is_disputed": False,
-        "encumbrance_status": "Title Partition Pending (MUT-2026-1120)",
-        "image_url": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-        "ulpin": "09-0824-0014-1050",
-        "survey_number": "165/D",
-        "khasra_number": "434",
-        "khata_number": "220",
-        "state": "Uttar Pradesh",
-        "district": "Ghaziabad",
-        "tehsil": "Modinagar",
-        "village": "Sikandrabad",
-        "pincode": "201204",
-        "owner_name": "Rakesh Sharma & Meena Sharma",
-        "co_owners_json": json.dumps(["Meena Sharma (Spouse - 50%)"]),
-        "land_type": "Agricultural (Fasli)",
-        "area_ha": 2.60,
-        "area_sqm": 26000.0,
-        "valuation_inr": 6240000.0,
-        "centroid_lat": 28.8495,
-        "centroid_lng": 77.5848,
-        "boundary_geojson": json.dumps({
-            "type": "Polygon",
-            "coordinates": [[[77.5842, 28.8485], [77.5870, 28.8480], [77.5865, 28.8505], [77.5835, 28.8508], [77.5830, 28.8495], [77.5842, 28.8485]]]
-        }),
-        "verification_status": "Disputed",
-        "is_disputed": True,
-        "dispute_reason": "Boundary hedge overlap of 0.8m with Northern Sikandrabad village boundary line",
-        "encumbrance_status": "Boundary Notice Issued",
-        "image_url": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"
-    }
 ]
 
-async def seed_27_parcels():
-    logger.info("Connecting to database...")
-    async with AsyncSessionLocal() as session:
-        for p_data in GHAZIABAD_27_PARCELS:
-            res = await session.execute(select(Parcel).where(Parcel.ulpin == p_data["ulpin"]))
-            existing = res.scalars().first()
-            if existing:
-                for k, v in p_data.items():
-                    setattr(existing, k, v)
-                logger.info(f"Updated existing parcel: {p_data['ulpin']} (Khasra {p_data['khasra_number']})")
-            else:
-                new_p = Parcel(**p_data)
-                session.add(new_p)
-                logger.info(f"Created new parcel: {p_data['ulpin']} (Khasra {p_data['khasra_number']})")
+def _changed_fields(existing: Parcel, record: Dict[str, Any]) -> Dict[str, tuple]:
+    """``{field: (old, new)}`` for the values that differ from the row on disk.
 
-        await session.commit()
-    logger.info("Successfully seeded all 27 Ghaziabad Cadastral Parcels with variable geometries!")
+    Floats are compared with a tolerance because a round trip through Postgres
+    ``double precision`` (or SQLite's REAL) can come back as 2.0000000000000004,
+    which would otherwise report a change on every run forever.
+    """
+    changes: Dict[str, tuple] = {}
+    for field, new_value in record.items():
+        old_value = getattr(existing, field, None)
+        if isinstance(new_value, float) and isinstance(old_value, (int, float)):
+            if abs(float(old_value) - new_value) <= 1e-9 * max(1.0, abs(new_value)):
+                continue
+        elif old_value == new_value:
+            continue
+        changes[field] = (old_value, new_value)
+    return changes
+
+
+def _audit_state(source: Any) -> Dict[str, Any]:
+    """The handful of fields worth quoting in the audit entry."""
+    if isinstance(source, dict):
+        return {field: source.get(field) for field in AUDITED_FIELDS}
+    return {field: getattr(source, field, None) for field in AUDITED_FIELDS}
+
+
+async def _chain_timestamp(session, offset: int) -> datetime:
+    """A timestamp guaranteed to sit at or after the tip of the audit chain.
+
+    ``verify_chain`` orders entries by timestamp, so an entry written *before* an
+    existing one would be reported as a broken link even though nothing was
+    tampered with. ``db/seed.py`` deliberately writes a 2023-dated trail for its
+    case file, so this script -- which may run either before or after it -- takes
+    the later of "now" and "one second past the newest entry".
+    """
+    newest = await session.scalar(select(func.max(AuditLog.timestamp)))
+    now = datetime.now(timezone.utc)
+    if newest is not None:
+        if newest.tzinfo is None:  # SQLite hands back naive datetimes
+            newest = newest.replace(tzinfo=timezone.utc)
+        now = max(now, newest + timedelta(seconds=1))
+    return now + timedelta(microseconds=offset)
+
+
+class Report:
+    """Counts what a run did, so a second run visibly does nothing."""
+
+    def __init__(self) -> None:
+        self.inserted: List[str] = []
+        self.updated: List[str] = []
+        self.unchanged: List[str] = []
+
+    def print(self, dry_run: bool) -> None:
+        verb = "would be" if dry_run else ""
+        logger.info("")
+        logger.info("  inserted  %2d %s", len(self.inserted), verb)
+        logger.info("  updated   %2d %s", len(self.updated), verb)
+        logger.info("  unchanged %2d", len(self.unchanged))
+        if self.inserted:
+            logger.info("  new: %s", ", ".join(self.inserted))
+        for line in self.updated:
+            logger.info("  changed: %s", line)
+
+
+async def seed_parcels(session, report: Report, dry_run: bool) -> None:
+    """Insert or update the ten parcels, keyed on ULPIN, and audit every write."""
+    audit_offset = 0
+    for record in GHAZIABAD_10_PARCELS:
+        record = dict(record)
+        ulpin = record["ulpin"]
+        existing = (
+            await session.execute(select(Parcel).where(Parcel.ulpin == ulpin))
+        ).scalars().first()
+
+        if existing is None:
+            parcel = Parcel(**record)
+            report.inserted.append(f"{ulpin} (Khasra {record['khasra_number']})")
+            if dry_run:
+                continue
+            session.add(parcel)
+            await session.flush()  # assigns parcel.id for the audit entry
+            await append_audit(
+                session,
+                action_type="Record Digitized",
+                actor_name="Cadastral Bulk Import",
+                actor_role="System",
+                details=(
+                    f"Parcel {ulpin} (Khasra {record['khasra_number']}, "
+                    f"{record['area_ha']} ha) loaded from the {record['village']} "
+                    f"cadastral sheet."
+                ),
+                ulpin=ulpin,
+                parcel_id=parcel.id,
+                new_state=_audit_state(record),
+                timestamp=await _chain_timestamp(session, audit_offset),
+            )
+            audit_offset += 1
+            continue
+
+        changes = _changed_fields(existing, record)
+        if not changes:
+            report.unchanged.append(ulpin)
+            continue
+
+        report.updated.append(f"{ulpin}: {', '.join(sorted(changes))}")
+        if dry_run:
+            continue
+        old_state = _audit_state(existing)
+        for field, (_, new_value) in changes.items():
+            setattr(existing, field, new_value)
+        await append_audit(
+            session,
+            action_type="Record Corrected",
+            actor_name="Cadastral Bulk Import",
+            actor_role="System",
+            details=(
+                f"Parcel {ulpin} reconciled against the cadastral sheet; "
+                f"updated {', '.join(sorted(changes))}."
+            ),
+            ulpin=ulpin,
+            parcel_id=existing.id,
+            old_state=old_state,
+            new_state=_audit_state(existing),
+            timestamp=await _chain_timestamp(session, audit_offset),
+        )
+        audit_offset += 1
+
+
+async def run(args: argparse.Namespace) -> int:
+    if args.dry_run:
+        logger.info("Dry run: nothing will be written.")
+    else:
+        logger.info("Creating any missing tables...")
+        await init_models()
+
+    report = Report()
+    try:
+        async with AsyncSessionLocal() as session:
+            await seed_parcels(session, report, args.dry_run)
+            if args.dry_run:
+                await session.rollback()
+            else:
+                await session.commit()
+        report.print(args.dry_run)
+    finally:
+        await async_engine.dispose()
+
+    if args.dry_run and (report.inserted or report.updated):
+        logger.info("")
+        logger.info("Re-run without --dry-run to apply.")
+    return 0
+
+
+def parse_args(argv: Sequence[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Seed the ten Modinagar cadastral parcels used by the GIS screens.",
+        epilog="Keyed on ULPIN, so re-running only writes rows that actually differ.",
+    )
+    parser.add_argument("--dry-run", action="store_true", help="print the plan, write nothing")
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str]) -> int:
+    try:
+        return asyncio.run(run(parse_args(argv)))
+    except KeyboardInterrupt:
+        logger.info("Interrupted; the open transaction was rolled back.")
+        return 130
+
 
 if __name__ == "__main__":
-    asyncio.run(seed_27_parcels())
+    raise SystemExit(main(sys.argv[1:]))
