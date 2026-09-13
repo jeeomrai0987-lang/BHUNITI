@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date as dt_date, datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, field_validator
@@ -16,10 +16,15 @@ class StageProgress(BaseModel):
 
     key: str
     name: str
-    date: Optional[date] = None
+    date: Optional[dt_date] = None
     status: str  # completed | current | pending
     status_label: Optional[str] = None
     icon: str
+
+    @field_validator("date", mode="before")
+    @classmethod
+    def _parse_dates(cls, value):
+        return coerce_date(value)
 
 
 class ApplicationCreate(BaseModel):
@@ -48,11 +53,11 @@ class ApplicationResponse(BaseModel):
     status_label: Optional[str] = None
     current_stage_label: Optional[str] = None
 
-    submission_date: Optional[date] = None
-    verified_date: Optional[date] = None
-    survey_date: Optional[date] = None
-    ro_review_date: Optional[date] = None
-    completion_date: Optional[date] = None
+    submission_date: Optional[dt_date] = None
+    verified_date: Optional[dt_date] = None
+    survey_date: Optional[dt_date] = None
+    ro_review_date: Optional[dt_date] = None
+    completion_date: Optional[dt_date] = None
 
     action_required: Optional[str] = None
     survey_details: Optional[str] = None
@@ -79,7 +84,7 @@ class SurveyAvailabilityRequest(BaseModel):
     """Body for "the slot works for me" / "please reschedule"."""
 
     available: bool = True
-    preferred_date: Optional[date] = None
+    preferred_date: Optional[dt_date] = None
     note: Optional[str] = None
 
     @field_validator("preferred_date", mode="before")

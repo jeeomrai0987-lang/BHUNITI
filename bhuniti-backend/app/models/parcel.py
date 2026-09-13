@@ -29,6 +29,7 @@ class Parcel(Base):
 
     # GIS / Geospatial
     boundary_geojson = Column(Text, nullable=True)  # GeoJSON polygon coordinates
+    boundary_geom = Column(Text, nullable=True)     # PostGIS Geometry representation (WKT/WKB)
     centroid_lat = Column(Float, nullable=True)
     centroid_lng = Column(Float, nullable=True)
 
@@ -41,3 +42,4 @@ class Parcel(Base):
 
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+

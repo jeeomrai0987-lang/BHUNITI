@@ -14,12 +14,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_locale
+from app.api.deps import get_current_user, get_locale, require_role
 from app.core.audit_trail import actor_from_user, append_audit
 from app.core.database import get_db
 from app.core.i18n import label, t
 from app.core.localize import MUTATION_LABELS, localize, localize_many
 from app.models.mutation import Mutation
+from app.models.notification import Notification
 from app.models.user import User
 from app.schemas.mutation import (
     MutationActionRequest,
@@ -59,7 +60,10 @@ async def _next_mutation_number(db: AsyncSession) -> str:
 
 
 @router.get("/stats", response_model=MutationStatsResponse)
-async def get_mutation_stats(db: AsyncSession = Depends(get_db)) -> Any:
+async def get_mutation_stats(
+    db: AsyncSession = Depends(get_db),
+    current_officer: User = Depends(require_role(["revenue_officer", "district_officer"])),
+) -> Any:
     """Live counts. Zero means zero -- nothing is padded with demo numbers."""
     midnight = datetime.combine(datetime.now(timezone.utc).date(), time.min, tzinfo=timezone.utc)
     approved_today = (
@@ -89,6 +93,7 @@ async def list_mutations(
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_officer: User = Depends(require_role(["revenue_officer", "district_officer"])),
 ) -> Any:
     filters = []
     if status_filter:
@@ -120,6 +125,7 @@ async def create_mutation(
     mutation_in: MutationCreate,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_user: User = Depends(require_role(["revenue_officer", "district_officer", "citizen"])),
 ) -> Any:
     sequence = await _next_mutation_number(db)
     mutation = Mutation(
@@ -137,6 +143,7 @@ async def get_mutation(
     mutation_num_or_id: str,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_user: User = Depends(require_role(["revenue_officer", "district_officer", "citizen"])),
 ) -> Any:
     reference = mutation_num_or_id.strip()
     mutation = (
@@ -164,14 +171,9 @@ async def take_mutation_action(
     action_in: MutationActionRequest,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_role(["revenue_officer", "district_officer"])),
 ) -> Any:
-    """Approve / reject / request clarification, and append one audit entry.
-
-    The audit row is written through ``append_audit`` so it is linked into the
-    hash chain (the old code hashed an unflushed ``id`` and always used the
-    genesis ``prev_hash``, so nothing was actually chained).
-    """
+    """Approve / reject / request clarification, append one audit entry and notify applicant."""
     reference = mutation_id.strip()
     if action_in.action not in ACTION_MAP:
         raise HTTPException(
@@ -224,6 +226,32 @@ async def take_mutation_action(
         old_state={"status": old_status},
         new_state={"status": new_status},
     )
+
+    # Write notification to citizen applicant
+    target_user_id = None
+    if mutation.applicant_name:
+        applicant_user = (
+            await db.execute(
+                select(User).where(
+                    (User.full_name == mutation.applicant_name) | (User.username == mutation.applicant_name)
+                )
+            )
+        ).scalars().first()
+        if applicant_user:
+            target_user_id = applicant_user.id
+
+    notif_msg = f"Mutation application {mutation.mutation_number} for parcel {mutation.ulpin} has been {new_status.lower()}."
+    if mutation.decision_note:
+        notif_msg += f" Note: {mutation.decision_note}"
+
+    notification = Notification(
+        user_id=target_user_id,
+        ulpin=mutation.ulpin,
+        type="mutation_update",
+        message=notif_msg,
+        read_status=False,
+    )
+    db.add(notification)
 
     await db.commit()
     await db.refresh(mutation)

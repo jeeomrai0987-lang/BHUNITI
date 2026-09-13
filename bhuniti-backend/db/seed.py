@@ -49,9 +49,12 @@ from app.models import (  # noqa: E402
     AuditLog,
     Discrepancy,
     Document,
+    Encumbrance,
     Mutation,
+    Notification,
     Parcel,
     RefTranslation,
+    RegistrationRecord,
     Survey,
     User,
 )
@@ -108,7 +111,19 @@ PLACE_NAMES_HI: Sequence[tuple] = (
 )
 
 # Children before parents, so --fresh does not trip a foreign key.
-PURGE_ORDER = (AuditLog, Document, Survey, Discrepancy, Mutation, Application, Parcel, User)
+PURGE_ORDER = (
+    Notification,
+    RegistrationRecord,
+    Encumbrance,
+    AuditLog,
+    Document,
+    Survey,
+    Discrepancy,
+    Mutation,
+    Application,
+    Parcel,
+    User,
+)
 
 class Report:
     """Counts what was inserted so the run ends with one honest summary."""
@@ -557,6 +572,94 @@ async def seed_audit_trail(session, report: Report, parcels: Dict[str, Parcel]) 
         report.add("audit_logs", created=True)
 
 
+async def seed_notifications(session, report: Report, users: Dict[str, User]) -> None:
+    """Seed sample notifications for citizen, revenue officer, and district admin."""
+    notifications_data = [
+        {
+            "user_id": users["citizen"].id,
+            "ulpin": "09-0824-0014-1024",
+            "message": "Field survey successfully conducted for application MUT-2023-8941.",
+            "type": "survey_scheduled",
+            "read_status": False,
+        },
+        {
+            "user_id": users["citizen"].id,
+            "ulpin": "09-0824-0014-1024",
+            "message": "Cadastral land record verified for Khasra 412/1 (Ghaziabad).",
+            "type": "mutation_update",
+            "read_status": True,
+        },
+        {
+            "user_id": users["revenue_officer"].id,
+            "ulpin": "09-0824-0014-1026",
+            "message": "New mutation case M-2026-018 assigned for verification.",
+            "type": "mutation_update",
+            "read_status": False,
+        },
+        {
+            "user_id": users["revenue_officer"].id,
+            "ulpin": "09-0824-0014-1027",
+            "message": "Boundary overlap notice issued for Khasra 414 (Road Overlap).",
+            "type": "discrepancy_alert",
+            "read_status": False,
+        },
+        {
+            "user_id": users["district_officer"].id,
+            "ulpin": None,
+            "message": "Monthly cadastral reconciliation completed with 94.2% parcel verification.",
+            "type": "system",
+            "read_status": True,
+        },
+    ]
+
+    for item in notifications_data:
+        await _ensure(
+            session,
+            report,
+            Notification,
+            {"user_id": item["user_id"], "message": item["message"]},
+            ulpin=item.get("ulpin"),
+            type=item.get("type", "system"),
+            read_status=item.get("read_status", False),
+        )
+
+
+async def seed_registrations_and_encumbrances(session, report: Report, parcels: Dict[str, Parcel]) -> None:
+    """Seed structured deed registrations and legal encumbrances for cadastral parcels."""
+    if "09-XXXX-XXXX-1024" in parcels:
+        p1 = parcels["09-XXXX-XXXX-1024"]
+        await _ensure(
+            session,
+            report,
+            RegistrationRecord,
+            {"deed_number": "DEED-GZB-2022-4121"},
+            parcel_id=p1.id,
+            ulpin=p1.ulpin,
+            registration_date=date(2022, 4, 15),
+            sub_registrar_office="Sub-Registrar Office Modinagar",
+            stamp_duty=288000.0,
+            market_value=4800000.0,
+            consideration_amount=4800000.0,
+            buyer_name="Rahul Sharma",
+            seller_name="Devi Prasad Sharma",
+            document_url="/documents/deed_412_1.pdf",
+        )
+
+        await _ensure(
+            session,
+            report,
+            Encumbrance,
+            {"ulpin": p1.ulpin, "holder": "Punjab National Bank (Modinagar Branch)"},
+            parcel_id=p1.id,
+            amount=500000.0,
+            instrument_type="Bank Charge",
+            date=date(2019, 3, 10),
+            expiry_date=date(2024, 3, 10),
+            status="Discharged",
+            remarks="Agricultural crop loan fully repaid. NOC issued.",
+        )
+
+
 async def purge(session) -> None:
     """--fresh: delete the rows this script manages, children first.
 
@@ -589,6 +692,8 @@ async def run(args: argparse.Namespace) -> int:
             parcels = await seed_parcels(session, report)
             await seed_case_file(session, report, users, parcels)
             await seed_audit_trail(session, report, parcels)
+            await seed_notifications(session, report, users)
+            await seed_registrations_and_encumbrances(session, report, parcels)
 
         await session.commit()
 

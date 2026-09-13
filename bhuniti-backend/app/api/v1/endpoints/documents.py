@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Respon
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_locale
+from app.api.deps import get_current_user, get_locale, require_role
 from app.core.audit_trail import actor_from_user, append_audit
 from app.core.database import get_db, get_supabase
 from app.core.i18n import t
@@ -46,6 +46,7 @@ async def list_documents(
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_user: User = Depends(require_role(["citizen", "revenue_officer", "district_officer"])),
 ) -> Any:
     filters = []
     if ulpin:
@@ -79,6 +80,7 @@ async def create_document(
     doc_in: DocumentCreate,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_user: User = Depends(require_role(["citizen", "revenue_officer", "district_officer"])),
 ) -> Any:
     doc = Document(**doc_in.model_dump())
     if not doc.sha256_hash:
@@ -100,7 +102,7 @@ async def upload_file(
     application_id: Optional[str] = Form(None),
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_role(["citizen", "revenue_officer", "district_officer"])),
 ) -> Any:
     """Attach a file to a parcel and record it in the audit trail."""
     reference = (ulpin or "").strip()

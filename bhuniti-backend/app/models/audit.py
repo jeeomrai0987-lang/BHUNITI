@@ -55,10 +55,11 @@ class AuditLog(Base):
             ensure_ascii=False,
         )
 
-    def compute_hash(self, prev_hash: str = GENESIS_HASH) -> str:
-        return hashlib.sha256(self.canonical_payload(prev_hash).encode("utf-8")).hexdigest()
+    def compute_hash(self, prev_hash: str = None) -> str:
+        actual_prev = prev_hash if prev_hash is not None else (self.prev_hash or GENESIS_HASH)
+        return hashlib.sha256(self.canonical_payload(actual_prev).encode("utf-8")).hexdigest()
 
-    def generate_hash(self, prev_hash: str = GENESIS_HASH) -> str:
+    def generate_hash(self, prev_hash: str = None) -> str:
         """Deprecated alias kept so older scripts keep working."""
         return self.compute_hash(prev_hash)
 

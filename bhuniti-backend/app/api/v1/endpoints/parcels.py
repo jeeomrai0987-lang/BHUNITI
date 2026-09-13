@@ -13,11 +13,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_locale
+from app.api.deps import get_locale, require_role
 from app.core.database import get_db
 from app.core.i18n import t
 from app.core.localize import PARCEL_LABELS, label_updates, localize, localize_many
 from app.models.parcel import Parcel
+from app.models.user import User
 from app.schemas.parcel import ParcelCreate, ParcelGISResponse, ParcelResponse
 
 router = APIRouter()
@@ -165,6 +166,7 @@ async def create_parcel(
     parcel_in: ParcelCreate,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_officer: User = Depends(require_role(["revenue_officer", "district_officer"])),
 ) -> Any:
     existing = await db.scalar(select(Parcel.id).where(Parcel.ulpin == parcel_in.ulpin))
     if existing:

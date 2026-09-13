@@ -44,7 +44,9 @@ from sqlalchemy import func, select  # noqa: E402
 from app.core.audit_trail import append_audit  # noqa: E402
 from app.core.database import AsyncSessionLocal, async_engine, init_models  # noqa: E402
 from app.models.audit import AuditLog  # noqa: E402
+from app.models.encumbrance import Encumbrance  # noqa: E402
 from app.models.parcel import Parcel  # noqa: E402
+from app.models.registration_record import RegistrationRecord  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("seed_10_parcels")
@@ -469,6 +471,142 @@ async def seed_parcels(session, report: Report, dry_run: bool) -> None:
         audit_offset += 1
 
 
+async def seed_registrations_and_encumbrances(session, dry_run: bool) -> None:
+    """Seed structured deed registrations and legal encumbrances for the 10 cadastral parcels."""
+    data_registrations = [
+        {
+            "ulpin": "09-0824-0014-1024",
+            "deed_number": "DEED-UP-GZB-2022-4121",
+            "registration_date": datetime(2022, 4, 15).date(),
+            "sub_registrar_office": "Sub-Registrar Office Modinagar",
+            "stamp_duty": 288000.0,
+            "market_value": 4800000.0,
+            "consideration_amount": 4800000.0,
+            "buyer_name": "Rahul Sharma",
+            "seller_name": "Devi Prasad Sharma",
+            "document_url": "/documents/deed_412_1.pdf",
+        },
+        {
+            "ulpin": "09-0824-0014-1025",
+            "deed_number": "DEED-UP-GZB-2020-4122",
+            "registration_date": datetime(2020, 11, 20).date(),
+            "sub_registrar_office": "Sub-Registrar Office Modinagar",
+            "stamp_duty": 208000.0,
+            "market_value": 3480000.0,
+            "consideration_amount": 3480000.0,
+            "buyer_name": "Sunita Devi & Ramesh Chand",
+            "seller_name": "Ramphal Tyagi",
+            "document_url": "/documents/deed_412_2.pdf",
+        },
+        {
+            "ulpin": "09-0824-0014-1026",
+            "deed_number": "DEED-UP-GZB-2018-4130",
+            "registration_date": datetime(2018, 2, 14).date(),
+            "sub_registrar_office": "Sub-Registrar Office Modinagar",
+            "stamp_duty": 2100000.0,
+            "market_value": 35000000.0,
+            "consideration_amount": 35000000.0,
+            "buyer_name": "Rajesh Kumar",
+            "seller_name": "Chaudhary Charan Singh Heirs",
+            "document_url": "/documents/deed_413.pdf",
+        },
+        {
+            "ulpin": "09-0824-0014-1027",
+            "deed_number": "DEED-UP-GZB-2021-4140",
+            "registration_date": datetime(2021, 9, 5).date(),
+            "sub_registrar_office": "Sub-Registrar Office Modinagar",
+            "stamp_duty": 650000.0,
+            "market_value": 11000000.0,
+            "consideration_amount": 11000000.0,
+            "buyer_name": "Manoj Tyagi",
+            "seller_name": "Virendra Swarup",
+            "document_url": "/documents/deed_414.pdf",
+        },
+        {
+            "ulpin": "09-0824-0014-1029",
+            "deed_number": "DEED-UP-GZB-2023-4152",
+            "registration_date": datetime(2023, 3, 25).date(),
+            "sub_registrar_office": "Sub-Registrar Office Modinagar",
+            "stamp_duty": 150000.0,
+            "market_value": 2500000.0,
+            "consideration_amount": 2500000.0,
+            "buyer_name": "Dr. Arvind Mishra & Family",
+            "seller_name": "Suresh Chand Sharma",
+            "document_url": "/documents/deed_415_2.pdf",
+        },
+        {
+            "ulpin": "09-0824-0014-1033",
+            "deed_number": "DEED-UP-GZB-2023-4190",
+            "registration_date": datetime(2023, 10, 10).date(),
+            "sub_registrar_office": "Sub-Registrar Office Modinagar",
+            "stamp_duty": 275000.0,
+            "market_value": 4500000.0,
+            "consideration_amount": 4500000.0,
+            "buyer_name": "Priya Sharma",
+            "seller_name": "Satish Kumar",
+            "document_url": "/documents/deed_419.pdf",
+        },
+    ]
+
+    for item in data_registrations:
+        existing = (
+            await session.execute(
+                select(RegistrationRecord).where(RegistrationRecord.deed_number == item["deed_number"])
+            )
+        ).scalars().first()
+        if not existing and not dry_run:
+            parcel = (await session.execute(select(Parcel).where(Parcel.ulpin == item["ulpin"]))).scalars().first()
+            row = RegistrationRecord(**item, parcel_id=parcel.id if parcel else None)
+            session.add(row)
+
+    data_encumbrances = [
+        {
+            "ulpin": "09-0824-0014-1026",
+            "holder": "State Bank of India (Modinagar Branch)",
+            "amount": 1500000.0,
+            "instrument_type": "Mortgage (Kisan Credit Card)",
+            "date": datetime(2023, 1, 15).date(),
+            "expiry_date": datetime(2028, 1, 15).date(),
+            "status": "Active",
+            "remarks": "Agricultural crop loan against Khasra 413.",
+        },
+        {
+            "ulpin": "09-0824-0014-1027",
+            "holder": "Civil Court Modinagar (Suit No. 104/2025)",
+            "amount": 0.0,
+            "instrument_type": "Court Injunction (Stay Order)",
+            "date": datetime(2025, 6, 12).date(),
+            "expiry_date": None,
+            "status": "Stayed",
+            "remarks": "Boundary dispute on road alignment.",
+        },
+        {
+            "ulpin": "09-0824-0014-1033",
+            "holder": "HDFC Bank Ltd",
+            "amount": 1800000.0,
+            "instrument_type": "Home/Agri Loan Mortgage",
+            "date": datetime(2023, 10, 20).date(),
+            "expiry_date": datetime(2038, 10, 20).date(),
+            "status": "Active",
+            "remarks": "Mortgage on title transfer parcel.",
+        },
+    ]
+
+    for item in data_encumbrances:
+        existing = (
+            await session.execute(
+                select(Encumbrance).where(
+                    Encumbrance.ulpin == item["ulpin"],
+                    Encumbrance.holder == item["holder"]
+                )
+            )
+        ).scalars().first()
+        if not existing and not dry_run:
+            parcel = (await session.execute(select(Parcel).where(Parcel.ulpin == item["ulpin"]))).scalars().first()
+            row = Encumbrance(**item, parcel_id=parcel.id if parcel else None)
+            session.add(row)
+
+
 async def run(args: argparse.Namespace) -> int:
     if args.dry_run:
         logger.info("Dry run: nothing will be written.")
@@ -480,6 +618,7 @@ async def run(args: argparse.Namespace) -> int:
     try:
         async with AsyncSessionLocal() as session:
             await seed_parcels(session, report, args.dry_run)
+            await seed_registrations_and_encumbrances(session, args.dry_run)
             if args.dry_run:
                 await session.rollback()
             else:

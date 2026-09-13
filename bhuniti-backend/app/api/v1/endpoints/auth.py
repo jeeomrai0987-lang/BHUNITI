@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_locale
+from app.api.deps import get_current_user, get_locale, require_role
 from app.core.database import get_db
 from app.core.i18n import DEFAULT_LOCALE, SUPPORTED_LOCALES, normalize_locale, t
 from app.core.localize import USER_LABELS, localize
@@ -99,14 +99,9 @@ async def login(
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_role(["citizen", "revenue_officer", "district_officer"])),
     locale: str = Depends(get_locale),
 ) -> Any:
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=t("error.not_authenticated", locale),
-        )
     return localize(UserResponse, current_user, locale, USER_LABELS)
 
 
@@ -114,16 +109,10 @@ async def get_me(
 async def set_my_locale(
     payload: LocalePreferenceRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_role(["citizen", "revenue_officer", "district_officer"])),
     locale: str = Depends(get_locale),
 ) -> Any:
     """Persist the language the portal should use for this account."""
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=t("error.not_authenticated", locale),
-        )
-
     requested = _requested_locale(payload.locale)
     if requested is None:
         raise HTTPException(
@@ -158,11 +147,13 @@ async def register_user(
             detail=t("error.username_taken", locale),
         )
 
+    # Self-registration is strictly locked down to the "citizen" role.
+    # Role elevation must be performed by an admin through PATCH /api/v1/users/{id}/role.
     user = User(
         username=user_in.username,
         email=user_in.email,
         hashed_password=get_password_hash(user_in.password),
-        role=user_in.role,
+        role="citizen",
         full_name=user_in.full_name,
         phone=user_in.phone,
         district=user_in.district,

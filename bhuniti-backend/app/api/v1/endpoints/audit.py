@@ -11,12 +11,13 @@ from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_locale
+from app.api.deps import get_locale, require_role
 from app.core.audit_trail import verify_chain
 from app.core.database import get_db
 from app.core.i18n import t
 from app.core.localize import AUDIT_LABELS, localize_many
 from app.models.audit import AuditLog
+from app.models.user import User
 from app.schemas.audit import AuditLogResponse
 from app.schemas.common import ChainVerification
 
@@ -33,6 +34,7 @@ async def get_audit_trail(
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_user: User = Depends(require_role(["revenue_officer", "district_officer", "citizen"])),
 ) -> Any:
     filters = []
     if ulpin:
@@ -66,6 +68,7 @@ async def verify_audit_chain(
     limit: Optional[int] = Query(None, ge=1, le=5000),
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_user: User = Depends(require_role(["revenue_officer", "district_officer", "citizen"])),
 ) -> Any:
     """Recompute every hash from the genesis entry forward.
 

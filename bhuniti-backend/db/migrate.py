@@ -47,6 +47,9 @@ LEGACY_DATE_COLUMNS: Dict[str, Tuple[str, ...]] = {
 
 # Drop order for --fresh (children before parents).
 DROP_ORDER: Sequence[str] = (
+    "notifications",
+    "registration_records",
+    "encumbrances",
     "audit_logs",
     "documents",
     "surveys",
@@ -116,6 +119,11 @@ async def _row_count(conn, table: str) -> int:
 
 
 async def create_missing_tables(conn, plan: Plan) -> None:
+    if not IS_SQLITE and not plan.dry_run:
+        try:
+            await conn.execute(text('CREATE EXTENSION IF NOT EXISTS "postgis";'))
+        except Exception:
+            pass
     existing = set(await conn.run_sync(lambda sync_conn: inspect(sync_conn).get_table_names()))
     missing = [name for name in Base.metadata.tables if name not in existing]
     for name in missing:

@@ -12,12 +12,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_locale
+from app.api.deps import get_current_user, get_locale, require_role
 from app.core.audit_trail import actor_from_user, append_audit
 from app.core.database import get_db
 from app.core.i18n import label, t
 from app.core.localize import DISCREPANCY_LABELS, localize, localize_many
 from app.models.discrepancy import Discrepancy
+from app.models.notification import Notification
+from app.models.parcel import Parcel
 from app.models.user import User
 from app.schemas.discrepancy import (
     DiscrepancyCreate,
@@ -42,6 +44,7 @@ async def list_discrepancies(
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_officer: User = Depends(require_role(["revenue_officer", "district_officer"])),
 ) -> Any:
     filters = []
     if severity:
@@ -78,6 +81,7 @@ async def create_discrepancy(
     case_in: DiscrepancyCreate,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_officer: User = Depends(require_role(["revenue_officer", "district_officer"])),
 ) -> Any:
     year = datetime.now(timezone.utc).year
     sequence = (await db.scalar(select(func.count(Discrepancy.id))) or 0) + 1
@@ -88,6 +92,31 @@ async def create_discrepancy(
 
     case = Discrepancy(case_number=case_number, **case_in.model_dump())
     db.add(case)
+
+    # Find citizen owner of parcel if registered
+    target_user_id = None
+    if case.ulpin:
+        parcel = (await db.execute(select(Parcel).where(Parcel.ulpin == case.ulpin))).scalars().first()
+        if parcel and parcel.owner_name:
+            owner_user = (
+                await db.execute(
+                    select(User).where(
+                        (User.full_name == parcel.owner_name) | (User.username == parcel.owner_name)
+                    )
+                )
+            ).scalars().first()
+            if owner_user:
+                target_user_id = owner_user.id
+
+    notif = Notification(
+        user_id=target_user_id,
+        ulpin=case.ulpin,
+        type="discrepancy_alert",
+        message=f"Discrepancy flagged on parcel {case.ulpin}: {case.discrepancy_type} (Severity: {case.severity})",
+        read_status=False,
+    )
+    db.add(notif)
+
     await db.commit()
     await db.refresh(case)
     return localize(DiscrepancyResponse, case, locale, DISCREPANCY_LABELS)
@@ -99,7 +128,7 @@ async def resolve_discrepancy(
     resolve_in: DiscrepancyResolveRequest,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_role(["district_officer", "revenue_officer"])),
 ) -> Any:
     reference = case_id.strip()
     case = (
@@ -141,6 +170,15 @@ async def resolve_discrepancy(
         old_state={"status": old_status},
         new_state={"status": case.status, "resolution_note": case.resolution_note},
     )
+
+    # Notify of resolution
+    notif = Notification(
+        ulpin=case.ulpin,
+        type="discrepancy_alert",
+        message=f"Discrepancy case {case.case_number} on parcel {case.ulpin} has been resolved ({case.status}).",
+        read_status=False,
+    )
+    db.add(notif)
 
     await db.commit()
     await db.refresh(case)

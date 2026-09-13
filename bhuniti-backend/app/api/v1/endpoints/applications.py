@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_locale
+from app.api.deps import get_current_user, get_locale, require_role
 from app.core.audit_trail import actor_from_user, append_audit
 from app.core.database import get_db
 from app.core.i18n import label, t
@@ -103,6 +103,7 @@ async def get_my_applications(
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_user: User = Depends(require_role(["citizen", "revenue_officer", "district_officer"])),
 ) -> Any:
     """Applications for the citizen portal, newest first."""
     total = await db.scalar(select(func.count(Application.id))) or 0
@@ -127,6 +128,7 @@ async def get_application(
     app_num_or_id: str,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_user: User = Depends(require_role(["citizen", "revenue_officer", "district_officer"])),
 ) -> Any:
     reference = app_num_or_id.strip()
     application = (
@@ -153,7 +155,7 @@ async def create_application(
     app_in: ApplicationCreate,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_role(["citizen", "revenue_officer", "district_officer"])),
 ) -> Any:
     """File a new service request against a parcel.
 
@@ -212,7 +214,7 @@ async def confirm_survey_availability(
     payload: Optional[SurveyAvailabilityRequest] = None,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_role(["citizen", "revenue_officer", "district_officer"])),
 ) -> Any:
     """Citizen confirms the scheduled survey slot works for them."""
     reference = app_id.strip()

@@ -25,7 +25,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_locale
+from app.api.deps import get_locale, require_role
 from app.core.database import get_db
 from app.core.i18n import label
 from app.core.ref_data import place_name, place_names
@@ -130,6 +130,7 @@ async def _tehsil_summaries(db: AsyncSession, locale: str) -> List[TehsilSummary
 async def get_district_overview(
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_officer: User = Depends(require_role(["district_officer", "revenue_officer"])),
 ) -> Any:
     total_parcels = await db.scalar(select(func.count(Parcel.id))) or 0
     verified_parcels = (
@@ -193,6 +194,7 @@ async def get_district_overview(
 async def get_tehsil_breakdown(
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_officer: User = Depends(require_role(["district_officer", "revenue_officer"])),
 ) -> Any:
     return await _tehsil_summaries(db, locale)
 
@@ -203,6 +205,7 @@ async def get_officer_performance(
     limit: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_officer: User = Depends(require_role(["district_officer", "revenue_officer"])),
 ) -> Any:
     """Per-officer caseload, built from the mutations assigned to each officer."""
     filters = [User.role.in_(("revenue_officer", "district_officer"))]

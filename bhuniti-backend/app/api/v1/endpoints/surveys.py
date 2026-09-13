@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_locale
+from app.api.deps import get_current_user, get_locale, require_role
 from app.core.audit_trail import actor_from_user, append_audit
 from app.core.database import get_db
 from app.core.i18n import t
@@ -36,6 +36,7 @@ async def list_surveys(
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_user: User = Depends(require_role(["revenue_officer", "district_officer", "citizen"])),
 ) -> Any:
     filters = []
     if status_filter:
@@ -67,6 +68,7 @@ async def get_survey(
     survey_num_or_id: str,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
+    current_user: User = Depends(require_role(["revenue_officer", "district_officer", "citizen"])),
 ) -> Any:
     reference = survey_num_or_id.strip()
     survey = (
@@ -91,7 +93,7 @@ async def schedule_survey(
     survey_in: SurveyCreate,
     db: AsyncSession = Depends(get_db),
     locale: str = Depends(get_locale),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_role(["revenue_officer", "district_officer"])),
 ) -> Any:
     payload = survey_in.model_dump()
     ulpin = (payload.get("ulpin") or "").strip()

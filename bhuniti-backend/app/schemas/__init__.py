@@ -15,6 +15,11 @@ from app.schemas.auth import (
     UserCreate,
     UserResponse,
 )
+from app.schemas.user import (
+    UserAdminResponse,
+    UserRoleUpdateRequest,
+    UserStatusUpdateRequest,
+)
 from app.schemas.common import ChainVerification, PageMeta
 from app.schemas.discrepancy import (
     DiscrepancyBase,
@@ -23,6 +28,12 @@ from app.schemas.discrepancy import (
     DiscrepancyResponse,
 )
 from app.schemas.document import DocumentBase, DocumentCreate, DocumentResponse
+from app.schemas.encumbrance import (
+    EncumbranceBase,
+    EncumbranceCreate,
+    EncumbranceResponse,
+    EncumbranceUpdate,
+)
 from app.schemas.mutation import (
     MutationActionRequest,
     MutationBase,
@@ -30,7 +41,18 @@ from app.schemas.mutation import (
     MutationResponse,
     MutationStatsResponse,
 )
+from app.schemas.notification import (
+    NotificationBase,
+    NotificationCreate,
+    NotificationResponse,
+    NotificationUpdate,
+)
 from app.schemas.parcel import ParcelBase, ParcelCreate, ParcelGISResponse, ParcelResponse
+from app.schemas.registration_record import (
+    RegistrationRecordBase,
+    RegistrationRecordCreate,
+    RegistrationRecordResponse,
+)
 from app.schemas.survey import SurveyBase, SurveyCreate, SurveyResponse
 
 __all__ = [
@@ -40,6 +62,9 @@ __all__ = [
     "LocalePreferenceRequest",
     "UserCreate",
     "UserResponse",
+    "UserAdminResponse",
+    "UserRoleUpdateRequest",
+    "UserStatusUpdateRequest",
     "ParcelBase",
     "ParcelCreate",
     "ParcelResponse",
@@ -70,4 +95,15 @@ __all__ = [
     "DistrictOverviewResponse",
     "TehsilSummary",
     "OfficerMetric",
+    "NotificationBase",
+    "NotificationCreate",
+    "NotificationUpdate",
+    "NotificationResponse",
+    "RegistrationRecordBase",
+    "RegistrationRecordCreate",
+    "RegistrationRecordResponse",
+    "EncumbranceBase",
+    "EncumbranceCreate",
+    "EncumbranceUpdate",
+    "EncumbranceResponse",
 ]

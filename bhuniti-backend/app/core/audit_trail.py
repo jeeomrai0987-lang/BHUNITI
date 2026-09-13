@@ -52,6 +52,10 @@ def _as_json(value: Any) -> Optional[str]:
 
 
 async def _last_hash(db: AsyncSession) -> str:
+    for obj in reversed(list(db.new)):
+        if isinstance(obj, AuditLog) and getattr(obj, "tamper_hash", None):
+            return obj.tamper_hash
+
     stmt = select(AuditLog.tamper_hash).order_by(*(column.desc() for column in _CHAIN_ORDER)).limit(1)
     previous = await db.scalar(stmt)
     return previous or GENESIS_HASH
