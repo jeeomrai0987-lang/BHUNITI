@@ -14,7 +14,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -45,7 +45,7 @@ const { code } = await babel.transformAsync(source, {
 // A data: URL module cannot resolve bare specifiers, and it has no directory to
 // resolve relative ones against, so both kinds are rewritten to absolute file
 // URLs before the module is handed to import().
-const asFileUrl = (file) => new URL(`file://${file}`).href;
+const asFileUrl = (file) => pathToFileURL(file).href;
 const rewritten = code
   .replace(/from "\.\//g, `from "${asFileUrl(I18N)}/`)
   .replace(/from "react"/g, `from "${asFileUrl(require.resolve("react"))}"`);

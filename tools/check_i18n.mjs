@@ -20,7 +20,7 @@
  */
 
 import { readdir, readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -68,8 +68,8 @@ const errors = [];
 const notes = [];
 
 // ── 1 + 2: catalog parity ───────────────────────────────────────────────────
-const en = flatten((await import(path.join(I18N, "en", "index.js"))).default);
-const hi = flatten((await import(path.join(I18N, "hi", "index.js"))).default);
+const en = flatten((await import(pathToFileURL(path.join(I18N, "en", "index.js")).href)).default);
+const hi = flatten((await import(pathToFileURL(path.join(I18N, "hi", "index.js")).href)).default);
 
 const enKeys = new Set(Object.keys(en));
 const hiKeys = new Set(Object.keys(hi));

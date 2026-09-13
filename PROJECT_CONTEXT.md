@@ -35,8 +35,8 @@
                       v                                   v
 +---------------------------------------+  +--------------------------------------------+
 |     SUPABASE CLOUD DB 1 (Primary)     |  |    SUPABASE CLOUD DB 2 (Secondary Mirror)  |
-| Host: db.[REDACTED_PROJECT_1]...:5432 |  | Host: aws-0-ap-southeast-2.pooler...:5432  |
-| Rest: https://[REDACTED_PROJECT_1]... |  | Rest: https://uwxmqomlxxlzwgfgpbaq...     |
+| Host: Configured via .env             |  | Host: Configured via .env                  |
+| Rest: Configured via .env             |  | Rest: Configured via .env                  |
 | Status: 13 Live PostGIS Parcels       |  | Status: Synchronized & 0 Conflicts         |
 +---------------------------------------+  +--------------------------------------------+
 ```
@@ -60,9 +60,11 @@
 
 ---
 
-## 3. Database Credentials (Synchronized across both DBs)
-- **Primary Supabase**: `postgresql+asyncpg://postgres:[REDACTED]@db.[REDACTED_PROJECT_1].supabase.co:5432/postgres`
-- **Secondary Supabase**: `postgresql+asyncpg://postgres.uwxmqomlxxlzwgfgpbaq:[REDACTED]@aws-0-ap-southeast-2.pooler.supabase.com:5432/postgres`
+## 3. Database Configuration
+Database connections are securely configured via environment variables (refer to `.env.example`).
+- **Primary Database**: Configured via `DATABASE_URL` in `.env`
+- **Secondary Database**: Configured via environment variables for synchronization
+- **Local Fallback**: SQLite (`./bhuniti_local.db`) enabled by default when remote DB is offline.
 
 ---
 
