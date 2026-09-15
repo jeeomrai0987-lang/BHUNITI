@@ -14,6 +14,7 @@ import Features    from "./pages/main/Features";
 import Governance  from "./pages/main/Governance";
 import About       from "./pages/main/About";
 import Login       from "./pages/main/Login";
+import SignupCitizen from "./pages/main/SignupCitizen";
 
 // ── Citizen portal ───────────────────────────────────────────────────────────
 import CitizenPortal    from "./pages/citizen/Portal";
@@ -35,6 +36,7 @@ import AuditTrail            from "./pages/revenue/AuditTrail";
 
 // ── District Officer / Admin portal ─────────────────────────────────────────
 import AdminOverview          from "./pages/admin/Overview";
+import AdminAddOfficer        from "./pages/admin/AdminAddOfficer";
 import DistrictGis            from "./pages/admin/DistrictGis";
 import TehsilAnalytics        from "./pages/admin/TehsilAnalytics";
 import ReconciliationMonitor  from "./pages/admin/ReconciliationMonitor";
@@ -63,6 +65,7 @@ export default function App() {
         <Route path="governance"        element={<Governance />} />
         <Route path="about"             element={<About />} />
         <Route path="login"             element={<Login />} />
+        <Route path="signup"            element={<SignupCitizen />} />
       </Route>
 
       {/* ── Citizen portal (top-nav + footer, dashboard color theme) ───── */}
@@ -93,6 +96,7 @@ export default function App() {
       <Route path="administration" element={<AdminLayout />}>
         <Route index                         element={<AdminOverview />} />
         <Route path="overview"               element={<AdminOverview />} />
+        <Route path="add-officer"            element={<AdminAddOfficer />} />
         <Route path="district-gis"           element={<DistrictGis />} />
         <Route path="tehsil-analytics"       element={<TehsilAnalytics />} />
         <Route path="reconciliation-monitor" element={<ReconciliationMonitor />} />

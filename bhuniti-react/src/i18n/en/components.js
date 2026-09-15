@@ -48,6 +48,7 @@ const components = {
     discrepancyCases: "Discrepancy Cases",
     fieldSurveys: "Field Surveys",
     officerPerformance: "Officer Performance",
+    addOfficer: "Provision Officer",
     reports: "Reports",
     alerts: "Alerts",
     auditTrail: "Audit Trail",

@@ -18,6 +18,11 @@
     "error.empty_upload": "अपलोड की गई फ़ाइल खाली है",
     "error.unsupported_locale": "भाषा '{locale_code}' समर्थित नहीं है। उपलब्ध भाषाएँ: {available}",
     "error.database_unavailable": "अभिलेख डेटाबेस इस समय उपलब्ध नहीं है",
+    "error.otp_invalid": "अमान्य या समाप्त हो चुका ओटीपी कोड",
+    "error.otp_expired": "ओटीपी की समय सीमा समाप्त हो गई है। कृपया नया कोड माँगें",
+    "error.otp_max_attempts": "ओटीपी सत्यापन के अधिकतम प्रयास पूरे हो चुके हैं। कृपया नया कोड माँगें",
+    "message.otp_sent": "आपकी पंजीकृत ईमेल पर 6 अंकों का सत्यापन कोड भेज दिया गया है",
+
     "audit.mutation_action": "भूखंड {ulpin} पर नामांतरण {number} की स्थिति {status} की गई। टिप्पणी: {note}",
     "audit.mutation_note_default": "{actor} द्वारा '{action}' कार्रवाई दर्ज की गई।",
     "audit.discrepancy_resolved": "विसंगति प्रकरण {number} की स्थिति {status} की गई। टिप्पणी: {note}",

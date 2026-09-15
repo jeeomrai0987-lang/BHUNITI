@@ -34,6 +34,8 @@ import tehsilAnalytics from "./tehsilAnalytics.js";
 import reconciliationMonitor from "./reconciliationMonitor.js";
 import mutationMonitor from "./mutationMonitor.js";
 import officerPerformance from "./officerPerformance.js";
+import signup from "./signup.js";
+import adminAddOfficer from "./adminAddOfficer.js";
 
 const pages = {
   home,
@@ -43,6 +45,7 @@ const pages = {
   governance,
   about,
   login,
+  signup,
   citizenPortal,
   searchRecords,
   myApplications,
@@ -58,6 +61,7 @@ const pages = {
   reportsAnalytics,
   auditTrail,
   adminOverview,
+  adminAddOfficer,
   districtGis,
   tehsilAnalytics,
   reconciliationMonitor,

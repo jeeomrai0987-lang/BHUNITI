@@ -233,7 +233,20 @@ CREATE TABLE IF NOT EXISTS public.ref_translations (
     CONSTRAINT uq_ref_translation UNIQUE (entity_type, entity_key, locale)
 );
 
--- 14. INDEXES
+-- 14. OTP VERIFICATIONS (multi-factor officer authentication)
+CREATE TABLE IF NOT EXISTS public.otp_verifications (
+    id            VARCHAR(36) PRIMARY KEY,
+    user_id       VARCHAR(36) NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    otp_hash      VARCHAR(64) NOT NULL,
+    purpose       VARCHAR(32) NOT NULL DEFAULT 'login',
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at    TIMESTAMPTZ NOT NULL,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    max_attempts  INTEGER NOT NULL DEFAULT 5
+);
+
+-- 15. INDEXES
+
 CREATE UNIQUE INDEX IF NOT EXISTS ix_users_username ON public.users(username);
 CREATE UNIQUE INDEX IF NOT EXISTS ix_users_email    ON public.users(email);
 
@@ -486,6 +499,15 @@ CREATE POLICY "ref_translations_modify_policy" ON public.ref_translations
         (auth.jwt() ->> 'role') IN ('district_officer', 'admin', 'service_role')
         OR auth.role() = 'service_role'
     );
+
+-- Policies for public.otp_verifications
+CREATE POLICY "otp_verifications_all_policy" ON public.otp_verifications
+    FOR ALL USING (
+        (auth.jwt() ->> 'role') IN ('revenue_officer', 'district_officer', 'admin', 'service_role')
+        OR auth.role() = 'service_role'
+        OR auth.uid() IS NULL
+    );
+
 
 
 

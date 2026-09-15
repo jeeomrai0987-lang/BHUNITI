@@ -9,6 +9,7 @@ export const MAIN_ROUTES = {
   governance: "/governance",
   about: "/about",
   login: "/login",
+  signup: "/signup",
 };
 
 export const CITIZEN_ROUTES = {
@@ -38,6 +39,7 @@ export const ADMIN_ROUTES = {
   reconciliationMonitor: "/administration/reconciliation-monitor",
   mutationMonitor: "/administration/mutation-monitor",
   officerPerformance: "/administration/officer-performance",
+  addOfficer: "/administration/add-officer",
 };
 
 // The Digital Registry wizard. It arrived as its own app and keeps its own

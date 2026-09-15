@@ -1,5 +1,5 @@
 /*
- * English strings for src/pages/main/Login.jsx -- the unified login.
+ * English strings for src/pages/main/Login.jsx -- unified Citizen / Officer OTP login.
  *
  * Reached from a component as t("pages.login....").
  */
@@ -7,15 +7,12 @@
 const login = {
   hero: {
     badge: "National Infrastructure Initiative",
-    // The second half of the heading is printed in the accent colour, so it
-    // travels as a placeholder rather than as markup inside the sentence.
     heading: "Building a Trusted Digital Foundation for {{highlight}}",
     headingHighlight: "Land Governance",
     lede:
       "BHUNITI integrates land records, GIS, registration, mutation and historical data into one intelligent, parcel-centric governance platform.",
     access: "Access BHUNITI",
     howItWorks: "Explore How It Works",
-    // The four-word trust strip under the hero buttons.
     traits: {
       integrated: "Integrated",
       gis: "GIS-enabled",
@@ -25,58 +22,92 @@ const login = {
   },
 
   modal: {
-    identityTitle: "Secure Access to BHUNITI",
-    identitySubtitle: "Identity verification & RBAC access",
+    citizenTitle: "Citizen Portal Access",
+    citizenSubtitle: "Access land records, applications & services",
+    officerTitle: "Officer Portal Access",
+    officerSubtitle: "Secure role-based authentication & OTP verification",
     otpTitle: "Verify One-Time Password",
     otpSubtitle: "Multi-factor authentication",
     footer: "Secure Gov-ID access • 256-bit TLS encrypted",
   },
 
+  tabs: {
+    citizen: "Citizen",
+    officer: "Officer Login",
+  },
+
   steps: {
     label: "Sign-in progress",
-    identity: "1. Identity",
+    credentials: "1. Credentials",
     otp: "2. OTP",
   },
 
-  demo: {
-    label: "Demo:",
-    // The three quick-fill chips announce which role they load.
-    fill: "Fill the demo credentials for {{role}}",
+  identifierMode: {
+    username: "Username",
+    email: "Email",
+    mobile: "Mobile",
+  },
+
+  roles: {
+    revenueOfficer: "Revenue Officer",
+    districtOfficer: "District Officer / Admin",
   },
 
   identity: {
     username: "Official username",
     usernamePlaceholder: "e.g. citizen",
-    email: "Registered email ID",
-    emailPlaceholder: "e.g. citizen@bhuniti.gov.in",
-    mobile: "Registered mobile number",
-    mobilePlaceholder: "10-digit mobile number",
-    // The +91 prefix sits in its own box; it needs a name of its own so the
-    // number field is not announced as starting mid-sentence.
-    countryCode: "Country code +91",
-    submit: "Send Verification OTP",
+    email: "Registered email",
+    emailPlaceholder: "e.g. name@bhuniti.gov.in",
+    mobile: "Registered mobile",
+    mobilePlaceholder: "e.g. 9812345678",
+    password: "Password",
+    passwordPlaceholder: "Enter password",
+    roleSelectLabel: "Designated Role",
+    submitCitizen: "Sign In to Portal",
+    submitOfficer: "Send Verification OTP",
+    loggingIn: "Signing in…",
+    sendingOtp: "Sending OTP…",
   },
 
   otp: {
-    verifiedFor: "Identity verified for",
+    verifiedFor: "Authentication initiated for",
     sentTo: "A 6-digit verification code has been sent to",
-    maskedMobile: "+91 ******{{last4}}",
     label: "Enter 6-digit OTP",
-    demoHeading: "Demo mode",
-    demoHint: "Use OTP: {{otp}}",
     submit: "Verify OTP & Launch Portal",
     verifying: "Verifying…",
-    back: "← Change identity details",
+    back: "← Change credentials",
+    resend: "Resend OTP",
+    resendCooldown: "Resend OTP in {{seconds}}s",
+    resendSuccess: "A new OTP has been sent successfully.",
+  },
+
+  signupPrompt: "New Citizen?",
+  signupLink: "Register with Aadhaar & Mobile",
+
+  forcePasswordChange: {
+    badge: "First-Time Security Activation",
+    title: "Set Your New Password",
+    subtitle: "Your account requires a permanent password change before accessing the portal.",
+    currentPassword: "Temporary / Current Password",
+    currentPasswordPlaceholder: "Enter temporary password",
+    newPassword: "New Password (min 8 characters)",
+    newPasswordPlaceholder: "Enter new secure password",
+    confirmPassword: "Confirm New Password",
+    confirmPasswordPlaceholder: "Re-enter new password",
+    submit: "Update Password & Continue",
+    submitting: "Updating Password…",
   },
 
   errors: {
-    // Kept as validation copy only -- the demo credential check itself is
-    // unchanged.
-    incomplete: "Please enter your username, email ID and mobile number.",
-    email: "Please enter a valid email address.",
-    mobile: "Please enter a valid 10-digit mobile number.",
-    noMatch: "The username, email ID and mobile number do not match our records.",
-    otp: "Invalid OTP. Please enter the correct 6-digit OTP.",
+    incomplete: "Please enter your identifier and password.",
+    invalidEmail: "Please enter a valid email address.",
+    invalidMobile: "Please enter a valid 10-digit mobile number.",
+    otpIncomplete: "Please enter the 6-digit OTP code.",
+    invalidCredentials: "Invalid identifier or password.",
+    otpInvalid: "Invalid or expired OTP code.",
+    newPasswordShort: "New password must be at least 8 characters long.",
+    passwordsMismatch: "New passwords do not match.",
+    passwordChangeFailed: "Password update failed. Please verify your temporary password.",
   },
 };
 

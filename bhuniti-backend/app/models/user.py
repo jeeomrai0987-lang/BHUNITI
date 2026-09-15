@@ -25,9 +25,20 @@ class User(Base):
     preferred_locale = Column(String(5), nullable=False, default="en", server_default="en")
 
     is_active = Column(Boolean, default=True)
+    status = Column(String(50), default="active", nullable=False, server_default="active")
+    force_password_change = Column(Boolean, default=False, nullable=False, server_default="false")
+    
+    # Hashed government identification references (zero raw PII storage)
+    aadhaar_hash = Column(String(64), nullable=True, index=True)
+    aadhaar_last4 = Column(String(4), nullable=True)
+    gov_id_type = Column(String(50), nullable=True)
+    gov_id_hash = Column(String(64), nullable=True, index=True)
+    gov_id_last4 = Column(String(10), nullable=True)
+
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+

@@ -24,6 +24,8 @@ python-jose[cryptography]>=3.3.0,<4.0.0
 # dependency rather than something passlib happens to pull in.
 bcrypt>=4.1.0,<5.0.0
 passlib[bcrypt]>=1.7.4,<2.0.0
+slowapi>=0.1.10,<1.0.0
+
 
 # HTTP / uploads ------------------------------------------------------------
 python-multipart>=0.0.9,<1.0.0

@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { key: "discrepancyCases", icon: "warning", to: null },
   { key: "fieldSurveys", icon: "explore", to: null },
   { key: "officerPerformance", icon: "trending_up", to: ADMIN_ROUTES.officerPerformance },
+  { key: "addOfficer", icon: "person_add", to: ADMIN_ROUTES.addOfficer },
   { key: "reports", icon: "description", to: null },
   { key: "alerts", icon: "notifications_active", to: null },
   { key: "auditTrail", icon: "receipt_long", to: null },

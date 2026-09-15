@@ -46,6 +46,7 @@ const components = {
     discrepancyCases: "विसंगति प्रकरण",
     fieldSurveys: "क्षेत्र सर्वेक्षण",
     officerPerformance: "अधिकारी प्रदर्शन",
+    addOfficer: "अधिकारी जोड़ें",
     reports: "रिपोर्ट",
     alerts: "चेतावनियाँ",
     auditTrail: "अंकेक्षण अभिलेख",

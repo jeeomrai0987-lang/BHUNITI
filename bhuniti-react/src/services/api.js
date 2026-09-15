@@ -53,10 +53,10 @@ async function request(endpoint, options = {}) {
 export const api = {
   // Authentication & User Profile
   auth: {
-    login: async (username, password) => {
+    login: async (identifier, password) => {
       const data = await request("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ identifier, username: identifier, password }),
       });
       if (data.access_token) {
         localStorage.setItem("bhuniti_token", data.access_token);
@@ -64,6 +64,84 @@ export const api = {
       }
       return data;
     },
+    requestOtp: async (identifier, password, claimedRole) => {
+      return await request("/auth/request-otp", {
+        method: "POST",
+        body: JSON.stringify({
+          identifier,
+          username: identifier,
+          password,
+          claimed_role: claimedRole,
+        }),
+      });
+    },
+    verifyOtp: async (identifier, otp) => {
+      const data = await request("/auth/verify-otp", {
+        method: "POST",
+        body: JSON.stringify({ identifier, username: identifier, otp }),
+      });
+      if (data.access_token) {
+        localStorage.setItem("bhuniti_token", data.access_token);
+        localStorage.setItem("bhuniti_user", JSON.stringify(data));
+      }
+      return data;
+    },
+
+    signupStart: async (data) => {
+      return await request("/auth/signup/start", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    signupVerifyMobile: async (signupToken, otp) => {
+      return await request("/auth/signup/verify-mobile", {
+        method: "POST",
+        body: JSON.stringify({ signup_token: signupToken, otp }),
+      });
+    },
+    signupAadhaar: async (signupToken, aadhaarNumber) => {
+      return await request("/auth/signup/aadhaar", {
+        method: "POST",
+        body: JSON.stringify({ signup_token: signupToken, aadhaar_number: aadhaarNumber }),
+      });
+    },
+    signupVerifyAadhaar: async (signupToken, otp) => {
+      return await request("/auth/signup/verify-aadhaar", {
+        method: "POST",
+        body: JSON.stringify({ signup_token: signupToken, otp }),
+      });
+    },
+    signupComplete: async (signupToken, username, password, preferredLocale) => {
+      const data = await request("/auth/signup/complete", {
+        method: "POST",
+        body: JSON.stringify({
+          signup_token: signupToken,
+          username,
+          password,
+          preferred_locale: preferredLocale || "en",
+        }),
+      });
+      if (data.access_token) {
+        localStorage.setItem("bhuniti_token", data.access_token);
+        localStorage.setItem("bhuniti_user", JSON.stringify(data));
+      }
+      return data;
+    },
+    changePassword: async (currentPassword, newPassword) => {
+      const data = await request("/auth/change-password", {
+        method: "POST",
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+      if (data.access_token) {
+        localStorage.setItem("bhuniti_token", data.access_token);
+        localStorage.setItem("bhuniti_user", JSON.stringify(data));
+      }
+      return data;
+    },
+
     logout: () => {
       localStorage.removeItem("bhuniti_token");
       localStorage.removeItem("bhuniti_user");
@@ -77,6 +155,14 @@ export const api = {
         return null;
       }
     }
+  },
+
+  // Administration (District Officer / Admin)
+  admin: {
+    createOfficer: (data) => request("/admin/officers", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   },
 
   // Land Parcels & GIS

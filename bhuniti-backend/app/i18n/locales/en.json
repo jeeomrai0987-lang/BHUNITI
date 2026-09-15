@@ -18,6 +18,11 @@
     "error.empty_upload": "The uploaded file is empty",
     "error.unsupported_locale": "Language '{locale_code}' is not supported. Available languages: {available}",
     "error.database_unavailable": "The registry database is not reachable right now",
+    "error.otp_invalid": "Invalid or expired OTP code",
+    "error.otp_expired": "OTP has expired. Please request a new code",
+    "error.otp_max_attempts": "Maximum OTP verification attempts exceeded. Please request a new code",
+    "message.otp_sent": "A 6-digit verification code has been sent to your registered email",
+
     "audit.mutation_action": "Mutation {number} on parcel {ulpin} was marked as {status}. Note: {note}",
     "audit.mutation_note_default": "Action '{action}' recorded by {actor}.",
     "audit.discrepancy_resolved": "Discrepancy case {number} was set to {status}. Note: {note}",

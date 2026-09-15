@@ -8,18 +8,34 @@ from app.schemas.application import (
 )
 from app.schemas.audit import AuditLogResponse
 from app.schemas.auth import (
+    ChangePasswordRequest,
     LocalePreferenceRequest,
     LoginRequest,
+    RequestOtpRequest,
+    RequestOtpResponse,
+    SignupAadhaarRequest,
+    SignupAadhaarResponse,
+    SignupCompleteRequest,
+    SignupStartRequest,
+    SignupStartResponse,
+    SignupVerifyAadhaarRequest,
+    SignupVerifyAadhaarResponse,
+    SignupVerifyMobileRequest,
+    SignupVerifyMobileResponse,
     Token,
     TokenPayload,
     UserCreate,
     UserResponse,
+    VerifyOtpRequest,
 )
 from app.schemas.user import (
+    OfficerCreateRequest,
+    OfficerCreateResponse,
     UserAdminResponse,
     UserRoleUpdateRequest,
     UserStatusUpdateRequest,
 )
+
 from app.schemas.common import ChainVerification, PageMeta
 from app.schemas.discrepancy import (
     DiscrepancyBase,
@@ -59,12 +75,28 @@ __all__ = [
     "Token",
     "TokenPayload",
     "LoginRequest",
+    "RequestOtpRequest",
+    "RequestOtpResponse",
+    "VerifyOtpRequest",
+    "SignupStartRequest",
+    "SignupStartResponse",
+    "SignupVerifyMobileRequest",
+    "SignupVerifyMobileResponse",
+    "SignupAadhaarRequest",
+    "SignupAadhaarResponse",
+    "SignupVerifyAadhaarRequest",
+    "SignupVerifyAadhaarResponse",
+    "SignupCompleteRequest",
+    "ChangePasswordRequest",
     "LocalePreferenceRequest",
     "UserCreate",
     "UserResponse",
+    "OfficerCreateRequest",
+    "OfficerCreateResponse",
     "UserAdminResponse",
     "UserRoleUpdateRequest",
     "UserStatusUpdateRequest",
+
     "ParcelBase",
     "ParcelCreate",
     "ParcelResponse",

@@ -1,33 +1,13 @@
 /*
- * Unified login -- identity check, then OTP, then the portal.
+ * Unified login -- Citizen password login and Officer MFA OTP login.
  *
- * Ten defects were fixed while translating this screen. Only the copy and the
- * markup changed: the credential comparison, the token handling and the
- * redirect are exactly as they were, because "security & auth" was outside the
- * approved fix scope.
- *
- *  1. Every visible string was hard-coded English, including the three field
- *     placeholders and the five validation messages.
- *  2. The modal was a plain <div>: no role="dialog", no aria-modal, no name, so
- *     a screen reader never announced that a dialog had opened.
- *  3. The only way to dismiss it besides the close button was clicking the
- *     backdrop <div>, which no keyboard user can reach. Escape now closes it.
- *  4. The close button held nothing but a "close" ligature, so it announced
- *     itself as "close" or as nothing at all. It now carries an aria-label.
- *  5. Validation errors appeared silently -- no live region -- so a screen
- *     reader user pressed submit and heard nothing. Both are role="alert" now.
- *  6. The step strip was a loose pair of spans with no group name, and the
- *     progress bar was read out as an empty element.
- *  7. The role on the quick-fill chips and on the OTP confirmation was the raw
- *     English fixture value; it goes through label("actor_role", ...) now.
- *  8. The hero heading was split in two by an accent <span>, which left half a
- *     sentence in each fragment. It travels as one string with a placeholder.
- *  9. The "+91" prefix box was read as part of the mobile field's content.
- * 10. preferred_locale fell back to a hard-coded "en", so a Hindi user who
- *     signed in was stored as an English user.
+ * Architecture:
+ *  - Citizen tab: Username and password direct login.
+ *  - Officer tab: Role selection, username, password -> OTP request -> 6-digit OTP verification with resend cooldown.
+ *  - All styling strictly adheres to BHUNITI design system tokens (secondary emerald, surface containers, typography).
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   CITIZEN_ROUTES,
@@ -38,41 +18,6 @@ import {
 import { api } from "../../services/api";
 import InterpolatedText from "../../components/InterpolatedText";
 import { useI18n } from "../../i18n";
-
-/*
- * Demo credentials. `role` holds the English value the registry stores, which
- * is what goes into localStorage and what label("actor_role", ...) translates
- * for display.
- */
-const CREDENTIALS = [
-  {
-    username: "citizen",
-    email: "citizen@bhuniti.gov.in",
-    mobile: "9876543210",
-    otp: "123456",
-    redirect: CITIZEN_ROUTES.portal,
-    role: "Citizen",
-    tone: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100",
-  },
-  {
-    username: "revenue_officer",
-    email: "revenue@bhuniti.gov.in",
-    mobile: "9876543211",
-    otp: "234567",
-    redirect: REVENUE_ROUTES.overview,
-    role: "Revenue Officer",
-    tone: "bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100",
-  },
-  {
-    username: "district_officer",
-    email: "district@bhuniti.gov.in",
-    mobile: "9876543212",
-    otp: "345678",
-    redirect: ADMIN_ROUTES.overview,
-    role: "District Officer",
-    tone: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100",
-  },
-];
 
 const HERO_BACKDROP =
   "url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=2000')";
@@ -88,207 +33,267 @@ export default function Login() {
   const { t, label, locale } = useI18n();
   const p = (key, vars) => t(`pages.login.${key}`, vars);
 
+  // Tabs: "citizen" | "officer"
+  const [activeTab, setActiveTab] = useState("citizen");
+
+  // Identifier Mode: "username" | "email" | "mobile"
+  const [identifierMode, setIdentifierMode] = useState("username");
+
+  // Form Fields
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [mobile, setMobile] = useState("");
+  const [password, setPassword] = useState("");
+  const [officerRole, setOfficerRole] = useState("revenue_officer");
   const [otp, setOtp] = useState("");
+
+
+  // Officer OTP Flow State
+  const [step, setStep] = useState(1); // 1: Credentials, 2: OTP
+  const [maskedEmail, setMaskedEmail] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [demoOtpCode, setDemoOtpCode] = useState("");
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(true);
 
-  // Authentication stages
-  const [step, setStep] = useState(1);
+  // Forced Password Change Modal State
+  const [forcePasswordModalOpen, setForcePasswordModalOpen] = useState(false);
+  const [currentPasswordInput, setCurrentPasswordInput] = useState("");
+  const [newPasswordInput, setNewPasswordInput] = useState("");
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState("");
+  const [pendingRedirectUrl, setPendingRedirectUrl] = useState("");
+  const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
+  const [passwordChangeError, setPasswordChangeError] = useState("");
 
-  // Stores the matched user after verification
-  const [verifiedUser, setVerifiedUser] = useState(null);
+  const timerRef = useRef(null);
 
-  // Automatically pre-fill requested role credentials if navigated from switcher
+  // Sync role parameter from navigation
   useEffect(() => {
     if (requestedRole) {
-      const match = CREDENTIALS.find(
-        (c) =>
-          c.username.toLowerCase() === requestedRole.toLowerCase() ||
-          c.role.toLowerCase().includes(requestedRole.toLowerCase())
-      );
-      if (match) {
-        setUsername(match.username);
-        setEmail(match.email);
-        setMobile(match.mobile);
-        setOtp("");
-        setError("");
+      const lower = requestedRole.toLowerCase();
+      if (lower.includes("revenue")) {
+        setActiveTab("officer");
+        setOfficerRole("revenue_officer");
+        setUsername("revenue_officer");
         setStep(1);
-        setVerifiedUser(null);
+        setModalOpen(true);
+      } else if (lower.includes("admin") || lower.includes("district")) {
+        setActiveTab("officer");
+        setOfficerRole("district_officer");
+        setUsername("district_officer");
+        setStep(1);
+        setModalOpen(true);
+      } else if (lower.includes("citizen")) {
+        setActiveTab("citizen");
+        setUsername("citizen");
+        setStep(1);
         setModalOpen(true);
       }
     }
   }, [requestedRole]);
 
-  /*
-   * Escape closes the dialog. The backdrop keeps its click handler as a mouse
-   * convenience, but it is no longer the only way out.
-   */
+  // Resend OTP countdown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      timerRef.current = setTimeout(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [resendCooldown]);
+
+  // Escape key closes modal
   useEffect(() => {
     if (!modalOpen) return undefined;
     function handleKeyDown(event) {
-      if (event.key === "Escape") setModalOpen(false);
+      if (event.key === "Escape" && !forcePasswordModalOpen) setModalOpen(false);
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [modalOpen]);
+  }, [modalOpen, forcePasswordModalOpen]);
+
+  function validateIdentifier(value, mode) {
+    const clean = value.trim();
+    if (!clean) return p("errors.incomplete");
+    if (mode === "email") {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(clean)) return p("errors.invalidEmail");
+    } else if (mode === "mobile") {
+      const digits = clean.replace(/\D/g, "");
+      if (digits.length < 10) return p("errors.invalidMobile");
+    }
+    return "";
+  }
 
   /*
-   * STEP 1
-   * Verify username, email and mobile number
+   * Handle Citizen Direct Password Login
    */
-  function handleIdentityVerification(e) {
+  async function handleCitizenLogin(e) {
     e.preventDefault();
     setError("");
 
-    const cleanUsername = username.trim().toLowerCase();
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanMobile = mobile.trim();
+    const cleanIdentifier = username.trim();
+    const cleanPassword = password.trim();
 
-    if (!cleanUsername || !cleanEmail || !cleanMobile) {
+    if (!cleanIdentifier || !cleanPassword) {
       setError(p("errors.incomplete"));
       return;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setError(p("errors.email"));
+    const valErr = validateIdentifier(cleanIdentifier, identifierMode);
+    if (valErr) {
+      setError(valErr);
       return;
     }
 
-    if (!/^\d{10}$/.test(cleanMobile)) {
-      setError(p("errors.mobile"));
-      return;
-    }
-
-    const match = CREDENTIALS.find(
-      (c) =>
-        c.username === cleanUsername &&
-        c.email === cleanEmail &&
-        c.mobile === cleanMobile
-    );
-
-    if (!match) {
-      setError(p("errors.noMatch"));
-      return;
-    }
-
-    setVerifiedUser(match);
-    setOtp("");
-    setStep(2);
-  }
-
-  /*
-   * STEP 2
-   * Verify OTP and launch appropriate portal
-   */
-  async function handleOtpVerification(e) {
-    e.preventDefault();
-    setError("");
     setLoading(true);
-
     try {
-      /*
-       * Try real backend authentication first.
-       * If backend supports OTP authentication, it can be
-       * connected here later.
-       */
-      try {
-        const res = await api.auth.login(
-          verifiedUser.username,
-          verifiedUser.otp
-        );
-
-        if (res && res.redirect_url) {
-          localStorage.setItem(
-            "bhuniti_user",
-            JSON.stringify({
-              role: res.role || verifiedUser.role,
-              username: res.username || verifiedUser.username,
-              full_name: res.full_name || verifiedUser.username,
-              email: verifiedUser.email,
-              mobile: verifiedUser.mobile,
-              /*
-               * The account's stored preference wins; otherwise the language
-               * the person is actually reading the site in, which used to be
-               * hard-coded to English.
-               */
-              preferred_locale: res.preferred_locale || locale,
-              authenticated: true,
-            })
-          );
-
-          /*
-           * The API field is access_token (res.token was always undefined, so
-           * the token silently never made it to localStorage from here).
-           */
-          if (res.access_token) {
-            localStorage.setItem("bhuniti_token", res.access_token);
-          }
-
-          navigate(res.redirect_url);
-          return;
-        }
-      } catch {
-        // Backend unreachable: fall through to the offline demo OTP check below.
-      }
-
-      /*
-       * DEMO OTP AUTHENTICATION
-       */
-      if (otp.trim() !== verifiedUser.otp) {
-        setError(p("errors.otp"));
+      const res = await api.auth.login(cleanIdentifier, cleanPassword);
+      if (res && res.force_password_change) {
+        setCurrentPasswordInput(cleanPassword);
+        setPendingRedirectUrl(res.redirect_url || CITIZEN_ROUTES.portal);
+        setForcePasswordModalOpen(true);
         return;
       }
-
-      // Save demo authentication information
-      localStorage.setItem(
-        "bhuniti_token",
-        "secure-demo-token-" + verifiedUser.username
-      );
-
-      localStorage.setItem(
-        "bhuniti_user",
-        JSON.stringify({
-          role: verifiedUser.role,
-          username: verifiedUser.username,
-          email: verifiedUser.email,
-          mobile: verifiedUser.mobile,
-          preferred_locale: locale,
-          authenticated: true,
-        })
-      );
-
-      // Launch appropriate dashboard
-      navigate(verifiedUser.redirect);
+      if (res && res.redirect_url) {
+        navigate(res.redirect_url);
+      } else {
+        navigate(CITIZEN_ROUTES.portal);
+      }
+    } catch (err) {
+      setError(err.message || p("errors.invalidCredentials"));
     } finally {
       setLoading(false);
     }
   }
 
   /*
-   * Quick Role Fill
+   * Handle Officer Request OTP (Step 1)
    */
-  function quickFill(user) {
-    setUsername(user.username);
-    setEmail(user.email);
-    setMobile(user.mobile);
-    setOtp("");
+  async function handleOfficerRequestOtp(e) {
+    if (e) e.preventDefault();
     setError("");
-    setStep(1);
-    setVerifiedUser(null);
+    setResendSuccess(false);
+
+    const cleanIdentifier = username.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanIdentifier || !cleanPassword) {
+      setError(p("errors.incomplete"));
+      return;
+    }
+
+    const valErr = validateIdentifier(cleanIdentifier, identifierMode);
+    if (valErr) {
+      setError(valErr);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await api.auth.requestOtp(cleanIdentifier, cleanPassword, officerRole);
+      setMaskedEmail(res.masked_email || "registered email");
+      if (res.otp_code) {
+        setDemoOtpCode(res.otp_code);
+      }
+      setStep(2);
+      setOtp("");
+      setResendCooldown(45); // 45-second cooldown
+      if (!e) setResendSuccess(true);
+    } catch (err) {
+      setError(err.message || p("errors.invalidCredentials"));
+    } finally {
+      setLoading(false);
+    }
   }
 
   /*
-   * Go back from OTP screen
+   * Handle Officer Verify OTP (Step 2)
    */
-  function goBackToIdentity() {
+  async function handleOfficerVerifyOtp(e) {
+    e.preventDefault();
+    setError("");
+
+    const cleanOtp = otp.trim();
+    if (cleanOtp.length !== 6) {
+      setError(p("errors.otpIncomplete"));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await api.auth.verifyOtp(username.trim(), cleanOtp);
+      const defaultTarget =
+        officerRole === "district_officer"
+          ? ADMIN_ROUTES.overview
+          : REVENUE_ROUTES.overview;
+      const targetUrl = res.redirect_url || defaultTarget;
+
+      if (res && res.force_password_change) {
+        setCurrentPasswordInput(password.trim());
+        setPendingRedirectUrl(targetUrl);
+        setForcePasswordModalOpen(true);
+        return;
+      }
+
+      navigate(targetUrl);
+    } catch (err) {
+      setError(err.message || p("errors.otpInvalid"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /*
+   * Handle Forced Password Change on First Login
+   */
+  async function handleForcePasswordChange(e) {
+    e.preventDefault();
+    setPasswordChangeError("");
+
+    if (!currentPasswordInput) {
+      setPasswordChangeError(p("errors.incomplete"));
+      return;
+    }
+    if (newPasswordInput.length < 8) {
+      setPasswordChangeError(p("errors.newPasswordShort"));
+      return;
+    }
+    if (newPasswordInput !== confirmPasswordInput) {
+      setPasswordChangeError(p("errors.passwordsMismatch"));
+      return;
+    }
+
+    setPasswordChangeLoading(true);
+    try {
+      const res = await api.auth.changePassword(currentPasswordInput, newPasswordInput);
+      setForcePasswordModalOpen(false);
+      navigate(pendingRedirectUrl || res.redirect_url || CITIZEN_ROUTES.portal);
+    } catch (err) {
+      setPasswordChangeError(err.message || p("errors.passwordChangeFailed"));
+    } finally {
+      setPasswordChangeLoading(false);
+    }
+  }
+
+  function handleTabChange(tab) {
+    setActiveTab(tab);
+    setError("");
+    setPassword("");
+    setOtp("");
+    setStep(1);
+    setResendSuccess(false);
+    setIdentifierMode("username");
+  }
+
+  function goBackToCredentials() {
     setStep(1);
     setOtp("");
     setError("");
+    setResendSuccess(false);
   }
 
   return (
@@ -298,7 +303,6 @@ export default function Login() {
         {/* Hero section */}
         <section className="relative w-full min-h-[90vh] flex items-center justify-center -mt-20 pt-20 overflow-hidden bg-surface">
 
-          {/* Both layers are wallpaper; neither carries information. */}
           <div
             aria-hidden="true"
             className="absolute inset-0 z-0"
@@ -328,7 +332,6 @@ export default function Login() {
 
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-container-highest rounded-full w-fit">
                 <span aria-hidden="true" className="w-2 h-2 rounded-full bg-status-success" />
-
                 <span className="font-label-caps text-on-surface uppercase tracking-wider text-[10px]">
                   {p("hero.badge")}
                 </span>
@@ -351,7 +354,6 @@ export default function Login() {
               </p>
 
               <div className="flex flex-wrap items-center gap-4 mt-4">
-
                 <button
                   type="button"
                   onClick={() => {
@@ -370,19 +372,15 @@ export default function Login() {
                 >
                   {p("hero.howItWorks")}
                 </button>
-
               </div>
 
               <div className="mt-4 flex items-center gap-4 text-on-surface font-label-caps text-[11px] uppercase tracking-wider font-semibold">
                 <span>{p("hero.traits.integrated")}</span>
                 <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-
                 <span>{p("hero.traits.gis")}</span>
                 <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-
                 <span>{p("hero.traits.ai")}</span>
                 <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-
                 <span>{p("hero.traits.auditable")}</span>
               </div>
 
@@ -395,7 +393,6 @@ export default function Login() {
       {modalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
 
-          {/* Backdrop: a mouse shortcut, hidden from assistive tech. */}
           <div
             aria-hidden="true"
             className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm cursor-pointer"
@@ -405,33 +402,46 @@ export default function Login() {
           <div
             role="dialog"
             aria-modal="true"
-            aria-label={step === 1 ? p("modal.identityTitle") : p("modal.otpTitle")}
+            aria-label={
+              activeTab === "citizen"
+                ? p("modal.citizenTitle")
+                : step === 1
+                ? p("modal.officerTitle")
+                : p("modal.otpTitle")
+            }
             className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-border-subtle overflow-hidden animate-scaleUp text-on-surface"
           >
 
             {/* Modal Header */}
             <div className="p-6 border-b border-border-subtle flex justify-between items-center bg-surface-container-lowest">
-
               <div className="flex items-center gap-3">
-
                 <div className="w-10 h-10 bg-secondary/10 text-secondary rounded-xl flex items-center justify-center">
                   <span aria-hidden="true" className="material-symbols-outlined text-[24px]">
-                    {step === 1 ? "verified_user" : "sms"}
+                    {activeTab === "citizen"
+                      ? "person"
+                      : step === 1
+                      ? "admin_panel_settings"
+                      : "sms"}
                   </span>
                 </div>
 
                 <div>
                   <h2 className="font-display text-xl font-bold text-on-surface">
-                    {step === 1 ? p("modal.identityTitle") : p("modal.otpTitle")}
+                    {activeTab === "citizen"
+                      ? p("modal.citizenTitle")
+                      : step === 1
+                      ? p("modal.officerTitle")
+                      : p("modal.otpTitle")}
                   </h2>
 
                   <p className="text-xs text-on-surface-variant">
-                    {step === 1
-                      ? p("modal.identitySubtitle")
+                    {activeTab === "citizen"
+                      ? p("modal.citizenSubtitle")
+                      : step === 1
+                      ? p("modal.officerSubtitle")
                       : p("modal.otpSubtitle")}
                   </p>
                 </div>
-
               </div>
 
               <button
@@ -444,211 +454,483 @@ export default function Login() {
                   close
                 </span>
               </button>
-
             </div>
 
-            {/* SECURITY PROGRESS */}
-            <div className="px-6 pt-5">
-
-              <div
-                role="group"
-                aria-label={p("steps.label")}
-                className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider"
-              >
-
-                <span
-                  aria-current={step === 1 ? "step" : undefined}
-                  className={step >= 1 ? "text-secondary" : "text-on-surface-variant"}
-                >
-                  {p("steps.identity")}
-                </span>
-
-                <div
-                  aria-hidden="true"
-                  className="flex-1 h-1 mx-3 bg-surface-container rounded-full overflow-hidden"
-                >
-                  <div
-                    className="h-full bg-secondary transition-all duration-500"
-                    style={{ width: step === 1 ? "50%" : "100%" }}
-                  />
-                </div>
-
-                <span
-                  aria-current={step === 2 ? "step" : undefined}
-                  className={step >= 2 ? "text-secondary" : "text-on-surface-variant"}
-                >
-                  {p("steps.otp")}
-                </span>
-
-              </div>
-
-            </div>
-
-            {/* STEP 1 */}
+            {/* TAB SELECTOR */}
             {step === 1 && (
-              <>
-
-                {/* Quick Role Fill */}
-                <div className="px-6 pt-5 flex items-center gap-2 overflow-x-auto">
-
-                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
-                    {p("demo.label")}
+              <div
+                role="tablist"
+                aria-label="Login Mode"
+                className="grid grid-cols-2 border-b border-border-subtle bg-surface-container-lowest"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  id="tab-citizen"
+                  aria-selected={activeTab === "citizen"}
+                  aria-controls="panel-citizen"
+                  onClick={() => handleTabChange("citizen")}
+                  className={`py-3.5 px-4 font-label-caps text-xs font-bold transition-all border-b-2 flex items-center justify-center gap-2 cursor-pointer ${
+                    activeTab === "citizen"
+                      ? "border-secondary text-secondary bg-white shadow-sm"
+                      : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+                  }`}
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                    person
                   </span>
+                  {p("tabs.citizen")}
+                </button>
 
-                  {CREDENTIALS.map((credential) => {
-                    const roleName = label("actor_role", credential.role);
-                    return (
-                      <button
-                        key={credential.username}
-                        type="button"
-                        onClick={() => quickFill(credential)}
-                        aria-label={p("demo.fill", { role: roleName })}
-                        className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-colors whitespace-nowrap ${credential.tone}`}
-                      >
-                        {roleName}
-                      </button>
-                    );
-                  })}
-
-                </div>
-
-                {/* Identity Form */}
-                <div className="p-6">
-
-                  <form
-                    className="flex flex-col gap-4"
-                    onSubmit={handleIdentityVerification}
-                  >
-
-                    {/* Username */}
-                    <div className="flex flex-col gap-1.5">
-
-                      <label
-                        className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
-                        htmlFor="username"
-                      >
-                        {p("identity.username")}
-                      </label>
-
-                      <input
-                        id="username"
-                        type="text"
-                        autoComplete="username"
-                        placeholder={p("identity.usernamePlaceholder")}
-                        value={username}
-                        onChange={(e) => {
-                          setUsername(e.target.value);
-                          setError("");
-                        }}
-                        className={FIELD_CLASS}
-                      />
-
-                    </div>
-
-                    {/* Email */}
-                    <div className="flex flex-col gap-1.5">
-
-                      <label
-                        className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
-                        htmlFor="email"
-                      >
-                        {t("common.fields.email")}
-                      </label>
-
-                      <input
-                        id="email"
-                        type="email"
-                        autoComplete="email"
-                        placeholder={p("identity.emailPlaceholder")}
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          setError("");
-                        }}
-                        className={FIELD_CLASS}
-                      />
-
-                    </div>
-
-                    {/* Mobile */}
-                    <div className="flex flex-col gap-1.5">
-
-                      <label
-                        className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
-                        htmlFor="mobile"
-                      >
-                        {p("identity.mobile")}
-                        {/* The +91 box is decorative, so the code is announced here. */}
-                        <span className="sr-only"> — {p("identity.countryCode")}</span>
-                      </label>
-
-                      <div className="flex">
-
-                        <span
-                          aria-hidden="true"
-                          className="flex items-center px-3 bg-surface-container-lowest border border-r-0 border-border-subtle rounded-l-xl text-sm font-semibold"
-                        >
-                          +91
-                        </span>
-
-                        <input
-                          id="mobile"
-                          type="tel"
-                          inputMode="numeric"
-                          maxLength={10}
-                          autoComplete="tel"
-                          placeholder={p("identity.mobilePlaceholder")}
-                          value={mobile}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, "");
-                            setMobile(value);
-                            setError("");
-                          }}
-                          className="w-full px-4 py-3 rounded-r-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
-                        />
-
-                      </div>
-
-                    </div>
-
-                    {/* Error */}
-                    {error && (
-                      <p
-                        role="alert"
-                        className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5"
-                      >
-                        <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
-                          error
-                        </span>
-                        {error}
-                      </p>
-                    )}
-
-                    {/* Continue */}
-                    <button
-                      type="submit"
-                      className="w-full py-3.5 bg-secondary hover:bg-secondary-container text-on-primary font-bold text-sm rounded-xl transition-all shadow-md mt-2 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
-                        send
-                      </span>
-                      {p("identity.submit")}
-                    </button>
-
-                  </form>
-
-                </div>
-              </>
+                <button
+                  type="button"
+                  role="tab"
+                  id="tab-officer"
+                  aria-selected={activeTab === "officer"}
+                  aria-controls="panel-officer"
+                  onClick={() => handleTabChange("officer")}
+                  className={`py-3.5 px-4 font-label-caps text-xs font-bold transition-all border-b-2 flex items-center justify-center gap-2 cursor-pointer ${
+                    activeTab === "officer"
+                      ? "border-secondary text-secondary bg-white shadow-sm"
+                      : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container"
+                  }`}
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                    shield_person
+                  </span>
+                  {p("tabs.officer")}
+                </button>
+              </div>
             )}
 
-            {/* STEP 2 - OTP */}
-            {step === 2 && verifiedUser && (
+            {/* OFFICER STEP PROGRESS */}
+            {activeTab === "officer" && (
+              <div className="px-6 pt-5">
+                <div
+                  role="group"
+                  aria-label={p("steps.label")}
+                  className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider"
+                >
+                  <span
+                    aria-current={step === 1 ? "step" : undefined}
+                    className={step >= 1 ? "text-secondary" : "text-on-surface-variant"}
+                  >
+                    {p("steps.credentials")}
+                  </span>
+
+                  <div
+                    aria-hidden="true"
+                    className="flex-1 h-1 mx-3 bg-surface-container rounded-full overflow-hidden"
+                  >
+                    <div
+                      className="h-full bg-secondary transition-all duration-500"
+                      style={{ width: step === 1 ? "50%" : "100%" }}
+                    />
+                  </div>
+
+                  <span
+                    aria-current={step === 2 ? "step" : undefined}
+                    className={step >= 2 ? "text-secondary" : "text-on-surface-variant"}
+                  >
+                    {p("steps.otp")}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 1: CITIZEN LOGIN */}
+            {activeTab === "citizen" && (
+              <div id="panel-citizen" role="tabpanel" aria-labelledby="tab-citizen" className="p-6">
+                <form className="flex flex-col gap-4" onSubmit={handleCitizenLogin}>
+
+                  {/* Identifier Type Selector & Input */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <label
+                        className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
+                        htmlFor="citizen-username"
+                      >
+                        {identifierMode === "email"
+                          ? p("identity.email")
+                          : identifierMode === "mobile"
+                          ? p("identity.mobile")
+                          : p("identity.username")}
+                      </label>
+                    </div>
+
+                    {/* Segmented Control */}
+                    <div
+                      role="radiogroup"
+                      aria-label="Identifier Type"
+                      className="grid grid-cols-3 p-1 bg-surface-container rounded-xl border border-border-subtle text-xs font-semibold mb-1"
+                    >
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={identifierMode === "username"}
+                        onClick={() => {
+                          setIdentifierMode("username");
+                          setError("");
+                        }}
+                        className={`py-1.5 px-2 rounded-lg transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                          identifierMode === "username"
+                            ? "bg-white text-secondary shadow-sm font-bold"
+                            : "text-on-surface-variant hover:text-on-surface"
+                        }`}
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-[15px]">
+                          account_circle
+                        </span>
+                        {p("identifierMode.username")}
+                      </button>
+
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={identifierMode === "email"}
+                        onClick={() => {
+                          setIdentifierMode("email");
+                          setError("");
+                        }}
+                        className={`py-1.5 px-2 rounded-lg transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                          identifierMode === "email"
+                            ? "bg-white text-secondary shadow-sm font-bold"
+                            : "text-on-surface-variant hover:text-on-surface"
+                        }`}
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-[15px]">
+                          mail
+                        </span>
+                        {p("identifierMode.email")}
+                      </button>
+
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={identifierMode === "mobile"}
+                        onClick={() => {
+                          setIdentifierMode("mobile");
+                          setError("");
+                        }}
+                        className={`py-1.5 px-2 rounded-lg transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                          identifierMode === "mobile"
+                            ? "bg-white text-secondary shadow-sm font-bold"
+                            : "text-on-surface-variant hover:text-on-surface"
+                        }`}
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-[15px]">
+                          phone_iphone
+                        </span>
+                        {p("identifierMode.mobile")}
+                      </button>
+                    </div>
+
+                    <input
+                      id="citizen-username"
+                      type={identifierMode === "email" ? "email" : "text"}
+                      inputMode={
+                        identifierMode === "email"
+                          ? "email"
+                          : identifierMode === "mobile"
+                          ? "tel"
+                          : "text"
+                      }
+                      autoComplete={identifierMode === "email" ? "email" : "username"}
+                      placeholder={
+                        identifierMode === "email"
+                          ? p("identity.emailPlaceholder")
+                          : identifierMode === "mobile"
+                          ? p("identity.mobilePlaceholder")
+                          : p("identity.usernamePlaceholder")
+                      }
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setError("");
+                      }}
+                      className={FIELD_CLASS}
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
+                      htmlFor="citizen-password"
+                    >
+                      {p("identity.password")}
+                    </label>
+                    <input
+                      id="citizen-password"
+                      type="password"
+                      autoComplete="current-password"
+                      placeholder={p("identity.passwordPlaceholder")}
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setError("");
+                      }}
+                      className={FIELD_CLASS}
+                    />
+                  </div>
+
+                  {/* Error Alert */}
+                  {error && (
+                    <p
+                      role="alert"
+                      className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5"
+                    >
+                      <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+                        error
+                      </span>
+                      {error}
+                    </p>
+                  )}
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 bg-secondary hover:bg-secondary-container text-on-primary font-bold text-sm rounded-xl transition-all shadow-md mt-2 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        <span aria-hidden="true" className="material-symbols-outlined animate-spin text-[18px]">
+                          progress_activity
+                        </span>
+                        {p("identity.loggingIn")}
+                      </>
+                    ) : (
+                      <>
+                        <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                          login
+                        </span>
+                        {p("identity.submitCitizen")}
+                      </>
+                    )}
+                  </button>
+
+                  {/* Citizen Self-Signup Link */}
+                  <div className="pt-2 text-center text-xs text-on-surface-variant flex items-center justify-center gap-1.5">
+                    <span>{p("signupPrompt")}</span>
+                    <button
+                      type="button"
+                      onClick={() => navigate(MAIN_ROUTES.signup)}
+                      className="text-secondary font-bold hover:underline cursor-pointer"
+                    >
+                      {p("signupLink")}
+                    </button>
+                  </div>
+
+                </form>
+              </div>
+            )}
+
+            {/* TAB 2: OFFICER LOGIN - STEP 1 (Credentials & Role Selector) */}
+            {activeTab === "officer" && step === 1 && (
+              <div id="panel-officer" role="tabpanel" aria-labelledby="tab-officer" className="p-6">
+                <form className="flex flex-col gap-4" onSubmit={handleOfficerRequestOtp}>
+
+                  {/* Role Selector */}
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
+                      htmlFor="officer-role"
+                    >
+                      {p("identity.roleSelectLabel")}
+                    </label>
+                    <select
+                      id="officer-role"
+                      value={officerRole}
+                      onChange={(e) => {
+                        setOfficerRole(e.target.value);
+                        setError("");
+                      }}
+                      className={`${FIELD_CLASS} cursor-pointer font-semibold`}
+                    >
+                      <option value="revenue_officer">{p("roles.revenueOfficer")}</option>
+                      <option value="district_officer">{p("roles.districtOfficer")}</option>
+                    </select>
+                  </div>
+
+                  {/* Identifier Type Selector & Input */}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <label
+                        className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
+                        htmlFor="officer-username"
+                      >
+                        {identifierMode === "email"
+                          ? p("identity.email")
+                          : identifierMode === "mobile"
+                          ? p("identity.mobile")
+                          : p("identity.username")}
+                      </label>
+                    </div>
+
+                    {/* Segmented Control */}
+                    <div
+                      role="radiogroup"
+                      aria-label="Officer Identifier Type"
+                      className="grid grid-cols-3 p-1 bg-surface-container rounded-xl border border-border-subtle text-xs font-semibold mb-1"
+                    >
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={identifierMode === "username"}
+                        onClick={() => {
+                          setIdentifierMode("username");
+                          setError("");
+                        }}
+                        className={`py-1.5 px-2 rounded-lg transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                          identifierMode === "username"
+                            ? "bg-white text-secondary shadow-sm font-bold"
+                            : "text-on-surface-variant hover:text-on-surface"
+                        }`}
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-[15px]">
+                          account_circle
+                        </span>
+                        {p("identifierMode.username")}
+                      </button>
+
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={identifierMode === "email"}
+                        onClick={() => {
+                          setIdentifierMode("email");
+                          setError("");
+                        }}
+                        className={`py-1.5 px-2 rounded-lg transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                          identifierMode === "email"
+                            ? "bg-white text-secondary shadow-sm font-bold"
+                            : "text-on-surface-variant hover:text-on-surface"
+                        }`}
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-[15px]">
+                          mail
+                        </span>
+                        {p("identifierMode.email")}
+                      </button>
+
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={identifierMode === "mobile"}
+                        onClick={() => {
+                          setIdentifierMode("mobile");
+                          setError("");
+                        }}
+                        className={`py-1.5 px-2 rounded-lg transition-all text-center flex items-center justify-center gap-1 cursor-pointer ${
+                          identifierMode === "mobile"
+                            ? "bg-white text-secondary shadow-sm font-bold"
+                            : "text-on-surface-variant hover:text-on-surface"
+                        }`}
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-[15px]">
+                          phone_iphone
+                        </span>
+                        {p("identifierMode.mobile")}
+                      </button>
+                    </div>
+
+                    <input
+                      id="officer-username"
+                      type={identifierMode === "email" ? "email" : "text"}
+                      inputMode={
+                        identifierMode === "email"
+                          ? "email"
+                          : identifierMode === "mobile"
+                          ? "tel"
+                          : "text"
+                      }
+                      autoComplete={identifierMode === "email" ? "email" : "username"}
+                      placeholder={
+                        identifierMode === "email"
+                          ? p("identity.emailPlaceholder")
+                          : identifierMode === "mobile"
+                          ? p("identity.mobilePlaceholder")
+                          : p("identity.usernamePlaceholder")
+                      }
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setError("");
+                      }}
+                      className={FIELD_CLASS}
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div className="flex flex-col gap-1.5">
+                    <label
+                      className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
+                      htmlFor="officer-password"
+                    >
+                      {p("identity.password")}
+                    </label>
+                    <input
+                      id="officer-password"
+                      type="password"
+                      autoComplete="current-password"
+                      placeholder={p("identity.passwordPlaceholder")}
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setError("");
+                      }}
+                      className={FIELD_CLASS}
+                    />
+                  </div>
+
+                  {/* Error Alert */}
+                  {error && (
+                    <p
+                      role="alert"
+                      className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5"
+                    >
+                      <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+                        error
+                      </span>
+                      {error}
+                    </p>
+                  )}
+
+                  {/* Request OTP Button */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 bg-secondary hover:bg-secondary-container text-on-primary font-bold text-sm rounded-xl transition-all shadow-md mt-2 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <>
+                        <span aria-hidden="true" className="material-symbols-outlined animate-spin text-[18px]">
+                          progress_activity
+                        </span>
+                        {p("identity.sendingOtp")}
+                      </>
+                    ) : (
+                      <>
+                        <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                          send
+                        </span>
+                        {p("identity.submitOfficer")}
+                      </>
+                    )}
+                  </button>
+
+                </form>
+              </div>
+            )}
+
+            {/* TAB 2: OFFICER LOGIN - STEP 2 (OTP Entry & Resend Cooldown) */}
+            {activeTab === "officer" && step === 2 && (
               <div className="p-6">
 
+                {/* Verified Header Notice */}
                 <div className="bg-secondary/5 border border-secondary/10 rounded-xl p-4 mb-5">
-
                   <div className="flex items-center gap-3">
-
                     <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
                       <span aria-hidden="true" className="material-symbols-outlined text-secondary">
                         verified
@@ -656,54 +938,58 @@ export default function Login() {
                     </div>
 
                     <div>
-
                       <p className="text-xs text-on-surface-variant">
                         {p("otp.verifiedFor")}
                       </p>
-
                       <p className="font-bold text-sm">
-                        {label("actor_role", verifiedUser.role)}
+                        {officerRole === "district_officer"
+                          ? p("roles.districtOfficer")
+                          : p("roles.revenueOfficer")}
                       </p>
-
                     </div>
-
                   </div>
-
                 </div>
 
-                <form
-                  className="flex flex-col gap-4"
-                  onSubmit={handleOtpVerification}
-                >
+                <form className="flex flex-col gap-4" onSubmit={handleOfficerVerifyOtp}>
 
                   <div className="text-center">
-
                     <p className="text-sm text-on-surface-variant">
                       {p("otp.sentTo")}
                     </p>
-
-                    <p className="font-bold text-sm mt-1">
-                      {p("otp.maskedMobile", { last4: verifiedUser.mobile.slice(-4) })}
+                    <p className="font-bold text-sm mt-1 text-secondary">
+                      {maskedEmail}
                     </p>
-
-                    <p className="text-xs text-on-surface-variant mt-1">
-                      {verifiedUser.email}
-                    </p>
-
                   </div>
 
-                  {/* OTP */}
-                  <div className="flex flex-col gap-1.5">
+                  {demoOtpCode && (
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-xs text-amber-800">
+                      <div className="flex items-center gap-1.5">
+                        <span aria-hidden="true" className="material-symbols-outlined text-amber-600 text-[18px]">
+                          bolt
+                        </span>
+                        <span>Demo OTP: <strong className="tracking-widest font-mono text-sm">{demoOtpCode}</strong></span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setOtp(demoOtpCode)}
+                        className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg text-[11px] cursor-pointer"
+                      >
+                        Auto-fill
+                      </button>
+                    </div>
+                  )}
 
+                  {/* OTP Digits Input */}
+                  <div className="flex flex-col gap-1.5">
                     <label
                       className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider text-center"
-                      htmlFor="otp"
+                      htmlFor="officer-otp"
                     >
                       {p("otp.label")}
                     </label>
 
                     <input
-                      id="otp"
+                      id="officer-otp"
                       type="text"
                       inputMode="numeric"
                       autoComplete="one-time-code"
@@ -717,41 +1003,39 @@ export default function Login() {
                       }}
                       className="w-full px-4 py-4 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors text-center text-2xl tracking-[0.6em] font-bold text-on-surface"
                     />
-
                   </div>
 
-                  {/* Demo OTP Notice */}
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-
-                    <div className="flex items-start gap-2">
-
-                      <span aria-hidden="true" className="material-symbols-outlined text-amber-600 text-[18px]">
-                        info
+                  {/* Resend Cooldown Section */}
+                  <div className="flex items-center justify-between px-1 text-xs">
+                    {resendCooldown > 0 ? (
+                      <span className="text-on-surface-variant font-medium flex items-center gap-1">
+                        <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+                          schedule
+                        </span>
+                        {p("otp.resendCooldown", { seconds: resendCooldown })}
                       </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleOfficerRequestOtp(null)}
+                        disabled={loading}
+                        className="text-secondary hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                      >
+                        <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+                          refresh
+                        </span>
+                        {p("otp.resend")}
+                      </button>
+                    )}
 
-                      <div className="text-xs text-amber-800">
-
-                        <p className="font-bold">{p("otp.demoHeading")}</p>
-
-                        <p className="mt-0.5">
-                          <InterpolatedText
-                            template={p("otp.demoHint")}
-                            values={{
-                              otp: {
-                                text: verifiedUser.otp,
-                                className: "font-bold tracking-wider",
-                              },
-                            }}
-                          />
-                        </p>
-
-                      </div>
-
-                    </div>
-
+                    {resendSuccess && (
+                      <span className="text-status-success font-semibold">
+                        {p("otp.resendSuccess")}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Error */}
+                  {/* Error Alert */}
                   {error && (
                     <p
                       role="alert"
@@ -764,7 +1048,7 @@ export default function Login() {
                     </p>
                   )}
 
-                  {/* Authenticate */}
+                  {/* Verify & Launch Button */}
                   <button
                     type="submit"
                     disabled={loading || otp.length !== 6}
@@ -787,35 +1071,174 @@ export default function Login() {
                     )}
                   </button>
 
-                  {/* Back */}
+                  {/* Back to Credentials */}
                   <button
                     type="button"
-                    onClick={goBackToIdentity}
+                    onClick={goBackToCredentials}
                     className="w-full py-2.5 text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
                   >
                     {p("otp.back")}
                   </button>
 
                 </form>
-
               </div>
             )}
 
             {/* Modal Footer */}
-            <div className="p-4 bg-surface-container-lowest border-t border-border-subtle text-center text-xs text-on-surface-variant">
-
-              <div className="flex items-center justify-center gap-2">
-
-                <span aria-hidden="true" className="material-symbols-outlined text-[15px]">
-                  shield
-                </span>
-
-                <span>{p("modal.footer")}</span>
-
-              </div>
-
+            <div className="p-4 bg-surface-container-lowest border-t border-border-subtle text-center">
+              <p className="text-[11px] text-on-surface-variant font-medium">
+                {p("modal.footer")}
+              </p>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* ── FORCED PASSWORD CHANGE MODAL (FIRST-TIME LOGIN) ──────────────── */}
+      {forcePasswordModalOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-slate-950/70 backdrop-blur-md"
+          />
+
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={p("forcePasswordChange.title")}
+            className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-border-subtle overflow-hidden animate-scaleUp text-on-surface"
+          >
+            {/* Modal Header */}
+            <div className="p-6 border-b border-border-subtle flex items-center gap-3 bg-surface-container-lowest">
+              <div className="w-10 h-10 bg-amber-500/10 text-amber-600 rounded-xl flex items-center justify-center">
+                <span aria-hidden="true" className="material-symbols-outlined text-[24px]">
+                  lock_reset
+                </span>
+              </div>
+
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-100 rounded-full w-fit mb-1">
+                  <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                  <span className="font-label-caps text-amber-800 uppercase tracking-wider text-[9px]">
+                    {p("forcePasswordChange.badge")}
+                  </span>
+                </div>
+                <h2 className="font-display text-xl font-bold text-on-surface">
+                  {p("forcePasswordChange.title")}
+                </h2>
+                <p className="text-xs text-on-surface-variant">
+                  {p("forcePasswordChange.subtitle")}
+                </p>
+              </div>
+            </div>
+
+            {/* Form Body */}
+            <div className="p-6">
+              <form className="flex flex-col gap-4" onSubmit={handleForcePasswordChange}>
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
+                    htmlFor="current-temp-password"
+                  >
+                    {p("forcePasswordChange.currentPassword")} *
+                  </label>
+                  <input
+                    id="current-temp-password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    placeholder={p("forcePasswordChange.currentPasswordPlaceholder")}
+                    value={currentPasswordInput}
+                    onChange={(e) => {
+                      setCurrentPasswordInput(e.target.value);
+                      setPasswordChangeError("");
+                    }}
+                    className={FIELD_CLASS}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
+                    htmlFor="new-permanent-password"
+                  >
+                    {p("forcePasswordChange.newPassword")} *
+                  </label>
+                  <input
+                    id="new-permanent-password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    placeholder={p("forcePasswordChange.newPasswordPlaceholder")}
+                    value={newPasswordInput}
+                    onChange={(e) => {
+                      setNewPasswordInput(e.target.value);
+                      setPasswordChangeError("");
+                    }}
+                    className={FIELD_CLASS}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
+                    htmlFor="confirm-permanent-password"
+                  >
+                    {p("forcePasswordChange.confirmPassword")} *
+                  </label>
+                  <input
+                    id="confirm-permanent-password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    placeholder={p("forcePasswordChange.confirmPasswordPlaceholder")}
+                    value={confirmPasswordInput}
+                    onChange={(e) => {
+                      setConfirmPasswordInput(e.target.value);
+                      setPasswordChangeError("");
+                    }}
+                    className={FIELD_CLASS}
+                  />
+                </div>
+
+                {/* Error Alert */}
+                {passwordChangeError && (
+                  <p
+                    role="alert"
+                    className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5"
+                  >
+                    <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+                      error
+                    </span>
+                    {passwordChangeError}
+                  </p>
+                )}
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={passwordChangeLoading}
+                  className="w-full py-3.5 bg-secondary hover:bg-secondary-container text-on-primary font-bold text-sm rounded-xl transition-all shadow-md mt-2 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {passwordChangeLoading ? (
+                    <>
+                      <span aria-hidden="true" className="material-symbols-outlined animate-spin text-[18px]">
+                        progress_activity
+                      </span>
+                      {p("forcePasswordChange.submitting")}
+                    </>
+                  ) : (
+                    <>
+                      <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                        verified_user
+                      </span>
+                      {p("forcePasswordChange.submit")}
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       )}

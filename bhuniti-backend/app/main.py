@@ -15,11 +15,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 from app.api.deps import get_locale
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.database import init_models, ping
 from app.core.i18n import resolve_locale, t
+from app.core.limiter import limiter
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("bhuniti-api")
@@ -68,6 +73,9 @@ app = FastAPI(
     redoc_url=f"{settings.API_V1_STR}/redoc",
     lifespan=lifespan,
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 
 cors_kwargs = {
     "allow_origins": settings.BACKEND_CORS_ORIGINS,
@@ -94,6 +102,16 @@ async def database_error_handler(request: Request, exc: SQLAlchemyError):
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content={"detail": t("error.database_unavailable", locale)},
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    """Catch-all for unhandled exceptions to ensure a JSON error is returned with CORS headers intact."""
+    logger.error("Unhandled error on %s %s: %s", request.method, request.url.path, exc, exc_info=True)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "An unexpected server error occurred. Please try again later."},
     )
 
 

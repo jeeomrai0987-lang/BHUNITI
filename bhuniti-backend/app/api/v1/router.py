@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    admin,
     analytics,
     applications,
     audit,
@@ -18,6 +19,9 @@ from app.api.v1.endpoints import (
 )
 
 api_router = APIRouter()
+
+api_router.include_router(admin.router, prefix="/admin", tags=["Administration & Officer Provisioning"])
+
 
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(parcels.router, prefix="/parcels", tags=["Land Parcels & GIS"])

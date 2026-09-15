@@ -23,21 +23,45 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://localhost:4173",
+        "http://127.0.0.1:4173",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
     ]
-    # Optional regex for deployed frontends, e.g. r"https://.*\.vercel\.app"
-    CORS_ORIGIN_REGEX: str = ""
+    # Optional regex for dev and deployed frontends (matches any localhost/127.0.0.1 port)
+    CORS_ORIGIN_REGEX: str = r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$"
 
     # Supabase configuration
     SUPABASE_URL: str = ""
     SUPABASE_KEY: str = ""
     SUPABASE_SERVICE_ROLE_KEY: str = ""
 
+    # EmailJS configuration (for OTP & officer credentials delivery)
+    EMAILJS_SERVICE_ID: str = ""
+    EMAILJS_TEMPLATE_ID_OTP: str = ""
+    EMAILJS_TEMPLATE_ID_OFFICER_CREDENTIALS: str = ""
+    EMAILJS_PUBLIC_KEY: str = ""
+    EMAILJS_PRIVATE_KEY: str = ""
+
+    # SMS Gateway configuration (MSG91 / Fast2SMS / Twilio)
+    SMS_GATEWAY_API_KEY: str = ""
+
+    # Demo safety net mode (returns OTP code in response if True)
+    DEMO_MODE: bool = False
+
+    # PII & Aadhaar cryptographic salt
+    AADHAAR_HASH_SALT: str = "bhuniti_secure_aadhaar_salt_2026_sih"
+
+
     # Database configuration
     DATABASE_URL: str = ""
     SQLITE_DB_PATH: str = "./bhuniti_local.db"
     USE_SQLITE_FALLBACK: bool = True
+
 
     model_config = SettingsConfigDict(
         env_file=".env",
