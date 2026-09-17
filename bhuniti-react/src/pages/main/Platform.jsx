@@ -16,19 +16,19 @@ const DEMO_ROLES = [
     username: "citizen",
     roleKey: "citizen",
     roleName: "Citizen",
-    defaultPassword: "1234",
+    defaultPassword: "@12345",
   },
   {
     username: "revenue_officer",
     roleKey: "revenue_officer",
     roleName: "Revenue Officer",
-    defaultPassword: "1234",
+    defaultPassword: "@12345",
   },
   {
     username: "district_officer",
     roleKey: "district_officer",
     roleName: "District Officer",
-    defaultPassword: "1234",
+    defaultPassword: "@12345",
   },
 ];
 

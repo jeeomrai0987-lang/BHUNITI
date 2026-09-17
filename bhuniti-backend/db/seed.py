@@ -222,7 +222,7 @@ async def seed_users(session, report: Report) -> Dict[str, User]:
             report,
             User,
             {"username": username},
-            hashed_password=get_password_hash("1234"),
+            hashed_password=get_password_hash("@12345"),
             is_active=True,
             **person,
         )
