@@ -11,27 +11,24 @@ import {
 } from "../../routes";
 import { api } from "../../services/api";
 
-const CREDENTIALS = [
+const DEMO_ROLES = [
   {
     username: "citizen",
-    email: "citizen@bhuniti.gov.in",
-    mobile: "9876543210",
-    otp: "123456",
-    role: "Citizen",
+    roleKey: "citizen",
+    roleName: "Citizen",
+    defaultPassword: "1234",
   },
   {
     username: "revenue_officer",
-    email: "revenue@bhuniti.gov.in",
-    mobile: "9876543211",
-    otp: "234567",
-    role: "Revenue Officer",
+    roleKey: "revenue_officer",
+    roleName: "Revenue Officer",
+    defaultPassword: "1234",
   },
   {
     username: "district_officer",
-    email: "district@bhuniti.gov.in",
-    mobile: "9876543212",
-    otp: "345678",
-    role: "District Officer",
+    roleKey: "district_officer",
+    roleName: "District Officer",
+    defaultPassword: "1234",
   },
 ];
 
@@ -120,18 +117,17 @@ export default function Platform() {
   const { t, label, formatNumber } = useI18n();
   const p = (key, vars) => t(`pages.platform.${key}`, vars);
 
+  const isDemoModeEnabled = import.meta.env.VITE_ENABLE_DEMO_MODE === "true";
+
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [activeModuleId, setActiveModuleId] = useState("");
 
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [otp, setOtp] = useState("");
+  const [username, setUsername] = useState("citizen");
+  const [password, setPassword] = useState("1234");
+  const [selectedRole, setSelectedRole] = useState("citizen");
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(1);
-  const [verifiedUser, setVerifiedUser] = useState(null);
 
   // A modal that traps the eye must also answer to Escape.
   useEffect(() => {
@@ -184,129 +180,89 @@ export default function Platform() {
       navigate(direct);
       return;
     }
-    setActiveModuleId(moduleId);
-    setError("");
-    setStep(1);
-    setOtp("");
-    setVerifiedUser(null);
-    setAuthModalOpen(true);
+
+    // Check if user is already authenticated with real token
+    const token = localStorage.getItem("bhuniti_token");
+    let currentUser = null;
+    try {
+      currentUser = JSON.parse(localStorage.getItem("bhuniti_user") || "null");
+    } catch {
+      currentUser = null;
+    }
+
+    if (token && currentUser?.authenticated && currentUser?.role) {
+      const target =
+        MODULE_ROUTES[moduleId]?.[currentUser.role] ||
+        MODULE_ROUTES[moduleId]?.citizen ||
+        CITIZEN_ROUTES.portal;
+      navigate(target);
+      return;
+    }
+
+    // If demo mode is enabled via environment flag, open the explicit demo login modal
+    if (isDemoModeEnabled) {
+      setActiveModuleId(moduleId);
+      setError("");
+      setUsername("citizen");
+      setPassword("1234");
+      setSelectedRole("citizen");
+      setAuthModalOpen(true);
+      return;
+    }
+
+    // Otherwise redirect to the real login page
+    navigate(`${MAIN_ROUTES.login}?portal=${moduleId}`);
   }
 
   function quickFill(user) {
     setUsername(user.username);
-    setEmail(user.email);
-    setMobile(user.mobile);
-    setOtp("");
+    setPassword(user.defaultPassword || "1234");
+    setSelectedRole(user.roleKey);
     setError("");
-    setStep(1);
-    setVerifiedUser(null);
   }
 
-  function handleIdentityVerification(e) {
-    e.preventDefault();
-    setError("");
-
-    const cleanUsername = username.trim().toLowerCase();
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanMobile = mobile.trim();
-
-    if (!cleanUsername || !cleanEmail || !cleanMobile) {
-      setError(p("modal.errors.missing"));
-      return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setError(p("modal.errors.email"));
-      return;
-    }
-
-    if (!/^\d{10}$/.test(cleanMobile)) {
-      setError(p("modal.errors.mobile"));
-      return;
-    }
-
-    const match = CREDENTIALS.find(
-      (c) =>
-        c.username === cleanUsername &&
-        c.email === cleanEmail &&
-        c.mobile === cleanMobile
-    );
-
-    if (!match) {
-      setError(p("modal.errors.noMatch"));
-      return;
-    }
-
-    setVerifiedUser(match);
-    setOtp("");
-    setStep(2);
-  }
-
-  async function handleOtpVerification(e) {
-    e.preventDefault();
+  async function handleDemoLogin(e) {
+    if (e) e.preventDefault();
     setError("");
     setLoading(true);
 
+    const cleanUsername = username.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanUsername || !cleanPassword) {
+      setError(p("modal.errors.missing") || "Please enter username and password.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      try {
-        const res = await api.auth.login(verifiedUser.username, verifiedUser.otp);
-        if (res && res.redirect_url) {
-          localStorage.setItem(
-            "bhuniti_user",
-            JSON.stringify({
-              role: res.role || verifiedUser.role,
-              username: res.username || verifiedUser.username,
-              full_name: res.full_name || verifiedUser.username,
-              email: verifiedUser.email,
-              mobile: verifiedUser.mobile,
-              preferred_locale: res.preferred_locale || "en",
-              authenticated: true,
-            })
-          );
-          // The API field is access_token; res.token was always undefined.
-          if (res.access_token) {
-            localStorage.setItem("bhuniti_token", res.access_token);
-          }
-          setAuthModalOpen(false);
-          const target =
-            MODULE_ROUTES[activeModuleId]?.[verifiedUser.username] || res.redirect_url;
-          navigate(target);
-          return;
-        }
-      } catch {
-        // Backend unreachable: fall through to the offline demo OTP check below.
+      const res = await api.auth.login(cleanUsername, cleanPassword);
+      if (res && res.access_token) {
+        localStorage.setItem("bhuniti_token", res.access_token);
+        localStorage.setItem(
+          "bhuniti_user",
+          JSON.stringify({
+            role: res.role || cleanUsername,
+            username: res.username || cleanUsername,
+            full_name: res.full_name || cleanUsername,
+            preferred_locale: res.preferred_locale || "en",
+            authenticated: true,
+          })
+        );
+        setAuthModalOpen(false);
+        const target =
+          MODULE_ROUTES[activeModuleId]?.[res.role || cleanUsername] ||
+          res.redirect_url ||
+          CITIZEN_ROUTES.portal;
+        navigate(target);
+      } else {
+        throw new Error("Authentication response did not contain an access token.");
       }
-
-      if (otp.trim() !== verifiedUser.otp) {
-        setError(p("modal.errors.otp"));
-        return;
-      }
-
-      localStorage.setItem("bhuniti_token", "secure-demo-token-" + verifiedUser.username);
-      localStorage.setItem(
-        "bhuniti_user",
-        JSON.stringify({
-          role: verifiedUser.role,
-          username: verifiedUser.username,
-          email: verifiedUser.email,
-          mobile: verifiedUser.mobile,
-          authenticated: true,
-        })
-      );
-
-      setAuthModalOpen(false);
-      const target =
-        MODULE_ROUTES[activeModuleId]?.[verifiedUser.username] || CITIZEN_ROUTES.portal;
-      navigate(target);
+    } catch (err) {
+      setError(err.message || p("errors.invalidCredentials") || "Authentication failed.");
     } finally {
       setLoading(false);
     }
-  }
-
-  function goBackToIdentity() {
-    setStep(1);
-    setOtp("");
-    setError("");
   }
 
   return (
@@ -728,12 +684,11 @@ export default function Platform() {
         </section>
       </div>
       {/*
-       * Two-step access modal. The original was a bare pair of divs: no dialog
-       * role, no accessible name, no Escape key, and a backdrop that was a div
-       * with an onClick a keyboard could never reach. The authentication flow
-       * itself is untouched -- only the wrapper and the copy around it.
+       * Explicit Demo Access Modal -- active only when VITE_ENABLE_DEMO_MODE is true.
+       * Authenticates directly via the real backend api.auth.login endpoint.
+       * Displays genuine error messages on failure with zero fabricated sessions.
        */}
-      {authModalOpen && (
+      {authModalOpen && isDemoModeEnabled && (
         <div
           role="dialog"
           aria-modal="true"
@@ -754,15 +709,15 @@ export default function Platform() {
                   className="w-10 h-10 bg-secondary/10 text-secondary rounded-xl flex items-center justify-center shrink-0"
                 >
                   <span className="material-symbols-outlined text-[24px]">
-                    {step === 1 ? "verified_user" : "sms"}
+                    verified_user
                   </span>
                 </div>
                 <div>
                   <h2 id="plat-modal-title" className="font-display text-xl font-bold text-on-surface">
-                    {step === 1 ? p("modal.accessTitle", { module: moduleTitle }) : p("modal.otpTitle")}
+                    {p("modal.accessTitle", { module: moduleTitle })}
                   </h2>
                   <p className="text-xs text-on-surface-variant">
-                    {step === 1 ? p("modal.accessSubtitle") : p("modal.otpSubtitle")}
+                    {p("modal.demoMode")} — {p("modal.accessSubtitle")}
                   </p>
                 </div>
               </div>
@@ -777,256 +732,105 @@ export default function Platform() {
                 </span>
               </button>
             </div>
-            {/* Step tracker. The bar is decoration; the sentence beside it is
-                what a screen reader reads. */}
-            <div className="px-6 pt-5">
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
-                <span className={step >= 1 ? "text-secondary" : "text-on-surface-variant"}>
-                  {p("modal.stepIdentity")}
-                </span>
-                <div aria-hidden="true" className="flex-1 h-1 mx-3 bg-surface-container rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-secondary transition-all duration-500"
-                    style={{ width: percent(step / TOTAL_STEPS) }}
-                  />
-                </div>
-                <span className={step >= 2 ? "text-secondary" : "text-on-surface-variant"}>
-                  {p("modal.stepOtp")}
-                </span>
-              </div>
-              <p className="sr-only">{p("modal.progress", { step, total: TOTAL_STEPS })}</p>
+
+            {/* Demo role selectors */}
+            <div className="px-6 pt-5 flex items-center gap-2 overflow-x-auto">
+              <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
+                {p("modal.demo")}
+              </span>
+              {DEMO_ROLES.map((user) => (
+                <button
+                  key={user.username}
+                  type="button"
+                  onClick={() => quickFill(user)}
+                  aria-label={p("modal.quickFill", { role: label("actor_role", user.roleName) })}
+                  className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-colors shrink-0 cursor-pointer ${
+                    selectedRole === user.roleKey ? "ring-2 ring-secondary ring-offset-1 " : ""
+                  }${CHIP_TONE[user.username]}`}
+                >
+                  {label("actor_role", user.roleName)}
+                </button>
+              ))}
             </div>
 
-            {step === 1 && (
-              <>
-                {/* Quick fill. Demo usernames stay in Latin because they are the
-                    literal values the API matches on. */}
-                <div className="px-6 pt-5 flex items-center gap-2 overflow-x-auto">
-                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">
-                    {p("modal.demo")}
-                  </span>
-                  {CREDENTIALS.map((user) => (
-                    <button
-                      key={user.username}
-                      type="button"
-                      onClick={() => quickFill(user)}
-                      aria-label={p("modal.quickFill", { role: label("actor_role", user.role) })}
-                      className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-colors shrink-0 cursor-pointer ${CHIP_TONE[user.username]}`}
-                    >
-                      {label("actor_role", user.role)}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="p-6">
-                  <form className="flex flex-col gap-4" onSubmit={handleIdentityVerification}>
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
-                        htmlFor="plat-username"
-                      >
-                        {p("modal.username")}
-                      </label>
-                      <input
-                        id="plat-username"
-                        type="text"
-                        autoComplete="username"
-                        placeholder={p("modal.usernameHint")}
-                        value={username}
-                        onChange={(e) => {
-                          setUsername(e.target.value);
-                          setError("");
-                        }}
-                        className="w-full px-4 py-3 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
-                        htmlFor="plat-email"
-                      >
-                        {p("modal.email")}
-                      </label>
-                      <input
-                        id="plat-email"
-                        type="email"
-                        autoComplete="email"
-                        placeholder={p("modal.emailHint")}
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          setError("");
-                        }}
-                        className="w-full px-4 py-3 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <label
-                        className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
-                        htmlFor="plat-mobile"
-                      >
-                        {p("modal.mobile")}
-                      </label>
-                      <div className="flex">
-                        <span
-                          aria-hidden="true"
-                          className="flex items-center px-3 bg-surface-container-lowest border border-r-0 border-border-subtle rounded-l-xl text-sm font-semibold"
-                        >
-                          {p("modal.countryCode")}
-                        </span>
-                        <input
-                          id="plat-mobile"
-                          type="tel"
-                          inputMode="numeric"
-                          maxLength={10}
-                          autoComplete="tel"
-                          placeholder={p("modal.mobileHint")}
-                          value={mobile}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, "");
-                            setMobile(value);
-                            setError("");
-                          }}
-                          className="w-full px-4 py-3 rounded-r-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
-                        />
-                      </div>
-                    </div>
-                    {error ? (
-                      <p
-                        role="alert"
-                        className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5"
-                      >
-                        <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
-                          error
-                        </span>
-                        {error}
-                      </p>
-                    ) : null}
-
-                    <button
-                      type="submit"
-                      className="w-full py-3.5 bg-secondary hover:bg-secondary-container text-on-primary font-bold text-sm rounded-xl transition-all shadow-md mt-2 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
-                        send
-                      </span>
-                      {p("modal.send")}
-                    </button>
-                  </form>
-                </div>
-              </>
-            )}
-
-            {step === 2 && verifiedUser && (
-              <div className="p-6">
-                <div className="bg-secondary/5 border border-secondary/10 rounded-xl p-4 mb-5">
-                  <div className="flex items-center gap-3">
-                    <div
-                      aria-hidden="true"
-                      className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center shrink-0"
-                    >
-                      <span className="material-symbols-outlined text-secondary">verified</span>
-                    </div>
-                    <div>
-                      <p className="text-xs text-on-surface-variant">{p("modal.verifiedFor")}</p>
-                      <p className="font-bold text-sm">{label("actor_role", verifiedUser.role)}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <form className="flex flex-col gap-4" onSubmit={handleOtpVerification}>
-                  <div className="text-center">
-                    <p className="text-sm text-on-surface-variant">{p("modal.sentTo")}</p>
-                    <p className="font-bold text-sm mt-1">
-                      {p("modal.maskedMobile", { last4: verifiedUser.mobile.slice(-4) })}
-                    </p>
-                    <p className="text-xs text-on-surface-variant mt-1">{verifiedUser.email}</p>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label
-                      className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider text-center"
-                      htmlFor="plat-otp"
-                    >
-                      {p("modal.otpLabel")}
-                    </label>
-                    <input
-                      id="plat-otp"
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={OTP_LENGTH}
-                      placeholder="••••••"
-                      value={otp}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, "");
-                        setOtp(value);
-                        setError("");
-                      }}
-                      className="w-full px-4 py-4 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors text-center text-2xl tracking-[0.6em] font-bold text-on-surface"
-                    />
-                  </div>
-
-                  {/* The demo OTP is printed on purpose: this build has no SMS
-                      gateway, and the value is the same one the API accepts. */}
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-                    <div className="flex items-start gap-2">
-                      <span aria-hidden="true" className="material-symbols-outlined text-amber-600 text-[18px]">
-                        info
-                      </span>
-                      <div className="text-xs text-amber-800">
-                        <p className="font-bold">{p("modal.demoMode")}</p>
-                        <p className="mt-0.5 tracking-wide">{p("modal.demoOtp", { otp: verifiedUser.otp })}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {error ? (
-                    <p
-                      role="alert"
-                      className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5"
-                    >
-                      <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
-                        error
-                      </span>
-                      {error}
-                    </p>
-                  ) : null}
-                  <button
-                    type="submit"
-                    disabled={loading || otp.length !== OTP_LENGTH}
-                    className="w-full py-3.5 bg-secondary hover:bg-secondary-container disabled:opacity-50 disabled:cursor-not-allowed text-on-primary font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            <div className="p-6">
+              <form className="flex flex-col gap-4" onSubmit={handleDemoLogin}>
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
+                    htmlFor="plat-username"
                   >
-                    {loading ? (
-                      <>
-                        <span aria-hidden="true" className="material-symbols-outlined animate-spin text-[18px]">
-                          progress_activity
-                        </span>
-                        {p("modal.verifying")}
-                      </>
-                    ) : (
-                      <>
-                        <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
-                          lock_open
-                        </span>
-                        {p("modal.launch", { module: moduleTitle })}
-                      </>
-                    )}
-                  </button>
+                    {p("modal.username")}
+                  </label>
+                  <input
+                    id="plat-username"
+                    type="text"
+                    autoComplete="username"
+                    placeholder={p("modal.usernameHint")}
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setError("");
+                    }}
+                    className="w-full px-4 py-3 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    className="font-label-caps text-on-surface text-xs font-bold uppercase tracking-wider"
+                    htmlFor="plat-password"
+                  >
+                    Password
+                  </label>
+                  <input
+                    id="plat-password"
+                    type="password"
+                    autoComplete="current-password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError("");
+                    }}
+                    className="w-full px-4 py-3 rounded-xl border border-border-subtle bg-surface-container-lowest focus:outline-none focus:border-secondary focus:bg-white transition-colors font-body-md text-sm text-on-surface"
+                  />
+                </div>
 
-                  <button
-                    type="button"
-                    onClick={goBackToIdentity}
-                    className="w-full py-2.5 text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                {error ? (
+                  <p
+                    role="alert"
+                    className="text-status-error text-xs font-bold bg-status-error/10 p-2.5 rounded-lg flex items-center gap-1.5"
                   >
                     <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
-                      arrow_back
+                      error
                     </span>
-                    {p("modal.changeIdentity")}
-                  </button>
-                </form>
-              </div>
-            )}
+                    {error}
+                  </p>
+                ) : null}
+
+                <button
+                  type="submit"
+                  disabled={loading || !username.trim() || !password.trim()}
+                  className="w-full py-3.5 bg-secondary hover:bg-secondary-container disabled:opacity-50 disabled:cursor-not-allowed text-on-primary font-bold text-sm rounded-xl transition-all shadow-md mt-2 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <span aria-hidden="true" className="material-symbols-outlined animate-spin text-[18px]">
+                        progress_activity
+                      </span>
+                      {p("modal.verifying")}
+                    </>
+                  ) : (
+                    <>
+                      <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                        lock_open
+                      </span>
+                      {p("modal.launch", { module: moduleTitle })}
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
 
             <div className="p-4 bg-surface-container-lowest border-t border-border-subtle text-center text-xs text-on-surface-variant">
               <div className="flex items-center justify-center gap-2">

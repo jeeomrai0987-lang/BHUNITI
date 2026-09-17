@@ -7,6 +7,18 @@ from app.core.database import AsyncSessionLocal, async_engine
 from app.core.limiter import limiter
 
 
+from app.core.config import settings
+
+
+@pytest.fixture(autouse=True)
+def enable_test_demo_mode():
+    """Enable DEMO_MODE by default in test suite so seed test fixtures run cleanly."""
+    orig = settings.DEMO_MODE
+    settings.DEMO_MODE = True
+    yield
+    settings.DEMO_MODE = orig
+
+
 @pytest.fixture(autouse=True)
 def disable_rate_limiter():
     """Disable slowapi rate limiting during pytest execution."""

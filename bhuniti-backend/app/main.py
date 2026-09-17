@@ -34,11 +34,33 @@ logger = logging.getLogger("bhuniti-api")
 async def lifespan(app: FastAPI):
     logger.info("Starting %s (%s)", settings.PROJECT_NAME, settings.ENVIRONMENT)
 
+    # Enforce strict secret key validation outside local development
+    if (settings.ENVIRONMENT or "").strip().lower() != "development" and settings.is_default_secret_key:
+        error_msg = (
+            f"CRITICAL SECURITY ERROR: Cannot start application in '{settings.ENVIRONMENT}' environment "
+            f"using the default insecure SECRET_KEY. Refusing to start service. "
+            f"Set a unique, cryptographically secure SECRET_KEY in your deployment environment."
+        )
+        logger.critical(error_msg)
+        raise RuntimeError(error_msg)
+
     if settings.is_default_secret_key:
         logger.warning(
-            "SECRET_KEY is still the value shipped in .env.example. Every token this "
-            "process issues can be forged by anyone holding the repository. Set a "
-            "unique SECRET_KEY before exposing this service."
+            "SECURITY WARNING: SECRET_KEY is set to the default development key. "
+            "Every token this process issues can be forged by anyone holding the repository. "
+            "This is acceptable for local development only. Set a unique SECRET_KEY before deploying."
+        )
+
+    # Warn loudly if running on SQLite outside local development
+    if settings.uses_sqlite and (settings.ENVIRONMENT or "").strip().lower() != "development":
+        logger.critical(
+            "CRITICAL DATABASE WARNING: Application is running in '%s' environment using the "
+            "local SQLite fallback database (%s). "
+            "Ephemeral hosting platforms (such as Render or Docker containers) wipe local disk on every "
+            "redeploy or restart, leading to TOTAL DATA LOSS! "
+            "Set a persistent PostgreSQL DATABASE_URL and configure USE_SQLITE_FALLBACK=False in your environment.",
+            settings.ENVIRONMENT,
+            settings.SQLITE_DB_PATH,
         )
 
     app.state.db_ready = False

@@ -1,12 +1,14 @@
 # Node / React
 node_modules/
 dist/
+build/
 .vite/
 *.tsbuildinfo
 
 # Python
 __pycache__/
 *.py[cod]
+*.pyc
 *.egg-info/
 .venv/
 venv/
@@ -15,15 +17,24 @@ env/
 .coverage
 htmlcov/
 
-# Local databases (the SQLite fallback in app/core/config.py)
+# Local databases (SQLite fallback)
+bhuniti_local.db
 *.db
 *.db-journal
+*.sqlite
 *.sqlite3
 
-# Environment variables -- .env holds live Supabase credentials, never commit it
+# Environment files (never commit secrets)
 .env
+.env.local
 .env.*
+*.env
 !.env.example
+
+# Scratch & Ad-hoc manual verification scripts
+scripts/adhoc/
+bhuniti-backend/scripts/adhoc/
+test_browser_e2e.py
 
 # Editors / OS
 .vscode/
@@ -36,6 +47,4 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Manual test scripts
-test_browser_e2e.py
 

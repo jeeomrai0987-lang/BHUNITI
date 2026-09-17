@@ -106,19 +106,24 @@ async def get_my_applications(
     current_user: User = Depends(require_role(["citizen", "revenue_officer", "district_officer"])),
 ) -> Any:
     """Applications for the citizen portal, newest first."""
-    total = await db.scalar(select(func.count(Application.id))) or 0
-    rows = (
-        (
-            await db.execute(
-                select(Application)
-                .order_by(Application.created_at.desc())
-                .limit(limit)
-                .offset(offset)
-            )
-        )
-        .scalars()
-        .all()
+    filters = []
+    if current_user.role == "citizen":
+        filters.append(Application.citizen_id == current_user.id)
+
+    total_query = select(func.count(Application.id))
+    select_query = (
+        select(Application)
+        .order_by(Application.created_at.desc())
+        .limit(limit)
+        .offset(offset)
     )
+
+    if filters:
+        total_query = total_query.where(*filters)
+        select_query = select_query.where(*filters)
+
+    total = await db.scalar(total_query) or 0
+    rows = (await db.execute(select_query)).scalars().all()
     response.headers["X-Total-Count"] = str(total)
     return [_with_stages(row, locale) for row in rows]
 
@@ -142,7 +147,7 @@ async def get_application(
         .scalars()
         .first()
     )
-    if not application:
+    if not application or (current_user.role == "citizen" and application.citizen_id != current_user.id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=t("error.application_not_found", locale, reference=reference),
@@ -229,7 +234,7 @@ async def confirm_survey_availability(
         .scalars()
         .first()
     )
-    if not application:
+    if not application or (current_user.role == "citizen" and application.citizen_id != current_user.id):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=t("error.application_not_found", locale, reference=reference),

@@ -1,13 +1,21 @@
-from typing import List
+import json
+from typing import List, Union
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# =============================================================================
+# INSECURE DEVELOPMENT DEFAULT SECRET KEY
+# =============================================================================
+# WARNING: This constant is ONLY for local zero-config development (ENVIRONMENT="development").
+# It MUST NEVER be used in production, staging, or any deployed environment.
+# The Settings validator and main.py lifespan check will refuse to start the application
+# if this key is used when ENVIRONMENT != "development".
 DEFAULT_SECRET_KEY = "bhuniti_secret_jwt_key_super_secure_development_key_12345"
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "BHUNITI Land Governance Platform API"
+    PROJECT_NAME: str = "BHUNITI Land Governance Platform"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = DEFAULT_SECRET_KEY
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
@@ -16,11 +24,11 @@ class Settings(BaseSettings):
 
     # Internationalisation
     DEFAULT_LOCALE: str = "en"
-    SUPPORTED_LOCALES: List[str] = ["en", "hi", "mr", "bn", "ta"]
+    SUPPORTED_LOCALES: Union[List[str], str] = ["en", "hi", "mr", "bn", "ta"]
 
     # CORS. Accepts a JSON array or a plain comma-separated list, because both
     # spellings turn up in .env files.
-    BACKEND_CORS_ORIGINS: List[str] = [
+    BACKEND_CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:5174",
@@ -53,8 +61,8 @@ class Settings(BaseSettings):
     # Demo safety net mode (returns OTP code in response if True)
     DEMO_MODE: bool = False
 
-    # PII & Aadhaar cryptographic salt
-    AADHAAR_HASH_SALT: str = "bhuniti_secure_aadhaar_salt_2026_sih"
+    # PII & Aadhaar cryptographic salt (Set in environment in production)
+    AADHAAR_HASH_SALT: str = "dev_aadhaar_salt_local_only"
 
 
     # Database configuration
@@ -74,9 +82,26 @@ class Settings(BaseSettings):
     def _split_comma_separated(cls, value):
         if isinstance(value, str):
             text = value.strip()
-            if text and not text.startswith("["):
-                return [item.strip() for item in text.split(",") if item.strip()]
+            if text.startswith("[") and text.endswith("]"):
+                try:
+                    parsed = json.loads(text)
+                    if isinstance(parsed, list):
+                        return [str(item).strip() for item in parsed if str(item).strip()]
+                except Exception:
+                    pass
+            return [item.strip() for item in text.split(",") if item.strip()]
         return value
+
+    @model_validator(mode="after")
+    def validate_secret_key_security(self) -> "Settings":
+        env = (self.ENVIRONMENT or "").strip().lower()
+        if env != "development" and self.SECRET_KEY == DEFAULT_SECRET_KEY:
+            raise ValueError(
+                f"CRITICAL SECURITY ERROR: Running outside development (ENVIRONMENT='{self.ENVIRONMENT}') "
+                f"with the insecure DEFAULT_SECRET_KEY. Refusing to load settings. "
+                f"Please generate and configure a cryptographically secure SECRET_KEY in your environment or .env file."
+            )
+        return self
 
     @property
     def is_default_secret_key(self) -> bool:

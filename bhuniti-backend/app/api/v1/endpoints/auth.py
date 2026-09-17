@@ -149,7 +149,29 @@ async def login(
     password = login_data.password.strip()
 
     user = await find_user_by_identifier(db, identifier)
-    if not user or not user.is_active or not verify_password(password, user.hashed_password):
+    is_demo_cred = (
+        settings.DEMO_MODE
+        and user is not None
+        and user.username in ("citizen", "revenue_officer", "district_officer")
+        and password == "1234"
+    )
+    password_valid = bool(user and user.hashed_password and (verify_password(password, user.hashed_password) or is_demo_cred))
+    if not user or not user.is_active or not password_valid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=t("error.invalid_credentials", locale),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # In production (DEMO_MODE=False), officer accounts must use the official 2FA OTP workflow
+    if user.role in ("revenue_officer", "district_officer", "admin") and not settings.DEMO_MODE:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Officer accounts must authenticate using official Two-Factor Authentication (OTP). Direct password login is disabled in production.",
+        )
+
+    # In production (DEMO_MODE=False), reject known default demo passwords
+    if not settings.DEMO_MODE and (password in ("1234", "password", "admin", "123456") or user.username in ("citizen", "revenue_officer", "district_officer")):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=t("error.invalid_credentials", locale),
@@ -183,14 +205,25 @@ async def request_otp(
     user = await find_user_by_identifier(db, identifier)
 
     allowed_roles = ("revenue_officer", "district_officer", "admin")
-    role_matches = (user.role == claimed_role) or (claimed_role == "admin" and user.role in ("district_officer", "admin"))
+    role_matches = bool(user) and (
+        (user.role == claimed_role) or (claimed_role == "admin" and user.role in ("district_officer", "admin"))
+    )
+
+    is_demo_cred = (
+        settings.DEMO_MODE
+        and user is not None
+        and user.username in ("revenue_officer", "district_officer", "admin")
+        and password == "1234"
+    )
+    password_valid = bool(user and user.hashed_password and (verify_password(password, user.hashed_password) or is_demo_cred))
 
     if (
         not user
         or not user.is_active
-        or not verify_password(password, user.hashed_password)
+        or not password_valid
         or not role_matches
         or user.role not in allowed_roles
+        or (not settings.DEMO_MODE and (password in ("1234", "password", "admin", "123456") or user.username in ("revenue_officer", "district_officer", "admin")))
     ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

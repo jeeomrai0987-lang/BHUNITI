@@ -60,8 +60,10 @@
 
 ---
 
-## 3. Database Configuration
-Database connections are securely configured via environment variables (refer to `.env.example`).
+## 3. Database Configuration & Secrets Management
+> **Security Notice**: `SECRET_KEY` and all values in `.env` are strictly per-deployment secrets, never defaults, and must never be committed to source control.
+
+Database connections and API secrets are securely configured via environment variables (refer to `.env.example`).
 - **Primary Database**: Configured via `DATABASE_URL` in `.env`
 - **Secondary Database**: Configured via environment variables for synchronization
 - **Local Fallback**: SQLite (`./bhuniti_local.db`) enabled by default when remote DB is offline.

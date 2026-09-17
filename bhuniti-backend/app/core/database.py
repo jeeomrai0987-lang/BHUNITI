@@ -25,6 +25,14 @@ Base = declarative_base()
 DATABASE_URL = settings.async_database_url
 IS_SQLITE = DATABASE_URL.startswith("sqlite")
 
+if IS_SQLITE and (settings.ENVIRONMENT or "").strip().lower() != "development":
+    logger.error(
+        "DATABASE WARNING: Initializing local SQLite fallback engine in '%s' environment (%s). "
+        "Data stored in SQLite will not persist across container restarts or platform redeploys.",
+        settings.ENVIRONMENT,
+        settings.SQLITE_DB_PATH,
+    )
+
 
 def _engine_kwargs() -> Dict[str, Any]:
     if IS_SQLITE:

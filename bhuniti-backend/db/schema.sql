@@ -317,6 +317,24 @@ CREATE INDEX IF NOT EXISTS ix_audit_logs_timestamp ON public.audit_logs(timestam
 CREATE INDEX IF NOT EXISTS ix_ref_translations_lookup
     ON public.ref_translations(entity_type, locale);
 
+-- ==============================================================================
+-- IMPORTANT ARCHITECTURAL & SECURITY NOTICE ON ROW LEVEL SECURITY (RLS):
+--
+-- The RLS policies defined below are currently NOT enforced against this
+-- application's database connections for two reasons:
+-- 1. The FastAPI backend connects directly via asyncpg using the table-owning
+--    database role (e.g. postgres.<project_ref>), which bypasses RLS policies
+--    by default in PostgreSQL unless 'FORCE ROW LEVEL SECURITY' is enabled.
+-- 2. The backend uses its own bcrypt + custom-JWT authentication layer rather
+--    than Supabase Auth (GoTrue). Consequently, auth.uid() and auth.jwt() are
+--    always NULL on the backend connection session, making policies with
+--    "OR auth.uid() IS NULL" evaluate to TRUE unconditionally.
+--
+-- ALL REAL AUTHORIZATION AND ACCESS CONTROL IS ACTIVELY ENFORCED IN THE PYTHON
+-- FASTAPI APPLICATION LAYER via `require_role()` dependency checks and explicit
+-- tenant/user ownership filters (e.g. scoping queries to current_user.id).
+-- ==============================================================================
+
 -- 15. ROW LEVEL SECURITY (Role-Based Policies)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.parcels ENABLE ROW LEVEL SECURITY;

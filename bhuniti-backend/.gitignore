@@ -1,17 +1,27 @@
 # Pytest cache & Python bytecode
 __pycache__/
 *.py[cod]
+*.pyc
 .pytest_cache/
+.venv/
+venv/
+env/
 
 # Local databases
+bhuniti_local.db
 *.db
 *.db-journal
+*.sqlite
 *.sqlite3
 
 # Environment files
 .env
+.env.local
 .env.*
+*.env
 !.env.example
 
-# Manual Playwright smoke-check script
+# Ad-hoc / Scratch manual scripts
+scripts/adhoc/
 test_browser_e2e.py
+
