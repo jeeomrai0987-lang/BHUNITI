@@ -275,7 +275,7 @@ async def test_demo_mode_otp_flag(client, monkeypatch):
     monkeypatch.setattr(settings, "DEMO_MODE", False)
     res_off = await client.post("/api/v1/auth/request-otp", json={
         "username": "revenue_officer",
-        "password": "1234",
+        "password": "@12345",
         "claimed_role": "revenue_officer"
     })
     assert res_off.status_code == 200
@@ -285,7 +285,7 @@ async def test_demo_mode_otp_flag(client, monkeypatch):
     monkeypatch.setattr(settings, "DEMO_MODE", True)
     res_on = await client.post("/api/v1/auth/request-otp", json={
         "username": "revenue_officer",
-        "password": "1234",
+        "password": "@12345",
         "claimed_role": "revenue_officer"
     })
     assert res_on.status_code == 200
