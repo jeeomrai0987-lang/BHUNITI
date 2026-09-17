@@ -39,9 +39,10 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
+        "https://bhuniti-nine.vercel.app",
     ]
-    # Optional regex for dev and deployed frontends (matches any localhost/127.0.0.1 port)
-    CORS_ORIGIN_REGEX: str = r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$"
+    # Optional regex for dev and deployed frontends (matches localhost and vercel apps)
+    CORS_ORIGIN_REGEX: str = r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$|^https://[a-zA-Z0-9_-]+\.vercel\.app$"
 
     # Supabase configuration
     SUPABASE_URL: str = ""
